@@ -47,8 +47,6 @@ const callableHttp = {
 
 /** Secret Manager — definir com: `firebase functions:secrets:set GOOGLE_API_KEY` antes do deploy. */
 const geminiApiKeySecret = defineSecret('GOOGLE_API_KEY');
-/** Legendas Vimeo (catálogo streaming + foco na home + "Saiba mais" nos cursos). Opcional no produto, mas o secret deve existir para o deploy (pode atualizar o valor quando tiver o token). */
-const vimeoAccessTokenSecret = defineSecret('VIMEO_ACCESS_TOKEN');
 /** Predefinição: 2.0-flash deixou de estar disponível para novas chaves — override com `GEMINI_MODEL`. */
 const geminiModelParam = defineString('GEMINI_MODEL', { default: 'gemini-2.5-flash' });
 
@@ -685,7 +683,7 @@ export const logStreamingView = onCall(callableHttp, async (request) => {
 
 /** Chat assistente (Gemini): login obrigatório + quota diária; contexto streaming + cursos + vídeo em foco. */
 export const streamingAssistantChat = onCall(
-  { ...callableHttp, secrets: [geminiApiKeySecret, vimeoAccessTokenSecret] },
+  { ...callableHttp, secrets: [geminiApiKeySecret] },
   async (request) => {
     if (!request.auth?.uid) {
       throw new HttpsError(
@@ -695,12 +693,11 @@ export const streamingAssistantChat = onCall(
     }
     const raw = (request.data ?? {}) as StreamingAssistantRequestData;
     await assertAssistantDailyQuota(db, request.auth.uid, raw.courseId);
-    const vimeoFromSecret = vimeoAccessTokenSecret.value()?.trim();
     return handleStreamingAssistantChat(db, raw, {
       googleApiKey: geminiApiKeySecret.value(),
       modelName: geminiModelParam.value(),
-      /** Em produção vem do Secret Manager; em emulador/local continua a valer `functions/.env`. */
-      vimeoToken: vimeoFromSecret || process.env.VIMEO_ACCESS_TOKEN?.trim(),
+      /** Vimeo é opcional: sem token, o assistente usa fallback sem bloquear deploy. */
+      vimeoToken: process.env.VIMEO_ACCESS_TOKEN?.trim(),
     });
   }
 );
