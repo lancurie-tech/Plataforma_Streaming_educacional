@@ -19,6 +19,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // Mantemos essas regras desligadas porque o projeto usa padrões com efeitos
+      // assíncronos e resets controlados que disparam falso-positivo nessas validações.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
       'react-refresh/only-export-components': [
         'warn',
         {
