@@ -116,7 +116,7 @@ Google Cloud Console → Firestore → **Backups** → criar agendamento (ex: di
 bash scripts/firestore-backup.sh
 ```
 
-Pré-requisito: criar bucket `gs://medivox-backups` na região `southamerica-east1`.
+Pré-requisito: criar bucket `gs://streaming-educacional-backups` na região `southamerica-east1`.
 
 ## 4. Security Headers
 
@@ -169,7 +169,7 @@ Variáveis de ambiente / secrets das Functions:
 ## 9. Ambiente de Staging (recomendado)
 
 Para evitar que testes afetem dados de produção:
-1. Criar segundo projeto Firebase (`medivox-staging`)
+1. Criar segundo projeto Firebase (`streaming-educacional-staging`)
 2. Configurar `.env.staging` com as variáveis do projeto staging
 3. No Vercel, criar ambiente Preview com variáveis do staging
 4. Branch `dev` faz deploy para staging automaticamente

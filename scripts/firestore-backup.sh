@@ -4,9 +4,9 @@
 # ============================================================================
 # Pré-requisitos:
 #   1. gcloud CLI instalado e autenticado: gcloud auth login
-#   2. Projeto selecionado: gcloud config set project medivox-sp
+#   2. Projeto selecionado: gcloud config set project streaming-educacional
 #   3. Bucket de backup criado (uma vez):
-#        gsutil mb -l southamerica-east1 gs://medivox-backups
+#        gsutil mb -l southamerica-east1 gs://streaming-educacional-backups
 #   4. API Firestore habilitada: gcloud services enable firestore.googleapis.com
 #
 # Uso:
@@ -20,13 +20,13 @@
 #          --retention-period="7d"
 #
 # Para RESTAURAR um backup:
-#   gcloud firestore import gs://medivox-backups/BACKUP_FOLDER
+#   gcloud firestore import gs://streaming-educacional-backups/BACKUP_FOLDER
 # ============================================================================
 
 set -euo pipefail
 
-PROJECT_ID="${GCP_PROJECT:-medivox-sp}"
-BUCKET="gs://${BACKUP_BUCKET:-medivox-backups}"
+PROJECT_ID="${GCP_PROJECT:-streaming-educacional}"
+BUCKET="gs://${BACKUP_BUCKET:-streaming-educacional-backups}"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 echo "Exportando Firestore do projeto $PROJECT_ID para $BUCKET/$TIMESTAMP..."

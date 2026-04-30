@@ -1,8 +1,8 @@
 {
   "projects": {
-    "default": "medivox-sp",
-    "prod": "medivox-sp",
-    "dev": "medivox-sp-dev"
+    "default": "streaming-educacional",
+    "prod": "streaming-educacional",
+    "dev": "streaming-educacional-dev"
   },
   "targets": {},
   "etags": {}

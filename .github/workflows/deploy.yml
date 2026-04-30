@@ -6,24 +6,24 @@
 # - Qualquer **PR** com base em `main` ou `dev` → preview de Hosting só no projeto **dev**,
 #   build com credenciais **dev** (não usa o banco de prod durante revisão).
 #
-# Pré-requisito: criar no Firebase um segundo projeto (ex.: `medivox-sp-dev`), ativar Hosting
+# Pré-requisito: criar no Firebase um segundo projeto (ex.: `streaming-educacional-dev`), ativar Hosting
 # e gerar uma service account com permissão de deploy nesse projeto.
 #
-# Secrets — produção (projeto `medivox-sp`):
+# Secrets — produção (projeto `streaming-educacional`):
 #   FIREBASE_SERVICE_ACCOUNT, VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN,
 #   VITE_FIREBASE_PROJECT_ID, VITE_FIREBASE_STORAGE_BUCKET,
 #   VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID
 #   Opcional App Check (reCAPTCHA v3 site key): VITE_FIREBASE_APPCHECK_SITE_KEY
 #
-# Secrets — desenvolvimento (projeto `medivox-sp-dev` ou o ID que usares):
+# Secrets — desenvolvimento (projeto `streaming-educacional-dev` ou o ID que usares):
 #   FIREBASE_SERVICE_ACCOUNT_DEV, VITE_FIREBASE_API_KEY_DEV, VITE_FIREBASE_AUTH_DOMAIN_DEV,
 #   VITE_FIREBASE_PROJECT_ID_DEV, VITE_FIREBASE_STORAGE_BUCKET_DEV,
 #   VITE_FIREBASE_MESSAGING_SENDER_ID_DEV, VITE_FIREBASE_APP_ID_DEV
 #   Opcional App Check dev: VITE_FIREBASE_APPCHECK_SITE_KEY_DEV
 #
 # Opcional — Settings → Secrets and variables → Actions → Variables:
-#   FIREBASE_PROJECT_DEV — ID GCP/Firebase do dev (default no YAML: medivox-sp-dev)
-#   FIREBASE_PROJECT_PROD — ID de produção (default: medivox-sp)
+#   FIREBASE_PROJECT_DEV — ID GCP/Firebase do dev (default no YAML: streaming-educacional-dev)
+#   FIREBASE_PROJECT_PROD — ID de produção (default: streaming-educacional)
 
 name: Deploy Firebase (dev + prod)
 
@@ -54,7 +54,7 @@ jobs:
       group: firebase-dev-${{ github.ref }}
       cancel-in-progress: true
     env:
-      FIREBASE_GCP_PROJECT: ${{ vars.FIREBASE_PROJECT_DEV || 'medivox-sp-dev' }}
+      FIREBASE_GCP_PROJECT: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
       VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY_DEV }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN_DEV }}
       VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID_DEV }}
@@ -104,7 +104,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
           expires: 30d
-          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'medivox-sp-dev' }}
+          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
 
       - name: Hosting — live (branch dev)
         if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
@@ -112,7 +112,7 @@ jobs:
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
           channelId: live
-          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'medivox-sp-dev' }}
+          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
 
       - name: Autenticar Google Cloud (backend dev)
         if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
@@ -139,7 +139,7 @@ jobs:
       group: firebase-prod-${{ github.ref }}
       cancel-in-progress: true
     env:
-      FIREBASE_GCP_PROJECT: ${{ vars.FIREBASE_PROJECT_PROD || 'medivox-sp' }}
+      FIREBASE_GCP_PROJECT: ${{ vars.FIREBASE_PROJECT_PROD || 'streaming-educacional' }}
       VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
       VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -186,7 +186,7 @@ jobs:
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
-          projectId: ${{ vars.FIREBASE_PROJECT_PROD || 'medivox-sp' }}
+          projectId: ${{ vars.FIREBASE_PROJECT_PROD || 'streaming-educacional' }}
 
       - name: Autenticar Google Cloud (backend prod)
         uses: google-github-actions/auth@v2
