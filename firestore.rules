@@ -1,0 +1,234 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && userData().role == 'admin';
+    }
+
+    function isVendedor() {
+      return signedIn() && userData().role == 'vendedor';
+    }
+
+    /** Empresa está na lista do vendedor (`managedCompanyIds` deve ser um array no Firestore). */
+    function sellerManagesCompany(companyId) {
+      return isVendedor()
+        && userData().managedCompanyIds is list
+        && (companyId in userData().managedCompanyIds);
+    }
+
+    function vendedorCanReadStudentUserDoc() {
+      return isVendedor()
+        && resource.data.role == 'student'
+        && resource.data.keys().hasAll(['companyId'])
+        && resource.data.companyId != null
+        && sellerManagesCompany(resource.data.companyId);
+    }
+
+    /** Progresso e certificados de alunos das empresas da carteira (subcoleções de `users`). */
+    function vendedorCanReadStudentUserSubpaths(studentUid) {
+      let ref = /databases/$(database)/documents/users/$(studentUid);
+      return isVendedor()
+        && exists(ref)
+        && get(ref).data.role == 'student'
+        && get(ref).data.keys().hasAll(['companyId'])
+        && get(ref).data.companyId != null
+        && sellerManagesCompany(get(ref).data.companyId);
+    }
+
+    function enrolledIn(courseId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/courses/$(courseId));
+    }
+
+    function studentMustHaveActiveCompany() {
+      let d = userData();
+      return d.role == 'student' && d.keys().hasAll(['companyId']) && d.companyId != null;
+    }
+
+    function companyIsActive(companyId) {
+      return get(/databases/$(database)/documents/companies/$(companyId)).data.active == true;
+    }
+
+    function courseAllowedForUserCompany(courseId) {
+      let companyId = userData().companyId;
+      let p = /databases/$(database)/documents/companies/$(companyId)/allowedCourses/$(courseId);
+      return exists(p)
+        && (!get(p).data.keys().hasAll(['expiresAt']) || get(p).data.expiresAt > request.time);
+    }
+
+    function canReadCourseContent(courseId) {
+      return isAdmin()
+        || isVendedor()
+        || (enrolledIn(courseId)
+            && (!studentMustHaveActiveCompany()
+                || (companyIsActive(userData().companyId)
+                    && courseAllowedForUserCompany(courseId))));
+    }
+
+    /**
+     * Módulos: checa o documento pai `courses/{courseId}` (no filho `resource` é o módulo).
+     * No documento do curso use `allow read` com `resource.data` — combina melhor com queries `list`.
+     */
+    function parentCourseCatalogPublic(courseId) {
+      let p = /databases/$(database)/documents/courses/$(courseId);
+      return exists(p) && get(p).data.catalogPublished == true;
+    }
+
+    match /companies/{companyId} {
+      allow read: if isAdmin()
+        || (signedIn() && userData().companyId == companyId)
+        || sellerManagesCompany(companyId);
+      allow create, update, delete: if isAdmin();
+
+      match /allowedCourses/{courseId} {
+        allow read: if isAdmin()
+          || (signedIn() && userData().companyId == companyId)
+          || sellerManagesCompany(companyId);
+        allow create, update, delete: if isAdmin();
+      }
+
+      /**
+       * Chaves de cadastro em texto (doc `archive`).
+       * Leitura: admin ou vendedor da empresa. Escrita: admin no cliente (após callable) ou Admin SDK;
+       * exclusão só via Admin SDK ao apagar a empresa.
+       */
+      match /adminRegistrationKeys/{docId} {
+        allow read: if isAdmin() || sellerManagesCompany(companyId);
+        allow create, update: if isAdmin() && docId == 'archive';
+        allow delete: if false;
+      }
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || vendedorCanReadStudentUserDoc();
+      allow create: if false;
+      allow update: if isOwner(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.cpf == resource.data.cpf
+        && request.resource.data.companyRoleId == resource.data.companyRoleId
+        && request.resource.data.companyDepartmentId == resource.data.companyDepartmentId
+        && request.resource.data.managedCompanyIds == resource.data.managedCompanyIds;
+      allow delete: if false;
+
+      match /courses/{courseId} {
+        allow read: if isOwner(userId) || isAdmin() || vendedorCanReadStudentUserSubpaths(userId);
+        /**
+         * Matrícula: callable no cadastro ou admin ao liberar curso na empresa.
+         * merge: true conta como update — precisa permitir update para admin (aluno só escreve em …/modules).
+         */
+        allow create, update: if isAdmin();
+        allow delete: if isAdmin();
+
+        match /modules/{moduleId} {
+          allow read: if isOwner(userId) || isAdmin() || vendedorCanReadStudentUserSubpaths(userId);
+          allow create, update: if isOwner(userId);
+          allow delete: if isOwner(userId) || isAdmin();
+        }
+      }
+
+      match /certificates/{courseId} {
+        allow read: if isOwner(userId) || isAdmin() || vendedorCanReadStudentUserSubpaths(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.courseId == courseId
+          && request.resource.data.keys().hasAll(['courseId', 'courseTitle', 'studentName', 'issuedAt', 'verificationCode']);
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    match /courses/{courseId} {
+      allow read: if resource.data.catalogPublished == true
+        || (signedIn() && (isAdmin() || canReadCourseContent(courseId)));
+      allow write: if isAdmin();
+
+      match /modules/{moduleId} {
+        allow read: if parentCourseCatalogPublic(courseId)
+          || (signedIn() && (isAdmin() || canReadCourseContent(courseId)));
+        allow write: if isAdmin();
+      }
+    }
+
+    /** Gabaritos: alunos não leem; admin e vendedor (relatórios das empresas geridas). */
+    match /answerKeys/{docId} {
+      allow read: if isAdmin() || isVendedor();
+      allow write: if isAdmin();
+    }
+
+    match /{path=**}/allowedCourses/{courseId} {
+      allow read: if isAdmin();
+    }
+
+    /**
+     * Canais (Streaming): leitura pública só se published; admin lê/edita todos.
+     * Sem documento: permite `get` (exists=false) para a app mostrar “não encontrado” em vez de permission-denied.
+     */
+    match /channels/{channelId} {
+      allow read: if !exists(/databases/$(database)/documents/channels/$(channelId))
+        || resource.data.published == true
+        || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * Banners promocionais no topo do Streaming.
+     * Visitantes só leem documentos publicados; admin gere todos.
+     */
+    match /streamingBanners/{bannerId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * Textos das páginas públicas (Sobre, termos, privacidade etc.) em Markdown.
+     * Leitura pública; edição só admin.
+     */
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /** Home streaming: trilhas e vídeos Vimeo (leitura pública; escrita só admin). */
+    match /streamingTracks/{trackId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /entries/{entryId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+    /** Agregados de visualização da home streaming (escrita só via Cloud Functions). */
+    match /streamingEntryStats/{entryId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /streamingTrackStats/{trackId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    /** Cache de transcrições Vimeo para o assistente (só servidor). */
+    match /streamingTranscriptCache/{entryId} {
+      allow read, write: if false;
+    }
+
+    /** Quotas do assistente IA (só servidor via Admin SDK). */
+    match /assistantQuota/{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

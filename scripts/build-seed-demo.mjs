@@ -1,0 +1,335 @@
+/**
+ * Gera scripts/seed-data.json com o curso demo "Saúde Mental nas Empresas".
+ * Uso: node scripts/build-seed-demo.mjs
+ */
+import { writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const mod01Steps = [
+  {
+    id: 'm1-s0',
+    order: 0,
+    kind: 'materials',
+    title: 'Materiais complementares',
+    body: 'Materiais complementares do Módulo 1.',
+    materials: [
+      {
+        title: '1. Glossário do participante',
+        description:
+          'Saúde mental no trabalho, estigma, sinais de alerta, estresse ocupacional, presenteísmo, absenteísmo, risco psicossocial relacionado ao trabalho, GRO, PGR, PCMSO, melhoria contínua.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Glossario-do-Participante_Mod1.pdf',
+      },
+      {
+        title: '2. Guia do participante',
+        description:
+          'Objetivo do curso, limites, como usar material complementar e leituras, e a frase padrão de não substituição de documentos de SST.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Guia-do-Participante_Mod1.pdf',
+      },
+      {
+        title: '3. Guia educativo “Encaminhamento e busca de ajuda”',
+        description:
+          'Modelo “Atenção, Alerta, Urgência”, com sinais observáveis e conduta recomendada, sem fluxos internos, com limites do papel do colega e da liderança.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Guia-educativo-Encaminhamento-e-busca-de-ajuda-_Mod1.pdf',
+      },
+      {
+        title: '4. Leitura sugerida',
+        description: 'Excerto traduzido do: WHO guidelines on mental health at work.',
+        pdfUrl: 'https://www.medivox.com.br/wp-content/uploads/2026/02/Traducao-OMS_Mod1.pdf',
+      },
+    ],
+  },
+  {
+    id: 'm1-s1',
+    order: 1,
+    kind: 'video',
+    title: 'Abertura do curso',
+    vimeoUrl: 'https://vimeo.com/1129979164/d11c0cce4a?fl=pl&fe=vl',
+  },
+  {
+    id: 'm1-s2',
+    order: 2,
+    kind: 'video',
+    title: 'Introdução à Saúde Mental – Fernando Uberti',
+    vimeoUrl: 'https://vimeo.com/1122954419/c22d7e4d75?fl=pl&fe=vl',
+  },
+  {
+    id: 'm1-s3',
+    order: 3,
+    kind: 'video',
+    title: 'Podcast – Estresse no ambiente no trabalho – Guilherme Velho',
+    vimeoUrl: 'https://vimeo.com/1123256554/45aaf513c3?fl=pl&fe=vl',
+  },
+  {
+    id: 'm1-s4',
+    order: 4,
+    kind: 'video',
+    title: 'O que é NR-1',
+    vimeoUrl: 'https://vimeo.com/1129984750/e76d786f70?fl=pl&fe=vl',
+  },
+  {
+    id: 'm1-s5',
+    order: 5,
+    kind: 'quiz',
+    title: 'Questões do Módulo 1 | Saúde Mental no Trabalho',
+    questions: [
+      {
+        id: 'm1-q1',
+        prompt:
+          'Após o vídeo “O que é NR 1”, qual sequência representa melhor a lógica do gerenciamento de riscos aplicada a fatores psicossociais no trabalho?',
+        options: [
+          'Aplicar palestra anual, medir satisfação, encerrar o tema',
+          'Solicitar laudo médico, arquivar, aguardar nova queixa',
+          'Identificar perigos, avaliar riscos, definir controles, revisar e melhorar continuamente',
+          'Diagnosticar, prescrever, afastar, substituir o colaborador',
+        ],
+      },
+      {
+        id: 'm1-q2',
+        prompt:
+          'Em um time, um líder observa queda de desempenho e irritabilidade persistente. Qual conduta está mais alinhada ao limite do papel da liderança no modelo educacional do curso?',
+        options: [
+          'Conversar de forma respeitosa, descrever fatos observáveis, orientar busca de ajuda e preservar privacidade',
+          'Prometer mudanças imediatas de cargo e jornada sem avaliação e sem alinhamento',
+          'Investigar detalhes clínicos, solicitar exames e registrar sintomas em planilha do time',
+          'Exigir que o colaborador explique o diagnóstico para a equipe para reduzir ruído',
+        ],
+      },
+      {
+        id: 'm1-q3',
+        prompt:
+          'Qual alternativa diferencia melhor risco psicossocial relacionado ao trabalho de condição clínica individual?',
+        options: [
+          'Risco psicossocial se refere a fatores da organização e gestão do trabalho que podem gerar dano, independentemente de diagnóstico',
+          'Condição clínica individual só existe quando há conflito com a liderança',
+          'Risco psicossocial é sempre consequência de fragilidade pessoal',
+          'Risco psicossocial só existe em profissões de alta periculosidade física',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'm1-s6',
+    order: 6,
+    kind: 'materials',
+    title: 'Anexos',
+    body: 'Anexos normativos e de apoio ao Módulo 1.',
+    materials: [
+      {
+        title: 'Lei nº 14.831/2024',
+        description:
+          'Com foco no art. 3º (diretrizes) para enquadramento do programa e no ciclo de certificação.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/LEI-No-14.831-DE-27-DE-MARCO-DE-2024.pdf',
+      },
+      {
+        title: 'Guia MTE 2025 (NR 1 e GRO)',
+        description:
+          'Principalmente: “o que mudou”, integração no GRO, documentação e PDCA, e a definição de que o foco é condição de trabalho, não “sintoma individual”.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Guia-Fatores-de-Riscos-Psicossociais-MTE.pdf',
+      },
+      {
+        title: 'FAQ NR 1 e GRO',
+        description:
+          'Perguntas frequentes sobre a Norma Regulamentadora nº 01 (NR 01), que aborda as Disposições Gerais e o Gerenciamento de Riscos Ocupacionais (GRO).',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/FAQ-Perguntas-e-Respostas-GRO-e-PGR-da-NR-01.pdf',
+      },
+    ],
+  },
+];
+
+const mod02Steps = [
+  {
+    id: 'm2-s0',
+    order: 0,
+    kind: 'materials',
+    title: 'Materiais complementares',
+    body: 'Materiais complementares do Módulo 2.',
+    materials: [
+      {
+        title: '1. Equilíbrio e limites',
+        description:
+          'Exercícios de auto observação, mapa de estressores e protetores, rotina, relações, estratégias de adaptação e revisão semanal.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Equilibrio-e-Limites_Mod2.pdf',
+      },
+      {
+        title: '2. Checklist e sinais',
+        description:
+          'Sinais de alerta mais comuns, condutas seguras, postura de acolhimento e quando escalar para ajuda especializada.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Checklist-e-Sinais_Mod2.pdf',
+      },
+      {
+        title: '3. Saúde mental e risco cardiovascular',
+        description:
+          'Uma página com mensagem central, relação geral, impacto em funcionamento e recomendação educativa de prevenção, sem linguagem médica.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Saude-mental-e-risco-cardiovascular_Mod2.pdf',
+      },
+      {
+        title: '4. Leitura sugerida',
+        description:
+          'Seção sobre abordagens em nível individual e suporte ao bem estar no trabalho, NICE, Mental wellbeing at work.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Traducao-NICE_Mod2.pdf',
+      },
+    ],
+  },
+  {
+    id: 'm2-s1',
+    order: 1,
+    kind: 'video',
+    title: 'Conceito e mitos sobre equilíbrio',
+    vimeoUrl: 'https://vimeo.com/1129982760/be120c7907?fl=pl&fe=vl',
+  },
+  {
+    id: 'm2-s2',
+    order: 2,
+    kind: 'video',
+    title: 'Auto-observação e sinais de alerta',
+    vimeoUrl: 'https://vimeo.com/1123993843/3216e04920?fl=pl&fe=vl',
+  },
+  {
+    id: 'm2-s3',
+    order: 3,
+    kind: 'video',
+    title: 'Saúde mental e risco cardiovascular',
+    vimeoUrl: 'https://vimeo.com/1129977879/7a2fd758f3?fl=pl&fe=vl',
+  },
+  {
+    id: 'm2-s4',
+    order: 4,
+    kind: 'video',
+    title: 'Como agir diante de comportamento emocional atípico dos colaboradores',
+    vimeoUrl: 'https://vimeo.com/1129979778/7f01a457e2?fl=pl&fe=vl',
+  },
+  {
+    id: 'm2-s5',
+    order: 5,
+    kind: 'quiz',
+    title: 'Questões do Módulo 2 | Cuidando da sua saúde emocional',
+    questions: [
+      {
+        id: 'm2-q1',
+        prompt:
+          'Após o vídeo “Conceito e mitos sobre equilíbrio”, qual afirmação representa melhor o conceito de equilíbrio trabalhado no módulo?',
+        options: [
+          'Equilíbrio envolve ajustar vida pessoal e profissional com capacidade de adaptação e resiliência',
+          'Equilíbrio é um traço fixo e não pode ser desenvolvido',
+          'Equilíbrio é eliminar completamente estresse e emoções negativas',
+          'Equilíbrio é manter produtividade alta mesmo com sofrimento, sem buscar ajuda',
+        ],
+      },
+      {
+        id: 'm2-q2',
+        prompt:
+          'Após o vídeo “Auto observação e sinais de alerta”, qual alternativa descreve melhor a conduta inicial recomendada diante de sinais persistentes de sofrimento emocional?',
+        options: [
+          'Observar sinais, reconhecer limites e orientar busca de ajuda quando necessário',
+          'Ignorar para evitar preocupação desnecessária',
+          'Solicitar laudo médico antes de qualquer conversa',
+          'Exigir explicação detalhada do diagnóstico para a equipe',
+        ],
+      },
+      {
+        id: 'm2-q3',
+        prompt:
+          'A partir do vídeo “Saúde mental e risco cardiovascular”, qual mensagem sintetiza melhor a relação apresentada no módulo?',
+        options: [
+          'Há associação entre sofrimento mental e maior risco de eventos como doenças cardíacas e AVC, reforçando a importância preventiva',
+          'Saúde mental não se relaciona com risco cardiovascular',
+          'O tema é exclusivamente clínico e não deve ser mencionado no trabalho',
+          'Risco cardiovascular é sempre a causa única de transtornos mentais',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'm2-s6',
+    order: 6,
+    kind: 'materials',
+    title: 'Anexos',
+    body: 'Anexos complementares do Módulo 2.',
+    materials: [
+      {
+        title: 'Ambientes de trabalho saudáveis: um modelo para ação, OMS',
+        description:
+          'Material de apoio conceitual para equilíbrio, bem estar e fatores psicossociais no trabalho, alinhado aos vídeos sobre equilíbrio, sinais de alerta e impacto funcional.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/9789241599313_por_Mod2.pdf',
+      },
+      {
+        title: 'Cartilha Amarela, prevenção e enfrentamento de violências e suicídio, MTE',
+        description:
+          'Orientações práticas de comunicação segura, frases recomendadas e condutas a evitar, com foco em acolhimento e encaminhamento, sem fluxos internos.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/cartilha-amarela-n_Mod2.pdf',
+      },
+      {
+        title: 'Cartilha, Prevenção de suicídios, Ministério da Saúde',
+        description:
+          'Sinais de alerta, orientação de busca de ajuda e abordagem segura, para complementar o conteúdo de auto observação, sinais e conduta diante de sofrimento emocional.',
+        pdfUrl:
+          'https://www.medivox.com.br/wp-content/uploads/2026/02/Cartilha-Prevencao-de-suicidios_Mod2.pdf',
+      },
+    ],
+  },
+];
+
+const seed = {
+  courses: {
+    demo: {
+      title: 'Saúde Mental nas Empresas',
+      description:
+        'Programa educacional sobre saúde mental no trabalho, fatores psicossociais e NR-1 (conteúdo de demonstração Medivox).',
+      modules: {
+        'mod-01': {
+          title: 'Módulo 1 – Saúde Mental no Trabalho',
+          order: 0,
+          content: '',
+          vimeoUrl: '',
+          pdfUrl: '',
+          questions: [],
+          steps: mod01Steps,
+        },
+        'mod-02': {
+          title: 'Módulo 2 – Cuidando da sua saúde emocional',
+          order: 1,
+          content: '',
+          vimeoUrl: '',
+          pdfUrl: '',
+          questions: [],
+          steps: mod02Steps,
+        },
+      },
+    },
+  },
+  answerKeys: {
+    'demo__mod-01': {
+      correctByQuestionId: {
+        'm1-q1': 2,
+        'm1-q2': 0,
+        'm1-q3': 0,
+      },
+    },
+    'demo__mod-02': {
+      correctByQuestionId: {
+        'm2-q1': 0,
+        'm2-q2': 0,
+        'm2-q3': 0,
+      },
+    },
+  },
+};
+
+const outPath = join(__dirname, 'seed-data.json');
+writeFileSync(outPath, JSON.stringify(seed, null, 2), 'utf8');
+console.log('Escrito:', outPath);

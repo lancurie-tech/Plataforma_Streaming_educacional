@@ -1,0 +1,188 @@
+@import 'tailwindcss';
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0c0c0f;
+  color: #f4f4f5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Streaming home — entrada suave ao focar um vídeo */
+@keyframes stream-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes stream-strip-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stream-hero-animate {
+  animation: stream-hero-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stream-strip-animate {
+  animation: stream-strip-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.12s;
+}
+
+/* Boas-vindas públicas — recepção com logo Medivox */
+@keyframes public-welcome-bg-shift {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes public-welcome-logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes public-welcome-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes public-welcome-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.public-welcome-root {
+  background: radial-gradient(ellipse 120% 80% at 50% 20%, rgba(16, 185, 129, 0.14), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 80% 90%, rgba(59, 130, 246, 0.06), transparent 45%),
+    linear-gradient(165deg, #09090b 0%, #0c0c0f 40%, #0a0a0c 100%);
+  transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1), filter 0.48s ease;
+}
+
+.public-welcome-root--leave {
+  opacity: 0;
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.public-welcome-glow {
+  background: radial-gradient(circle at 50% 42%, rgba(52, 211, 153, 0.12) 0%, transparent 42%);
+  animation: public-welcome-bg-shift 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-welcome-glow {
+    animation: none;
+  }
+}
+
+.public-welcome-logo-wrap {
+  animation: public-welcome-logo-float 5.5s ease-in-out infinite;
+  cursor: default;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.public-welcome-logo-wrap:hover,
+.public-welcome-logo-wrap:focus-within {
+  transform: translateY(-4px) scale(1.04);
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-welcome-logo-wrap {
+    animation: none;
+  }
+
+  .public-welcome-logo-wrap:hover,
+  .public-welcome-logo-wrap:focus-within {
+    transform: none;
+  }
+}
+
+.public-welcome-logo-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: 140%;
+  height: 200%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(52, 211, 153, 0.2) 0%,
+    rgba(52, 211, 153, 0.05) 35%,
+    transparent 65%
+  );
+  animation: public-welcome-ring-pulse 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-welcome-logo-ring {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+.public-welcome-logo {
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.45));
+  transition: filter 0.26s ease, transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.public-welcome-logo-wrap:hover .public-welcome-logo,
+.public-welcome-logo-wrap:focus-within .public-welcome-logo {
+  filter: drop-shadow(0 0 28px rgba(52, 211, 153, 0.45)) drop-shadow(0 8px 32px rgba(0, 0, 0, 0.5));
+}
+
+.public-welcome-content {
+  animation: public-welcome-content-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-welcome-content {
+    animation: none;
+    opacity: 1;
+  }
+
+  .public-welcome-root--leave {
+    filter: none;
+  }
+}

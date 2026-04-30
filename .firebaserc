@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "medivox-sp",
+    "prod": "medivox-sp",
+    "dev": "medivox-sp-dev"
+  },
+  "targets": {},
+  "etags": {}
+}

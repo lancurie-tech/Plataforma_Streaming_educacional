@@ -1,0 +1,36 @@
+# Dependências
+node_modules/
+**/node_modules/
+
+# Build / artefactos
+dist/
+dist-ssr/
+functions/lib/
+*.tsbuildinfo
+
+# Ambiente e segredos (nunca commitar chaves Firebase)
+.env
+.env.*
+!.env.example
+!.env.development.example
+!.env.production.example
+.env.local
+secrets/
+**/serviceAccountKey.json
+**/*-firebase-adminsdk-*.json
+
+# Firebase CLI
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log
+
+# Logs e editor
+*.log
+.idea/
+.DS_Store
+Thumbs.db
+
+# Notas locais que possam conter credenciais (ex.: cópias de login de teste)
+docs/**/*login*.txt
+
+contratos medivox

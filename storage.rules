@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function userIsAdmin() {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    /** Alguns browsers/OS enviam `application/octet-stream` ou tipo vazio para PNG/JPG. */
+    function isAdminImagePayload() {
+      return request.resource.size < 6 * 1024 * 1024
+        && (
+          !request.resource.contentType
+          || request.resource.contentType.matches('image/.*')
+          || request.resource.contentType == 'application/octet-stream'
+        );
+    }
+
+    /**
+     * Capas dos cards em “Programas” na home pública (PNG/JPG/WebP).
+     */
+    match /courseCatalogCovers/{courseId}/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
+
+    /** Capas circulares dos canais (Streaming). */
+    match /channelCovers/{channelId}/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
+
+    /** Capas dos vídeos na página pública do canal (Admin → Canais). */
+    match /channelPageVideoCovers/{channelId}/{videoId}/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
+
+    /** Banners promocionais (Streaming — desktop e mobile opcional). */
+    match /streamingBanners/{bannerId}/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
+
+    /** Capas dos vídeos nas trilhas da home streaming (Admin → Home streaming). */
+    match /streamingTrackEntryCovers/{trackId}/{entryId}/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
+  }
+}

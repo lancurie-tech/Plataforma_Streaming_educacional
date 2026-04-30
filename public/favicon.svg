@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Barras paralelas: arestas longas com vetor (10,-20); espessura 8. -->
+  <g transform="translate(16 16) scale(1.06) translate(-16 -17.5)">
+    <path fill="#1b3022" d="M2 27h8l10-20h-8l-10 20z" />
+    <path fill="#66BC3F" d="M12 28h8l10-20h-8l-10 20z" />
+  </g>
+</svg>

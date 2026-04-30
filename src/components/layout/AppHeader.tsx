@@ -1,0 +1,134 @@
+import { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  LogOut,
+  UserRound,
+  Menu,
+  X,
+  LayoutDashboard,
+  Award,
+  Tv,
+  BookOpen,
+} from 'lucide-react';
+import { useAuth } from '@/contexts/useAuth';
+import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
+
+export function AppHeader() {
+  const { logout, profile } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  async function handleLogout() {
+    setOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-backdrop-filter:bg-zinc-950/85">
+      <div className="relative mx-auto flex h-18 max-w-5xl items-center justify-between px-3 sm:px-4">
+        {/* Coluna esquerda — equilibra o menu à direita para o logo ficar centrado no ecrã */}
+        <div className="w-11 shrink-0 sm:w-12" aria-hidden />
+
+        <Link
+          to="/"
+          className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 touch-manipulation"
+          aria-label="Medivox — página inicial e streaming"
+          title="Página inicial (streaming)"
+        >
+          <HeaderLogoImg />
+        </Link>
+
+        <div className="relative flex w-11 shrink-0 justify-end sm:w-12" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex min-h-11 min-w-11 touch-manipulation items-center justify-center rounded-xl border border-zinc-700 text-zinc-200 hover:bg-zinc-800 active:bg-zinc-800/80"
+            aria-expanded={open}
+            aria-haspopup="menu"
+            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+
+          {open ? (
+            <div
+              className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-xl"
+              role="menu"
+            >
+              {profile?.role === 'admin' ? (
+                <Link
+                  to="/admin"
+                  className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                  onClick={() => setOpen(false)}
+                  role="menuitem"
+                >
+                  <LayoutDashboard size={18} />
+                  Painel admin
+                </Link>
+              ) : null}
+              <Link
+                to="/streaming"
+                className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+              >
+                <Tv size={18} />
+                Streaming (início)
+              </Link>
+              <Link
+                to="/cursos"
+                className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+              >
+                <BookOpen size={18} />
+                Meus cursos
+              </Link>
+              {profile?.role !== 'admin' ? (
+                <Link
+                  to="/certificados"
+                  className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                  onClick={() => setOpen(false)}
+                  role="menuitem"
+                >
+                  <Award size={18} />
+                  Certificados e histórico
+                </Link>
+              ) : null}
+              <Link
+                to="/perfil"
+                className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+              >
+                <UserRound size={18} />
+                Área do usuário
+              </Link>
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-800"
+                onClick={handleLogout}
+                role="menuitem"
+              >
+                <LogOut size={18} />
+                Sair
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </header>
+  );
+}
