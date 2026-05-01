@@ -22,37 +22,44 @@ service firebase.storage {
      */
     match /courseCatalogCovers/{courseId}/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      /** Em `delete`, `request.resource` não existe — não usar `isAdminImagePayload()` aqui. */
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
 
     /** Capas circulares dos canais (Streaming). */
     match /channelCovers/{channelId}/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
 
     /** Capas dos vídeos na página pública do canal (Admin → Canais). */
     match /channelPageVideoCovers/{channelId}/{videoId}/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
 
     /** Banners promocionais (Streaming — desktop e mobile opcional). */
     match /streamingBanners/{bannerId}/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
 
     /** Capas dos vídeos nas trilhas da home streaming (Admin → Home streaming). */
     match /streamingTrackEntryCovers/{trackId}/{entryId}/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
 
     /** Logo e identidade visual (Admin → Identidade visual). Leitura pública para `<img>`. */
     match /siteBranding/{fileName} {
       allow read: if true;
-      allow write: if userIsAdmin() && isAdminImagePayload();
+      allow create, update: if userIsAdmin() && isAdminImagePayload();
+      allow delete: if userIsAdmin();
     }
   }
 }
