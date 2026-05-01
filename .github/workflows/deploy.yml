@@ -24,6 +24,8 @@
 # Opcional — Settings → Secrets and variables → Actions → Variables:
 #   FIREBASE_PROJECT_DEV — ID GCP/Firebase do dev (default no YAML: streaming-educacional-dev)
 #   FIREBASE_PROJECT_PROD — ID de produção (default: streaming-educacional)
+#   CALLABLE_CORS_ORIGINS — origem extra CORS das callables em prod (default no job: https://streaming-educacional.web.app)
+#   CALLABLE_CORS_ORIGINS_DEV — idem para dev (default: https://<FIREBASE_PROJECT_DEV>.web.app)
 
 name: Deploy Firebase (dev + prod)
 
@@ -65,6 +67,7 @@ jobs:
       VITE_FIREBASE_APPCHECK_SITE_KEY: ${{ secrets.VITE_FIREBASE_APPCHECK_SITE_KEY_DEV }}
       # defineString('GEMINI_MODEL') — deploy não interativo exige valor no ambiente
       GEMINI_MODEL: gemini-2.5-flash
+      CALLABLE_CORS_ORIGINS: ${{ vars.CALLABLE_CORS_ORIGINS_DEV || format('https://{0}.web.app', vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -127,8 +130,11 @@ jobs:
       - name: Firestore, Storage e Cloud Functions (dev)
         if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         run: |
-          # defineString lê parâmetros a partir de functions/.env no deploy não interativo
+          # defineString / process.env — o CLI envia este .env para o runtime das Functions no deploy
           printf 'GEMINI_MODEL=%s\n' "${GEMINI_MODEL:-gemini-2.5-flash}" > functions/.env
+          if [ -n "${CALLABLE_CORS_ORIGINS:-}" ]; then
+            printf 'CALLABLE_CORS_ORIGINS=%s\n' "$CALLABLE_CORS_ORIGINS" >> functions/.env
+          fi
           npx firebase-tools@latest deploy --only firestore,storage,functions --project "$FIREBASE_GCP_PROJECT" --non-interactive --force
 
   deploy-prod:
@@ -149,6 +155,7 @@ jobs:
       VITE_FIREBASE_FUNCTIONS_REGION: southamerica-east1
       VITE_FIREBASE_APPCHECK_SITE_KEY: ${{ secrets.VITE_FIREBASE_APPCHECK_SITE_KEY }}
       GEMINI_MODEL: gemini-2.5-flash
+      CALLABLE_CORS_ORIGINS: ${{ vars.CALLABLE_CORS_ORIGINS || 'https://streaming-educacional.web.app' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -199,4 +206,7 @@ jobs:
       - name: Firestore, Storage e Cloud Functions (prod)
         run: |
           printf 'GEMINI_MODEL=%s\n' "${GEMINI_MODEL:-gemini-2.5-flash}" > functions/.env
+          if [ -n "${CALLABLE_CORS_ORIGINS:-}" ]; then
+            printf 'CALLABLE_CORS_ORIGINS=%s\n' "$CALLABLE_CORS_ORIGINS" >> functions/.env
+          fi
           npx firebase-tools@latest deploy --only firestore,storage,functions --project "$FIREBASE_GCP_PROJECT" --non-interactive --force
