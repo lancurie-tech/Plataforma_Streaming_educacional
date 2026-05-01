@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 const linkCls =
   'text-zinc-500 transition-colors hover:text-emerald-400/95 hover:underline underline-offset-2';
@@ -13,6 +13,7 @@ type Props = {
 };
 
 export function LegalFooter({ showVendorConfidentialityLink = false }: Props) {
+  const brand = useBrand();
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-zinc-800/90 bg-zinc-950/80">
@@ -43,7 +44,7 @@ export function LegalFooter({ showVendorConfidentialityLink = false }: Props) {
           ) : null}
         </nav>
         <p className="mt-6 text-center text-xs text-zinc-600">
-          © {year} {PLATFORM_SHORT_NAME}. Conteúdos educacionais para empresas e profissionais de saúde.
+          © {year} {brand.platformShortName}. Conteúdos educacionais para empresas e profissionais de saúde.
         </p>
       </div>
     </footer>

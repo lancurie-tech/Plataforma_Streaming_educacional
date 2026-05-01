@@ -4,13 +4,12 @@ import {
   GOLD,
   GOLD_DARK,
   GREEN_DEEP,
-  CERTIFICATE_LOGO_PATH,
   SEAL_CX,
   SEAL_CY,
   formatDateLong,
   starburstPath,
 } from '@/components/certificate/certificateShared';
-import { PLATFORM_DISPLAY_NAME, PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 import {
   formatCertificateAudienceLine,
   type UserCertificate,
@@ -133,6 +132,7 @@ type Props = {
 };
 
 export function CertificateVisual({ c, className = '' }: Props) {
+  const brand = useBrand();
   const issued = formatDateLong(c.issuedAt);
   const sealUid = useId().replace(/:/g, '');
   const audienceLine = formatCertificateAudienceLine();
@@ -167,7 +167,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
         <SealMedallionSvg
           gradId={`sg${sealUid}lin`}
           radId={`sg${sealUid}rad`}
-          logoSrc={CERTIFICATE_LOGO_PATH}
+          logoSrc={brand.logoSrc}
         />
       </div>
 
@@ -192,7 +192,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
             className="pb-1 text-[10px] font-semibold uppercase leading-normal tracking-[0.2em] text-[#444] sm:pb-1.5 sm:text-[11px]"
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
-            A {PLATFORM_DISPLAY_NAME} confere a
+            A {brand.platformDisplayName} confere a
           </p>
 
           <p
@@ -244,7 +244,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
                   className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#555] sm:text-[10px]"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {PLATFORM_SHORT_NAME}
+                  {brand.platformShortName}
                 </p>
               </div>
               <div className="text-center">

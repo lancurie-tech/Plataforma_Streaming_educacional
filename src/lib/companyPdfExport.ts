@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { PLATFORM_DISPLAY_NAME, PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { defaultResolvedBranding, type ResolvedBranding } from '@/lib/brand';
+import { loadLogoForPdf } from '@/lib/pdf/pdfBrandLayout';
 import type {
   CompanyCourseAssignment,
   CompanyRoleDef,
@@ -37,45 +38,6 @@ const C = {
   linkBlue: [37, 99, 235] as [number, number, number],
 };
 
-/**
- * Rasteriza o logo em PNG maior (para não ficar pixelado no PDF).
- */
-async function loadBrandLogoPngDataUrl(): Promise<string | null> {
-  if (typeof window === 'undefined') return null;
-  try {
-    const res = await fetch(`${window.location.origin}/logo.svg`);
-    if (!res.ok) return null;
-    const svgText = await res.text();
-    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.decoding = 'async';
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('logo'));
-      img.src = url;
-    });
-    const upscale = 4;
-    const w = Math.max(1, Math.round(img.width * upscale));
-    const h = Math.max(1, Math.round(img.height * upscale));
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      URL.revokeObjectURL(url);
-      return null;
-    }
-    // Exporta o logo em alta resolução, sem padding/fundo,
-    // para o posicionamento e escala ficarem previsíveis no header.
-    ctx.drawImage(img, 0, 0, w, h);
-    URL.revokeObjectURL(url);
-    return canvas.toDataURL('image/png');
-  } catch {
-    return null;
-  }
-}
-
 function resolveRegistrationUrl(registrationPath: string): string {
   const trimmed = registrationPath.trim();
   if (!trimmed) return trimmed;
@@ -107,6 +69,7 @@ export async function generateCompanyPdf({
   assignments,
   moduleNames,
   moduleScheduleRowsByCourse,
+  branding,
 }: {
   companyName: string;
   slug: string;
@@ -118,8 +81,10 @@ export async function generateCompanyPdf({
   assignments: CompanyCourseAssignment[];
   moduleNames?: Record<string, string>;
   moduleScheduleRowsByCourse?: Record<string, Array<{ title: string; opens: string; closes: string }>>;
+  branding?: ResolvedBranding;
 }): Promise<void> {
-  const logoDataUrl = await loadBrandLogoPngDataUrl();
+  const brand = branding ?? defaultResolvedBranding();
+  const logoDataUrl = await loadLogoForPdf(brand.logoSrc);
   const registrationUrl = resolveRegistrationUrl(registrationPath);
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -164,7 +129,7 @@ export async function generateCompanyPdf({
     doc.setFontSize(footerFs);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.onDark);
-    doc.text(PLATFORM_SHORT_NAME, margin, 7.5);
+    doc.text(brand.platformShortName, margin, 7.5);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(footerFs - 0.5);
     doc.setTextColor(...C.onDarkMuted);
@@ -180,7 +145,7 @@ export async function generateCompanyPdf({
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...C.muted);
       doc.text(
-        `${PLATFORM_DISPLAY_NAME} — documento confidencial — uso pela organização e colaboradores autorizados — página ${i} de ${total}`,
+        `${brand.platformDisplayName} — documento confidencial — uso pela organização e colaboradores autorizados — página ${i} de ${total}`,
         pageW / 2,
         pageH - 7,
         { align: 'center', maxWidth: pageW - margin * 2 },
@@ -273,13 +238,13 @@ export async function generateCompanyPdf({
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(26);
       doc.setTextColor(...C.onDark);
-      doc.text(PLATFORM_SHORT_NAME, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
+      doc.text(brand.platformShortName, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
     }
   } else {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
     doc.setTextColor(...C.onDark);
-    doc.text(PLATFORM_SHORT_NAME, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
+    doc.text(brand.platformShortName, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
   }
 
   // A partir daqui: sempre papel “branco” + texto escuro (nada de cinza claro sobre branco para corpo principal)
@@ -314,7 +279,7 @@ export async function generateCompanyPdf({
 
   addSection('1. Link de cadastro');
   addBody(
-    `Os colaboradores devem acessar o endereço abaixo para criar conta na ${PLATFORM_DISPLAY_NAME}. Envie o link por canal interno seguro.`,
+    `Os colaboradores devem acessar o endereço abaixo para criar conta na ${brand.platformDisplayName}. Envie o link por canal interno seguro.`,
   );
   if (y > pageH - 36) {
     doc.addPage();
@@ -395,7 +360,7 @@ export async function generateCompanyPdf({
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
     afterTable(doc);
   } else {
-    addBody(`Nenhuma chave v2 gerada. Entre em contato com o administrador da ${PLATFORM_DISPLAY_NAME}.`);
+    addBody(`Nenhuma chave v2 gerada. Entre em contato com o administrador da ${brand.platformDisplayName}.`);
   }
 
   const assignMap = new Map(assignments.map((a) => [a.courseId, a]));
@@ -487,7 +452,7 @@ export async function generateCompanyPdf({
     '• A organização é responsável pela distribuição das chaves corretas a cada colaborador, de acordo com o nível e a área.\n\n' +
       '• Se um colaborador utilizar a chave errada, ficará classificado de forma incorreta e poderá ver conteúdo diferente do previsto.\n\n' +
       '• Cada chave pode ser utilizada por vários colaboradores do mesmo nível e área.\n\n' +
-      `• Para dúvidas ou alteração de chaves, entre em contato com o administrador da ${PLATFORM_DISPLAY_NAME}.`,
+      `• Para dúvidas ou alteração de chaves, entre em contato com o administrador da ${brand.platformDisplayName}.`,
   );
 
   addSection('7. Informações importantes');

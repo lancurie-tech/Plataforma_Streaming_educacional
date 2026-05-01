@@ -10,7 +10,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 import { buildVimeoPlayerEmbedSrc } from '@/lib/vimeo';
 import { getUserModuleSubmission, saveUserModuleSubmission } from '@/lib/firestore/courses';
 import { getModuleCompletionFeedbackCallable } from '@/lib/firebase/callables';
@@ -361,6 +361,7 @@ export function ModuleSection({
   scrollAnchorId,
   afterFinishNextModule = null,
 }: Props) {
+  const brand = useBrand();
   const { profile } = useAuth();
   const assistantLayout = useAssistantCourseOptional();
   const assistantChatPanel = useAssistantChatPanelOptional();
@@ -1091,7 +1092,7 @@ export function ModuleSection({
                                 <span className="sm:hidden">{videoAssistActive ? 'Mentor ativo' : 'Pedir ajuda ao Mentor'}</span>
                                 <span className="hidden sm:inline">{videoAssistActive
                                   ? 'Mentor ativo neste vídeo'
-                                  : `Dúvidas? Solicite ajuda ao seu mentor (${PLATFORM_SHORT_NAME})`}</span>
+                                  : `Dúvidas? Solicite ajuda ao seu mentor (${brand.platformShortName})`}</span>
                               </Button>
                               {videoAssistActive ? (
                                 <button
@@ -1207,7 +1208,7 @@ export function ModuleSection({
                                 {assistantLayout.courseVideoAssist?.moduleId === module.id &&
                                 assistantLayout.courseVideoAssist?.stepId === LEGACY_COURSE_VIDEO_STEP_ID
                                   ? 'Mentor ativo neste vídeo'
-                                  : `Dúvidas? Solicite ajuda ao seu mentor (${PLATFORM_SHORT_NAME})`}
+                                  : `Dúvidas? Solicite ajuda ao seu mentor (${brand.platformShortName})`}
                               </span>
                             </Button>
                             {assistantLayout.courseVideoAssist?.moduleId === module.id &&

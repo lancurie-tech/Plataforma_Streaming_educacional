@@ -56,19 +56,12 @@ export function pdfStandardTableProps() {
   };
 }
 
-/**
- * Logo da plataforma para PDF (SVG rasterizado; mesmo ficheiro que `PLATFORM_LOGO_SRC`).
- */
-export async function loadPlatformLogoForPdf(): Promise<string | null> {
-  if (typeof window === 'undefined') return null;
+async function rasterizeSvgTextToPngDataUrl(svgText: string): Promise<string | null> {
+  const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.decoding = 'async';
   try {
-    const res = await fetch(`${window.location.origin}${PLATFORM_LOGO_SRC}`);
-    if (!res.ok) return null;
-    const svgText = await res.text();
-    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.decoding = 'async';
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
       img.onerror = () => reject(new Error('logo'));
@@ -80,16 +73,76 @@ export async function loadPlatformLogoForPdf(): Promise<string | null> {
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      URL.revokeObjectURL(url);
-      return null;
-    }
+    if (!ctx) return null;
     ctx.drawImage(img, 0, 0, w, h);
-    URL.revokeObjectURL(url);
     return canvas.toDataURL('image/png');
   } catch {
     return null;
+  } finally {
+    URL.revokeObjectURL(url);
   }
+}
+
+async function rasterizeBlobImageToPngDataUrl(blob: Blob): Promise<string | null> {
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.decoding = 'async';
+  try {
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('img'));
+      img.src = url;
+    });
+    const nw = img.naturalWidth || img.width;
+    const nh = img.naturalHeight || img.height;
+    const upscale = 4;
+    const w = Math.max(1, Math.round(nw * upscale));
+    const h = Math.max(1, Math.round(nh * upscale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL('image/png');
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/**
+ * Rasteriza o logo (SVG local, PNG/JPEG/WebP em Storage ou público) para PNG em data URL — uso em jsPDF.
+ */
+export async function loadLogoForPdf(logoSrc: string): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  const absolute =
+    /^https?:\/\//i.test(logoSrc)
+      ? logoSrc
+      : `${window.location.origin}${logoSrc.startsWith('/') ? logoSrc : `/${logoSrc}`}`;
+
+  try {
+    const res = await fetch(absolute, { mode: 'cors' });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const ct = (blob.type || res.headers.get('content-type') || '').toLowerCase();
+    const pathLow = absolute.split('?')[0].toLowerCase();
+    const looksSvg = ct.includes('svg') || pathLow.endsWith('.svg');
+
+    if (looksSvg) {
+      const svgText = await blob.text();
+      return rasterizeSvgTextToPngDataUrl(svgText);
+    }
+    return rasterizeBlobImageToPngDataUrl(blob);
+  } catch {
+    return null;
+  }
+}
+
+/** Compat: logo por defeito em `public/`. */
+export async function loadPlatformLogoForPdf(): Promise<string | null> {
+  return loadLogoForPdf(PLATFORM_LOGO_SRC);
 }
 
 export function drawPdfPageBackground(
@@ -117,6 +170,8 @@ export type PdfCoverHeaderOpts = {
   doc: jsPDF;
   pageW: number;
   logoDataUrl: string | null;
+  /** Substitui `PLATFORM_SHORT_NAME` na faixa quando o logo falha. */
+  platformShortName?: string;
   /** Ex.: "Relatório para empresa" */
   documentLabel: string;
   /** Título principal abaixo da faixa (ex.: nome da empresa ou "Relatório de métricas") */
@@ -129,7 +184,16 @@ export type PdfCoverHeaderOpts = {
 
 /** Desenha faixa navy + logo; devolve Y inicial do conteúdo (corpo) em mm. */
 export function drawPdfCoverHeader(opts: PdfCoverHeaderOpts): number {
-  const { doc, pageW, logoDataUrl, documentLabel, mainTitle, subtitle, metaLine } = opts;
+  const {
+    doc,
+    pageW,
+    logoDataUrl,
+    platformShortName = PLATFORM_SHORT_NAME,
+    documentLabel,
+    mainTitle,
+    subtitle,
+    metaLine,
+  } = opts;
   const m = PDF_BRAND.margin;
   const band = PDF_BRAND.headerBandH;
   const pageH = doc.internal.pageSize.getHeight();
@@ -151,13 +215,13 @@ export function drawPdfCoverHeader(opts: PdfCoverHeaderOpts): number {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(26);
       doc.setTextColor(...PDF_BRAND.onDark);
-      doc.text(PLATFORM_SHORT_NAME, pageW / 2, band / 2 + 4, { align: 'center' });
+      doc.text(platformShortName, pageW / 2, band / 2 + 4, { align: 'center' });
     }
   } else {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
     doc.setTextColor(...PDF_BRAND.onDark);
-    doc.text(PLATFORM_SHORT_NAME, pageW / 2, band / 2 + 4, { align: 'center' });
+    doc.text(platformShortName, pageW / 2, band / 2 + 4, { align: 'center' });
   }
 
   doc.setFont('helvetica', 'normal');
@@ -222,6 +286,11 @@ export function drawPdfContinuationBand(
   doc.text(rightTail, m + 22, 7.5, { maxWidth: pageW - m * 2 - 24 });
 }
 
+export type PdfContinuationOpts = {
+  logoDataUrl?: string | null;
+  platformShortName?: string;
+};
+
 export function ensurePdfVerticalSpace(
   doc: jsPDF,
   pageW: number,
@@ -229,11 +298,18 @@ export function ensurePdfVerticalSpace(
   state: { y: number },
   needMm: number,
   continuationRight: string,
-  logoDataUrl?: string | null,
+  opts?: PdfContinuationOpts,
 ): void {
   if (state.y + needMm <= pageH - 16) return;
   doc.addPage();
-  drawPdfContinuationBand(doc, pageW, pageH, logoDataUrl ?? null, PLATFORM_SHORT_NAME, continuationRight);
+  drawPdfContinuationBand(
+    doc,
+    pageW,
+    pageH,
+    opts?.logoDataUrl ?? null,
+    opts?.platformShortName ?? PLATFORM_SHORT_NAME,
+    continuationRight,
+  );
   state.y = 18;
 }
 

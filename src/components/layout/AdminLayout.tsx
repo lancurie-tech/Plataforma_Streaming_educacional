@@ -13,18 +13,19 @@ import {
   Radio,
   FileText,
   Images,
+  Palette,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
+import { useBrand } from '@/contexts/useBrand';
 import { useNavigate } from 'react-router-dom';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
-
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:min-h-0 lg:py-2 ${
     isActive ? 'bg-emerald-500/15 text-emerald-400' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
   }`;
 
 export function AdminLayout() {
+  const brand = useBrand();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -72,6 +73,10 @@ export function AdminLayout() {
           <Images size={18} className="shrink-0" />
           Banners streaming
         </NavLink>
+        <NavLink to="/admin/identidade-visual" className={navCls}>
+          <Palette size={18} className="shrink-0" />
+          Identidade visual
+        </NavLink>
         <NavLink to="/admin/conteudo-site" className={navCls}>
           <FileText size={18} className="shrink-0" />
           Conteúdo do site
@@ -97,7 +102,7 @@ export function AdminLayout() {
   );
 
   return (
-    <DashboardSidebarLayout sidebarTitle={`${PLATFORM_SHORT_NAME} · Admin`} sidebarBody={sidebarBody}>
+    <DashboardSidebarLayout sidebarTitle={`${brand.platformShortName} · Admin`} sidebarBody={sidebarBody}>
       <Outlet />
     </DashboardSidebarLayout>
   );

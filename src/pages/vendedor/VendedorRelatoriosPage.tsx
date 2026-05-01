@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { FileDown } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
-import { VENDOR_DISPLAY_FALLBACK } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 import { getCompany, listActiveAllowedCourseIds, listCoursesCatalog } from '@/lib/firestore/admin';
 import {
   buildCourseAnalyticsReport,
@@ -69,10 +69,11 @@ function ChartCard({
 type ViewMode = 'course' | 'company';
 
 export function VendedorRelatoriosPage() {
+  const brand = useBrand();
   const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const managedIds = profile?.managedCompanyIds ?? NO_MANAGED_COMPANY_IDS;
-  const vendorName = profile?.name ?? VENDOR_DISPLAY_FALLBACK;
+  const vendorName = profile?.name ?? brand.vendorDisplayFallback;
 
   const [overviews, setOverviews] = useState<ManagedCompanyOverview[]>([]);
   const [loadingOverviews, setLoadingOverviews] = useState(true);
@@ -267,6 +268,7 @@ export function VendedorRelatoriosPage() {
         saudeMentalSnapshot: saudeMentalSnapshot ?? undefined,
         saudeMentalError,
         chartImages,
+        branding: brand,
       });
     } finally {
       setSellerPdfBusyKey(null);
@@ -324,6 +326,7 @@ export function VendedorRelatoriosPage() {
           includeSaudeMental: pdfIncludeSaudeMental,
         },
         byCompany: Object.fromEntries(byCompanyEntries),
+        branding: brand,
       });
     } finally {
       setSellerPdfBusyKey(null);
@@ -661,6 +664,7 @@ export function VendedorRelatoriosPage() {
                             assignments: o.assignments,
                             moduleNames,
                             moduleScheduleRowsByCourse,
+                            branding: brand,
                           });
                         })();
                       }}
@@ -857,6 +861,7 @@ export function VendedorRelatoriosPage() {
                     moduleTotal: report.moduleTotal,
                     moduleBars,
                     byUser: slice.byUser ?? [],
+                    branding: brand,
                   });
                 })();
               }}

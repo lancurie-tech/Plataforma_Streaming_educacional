@@ -6,7 +6,7 @@ import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayo
 import { PublicAssistantProviders } from '@/components/layout/PublicLayout';
 import { StreamingAssistantWidget } from '@/components/public/StreamingAssistantWidget';
 import { VendedorOnboardingTour } from '@/components/vendedor/VendedorOnboardingTour';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:min-h-0 lg:py-2 ${
@@ -14,6 +14,7 @@ const navCls = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export function VendedorLayout() {
+  const brand = useBrand();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -63,7 +64,7 @@ export function VendedorLayout() {
     <PublicAssistantProviders>
       <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
         <div className="min-h-0 flex-1">
-          <DashboardSidebarLayout sidebarTitle={`${PLATFORM_SHORT_NAME} · Vendas`} sidebarBody={sidebarBody}>
+          <DashboardSidebarLayout sidebarTitle={`${brand.platformShortName} · Vendas`} sidebarBody={sidebarBody}>
             <Outlet />
           </DashboardSidebarLayout>
         </div>

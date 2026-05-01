@@ -48,5 +48,11 @@ service firebase.storage {
       allow read: if true;
       allow write: if userIsAdmin() && isAdminImagePayload();
     }
+
+    /** Logo e identidade visual (Admin → Identidade visual). Leitura pública para `<img>`. */
+    match /siteBranding/{fileName} {
+      allow read: if true;
+      allow write: if userIsAdmin() && isAdminImagePayload();
+    }
   }
 }

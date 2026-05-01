@@ -10,8 +10,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { CertificateVisual } from '@/components/certificate/CertificateVisual';
 import { openCertificatePrintWindow } from '@/components/certificate/certificatePrint';
+import { useBrand } from '@/contexts/useBrand';
 
 function CertificateCard({ c }: { c: UserCertificate }) {
+  const brand = useBrand();
   const audienceLine = formatCertificateAudienceLine();
   return (
     <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
@@ -34,7 +36,13 @@ function CertificateCard({ c }: { c: UserCertificate }) {
           type="button"
           variant="outline"
           className="shrink-0"
-          onClick={() => openCertificatePrintWindow(c)}
+          onClick={() =>
+            openCertificatePrintWindow(c, {
+              platformDisplayName: brand.platformDisplayName,
+              platformShortName: brand.platformShortName,
+              logoSrc: brand.logoSrc,
+            })
+          }
         >
           <Printer size={16} />
           Imprimir / PDF

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -18,7 +18,7 @@ import {
   DEFAULT_VENDOR_CONFIDENTIALITY_MARKDOWN,
 } from '@/legal/referenceLegalMarkdown';
 import { DEFAULT_ACCOUNT_RIGHTS_MARKDOWN } from '@/legal/defaultAccountRightsMarkdown';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 type TabId =
   | 'about'
@@ -39,52 +39,56 @@ const REFERENCE_BY_TAB: Record<TabId, string> = {
   accountRights: DEFAULT_ACCOUNT_RIGHTS_MARKDOWN,
 };
 
-const TABS: { id: TabId; label: string; hint: string; previewPath: string }[] = [
-  {
-    id: 'about',
-    label: `Sobre — ${PLATFORM_SHORT_NAME}`,
-    hint: 'Página /sobre — conteúdo institucional. Sem texto aqui, o site usa o texto padrão do sistema.',
-    previewPath: '/sobre',
-  },
-  {
-    id: 'contact',
-    label: 'Contato',
-    hint: 'Página /contato. Sem texto aqui, o site usa o modelo de contato padrão do sistema.',
-    previewPath: '/contato',
-  },
-  {
-    id: 'terms',
-    label: 'Termos de uso',
-    hint: 'Sem texto salvo no Firestore, o site exibe o documento em React no código. Use “Preencher com texto de referência” para copiar esse texto em Markdown e editar.',
-    previewPath: '/termos',
-  },
-  {
-    id: 'privacy',
-    label: 'Política de privacidade',
-    hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
-    previewPath: '/privacidade',
-  },
-  {
-    id: 'commitments',
-    label: 'Compromissos do participante',
-    hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
-    previewPath: '/compromissos',
-  },
-  {
-    id: 'vendorConfidentiality',
-    label: 'Confidencialidade (vendedor)',
-    hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
-    previewPath: '/confidencialidade-vendedor',
-  },
-  {
-    id: 'accountRights',
-    label: 'Área do usuário (LGPD)',
-    hint: 'Texto na coluna direita da página /perfil (direitos LGPD/GDPR e contacto). Deixe vazio para usar o texto padrão do sistema.',
-    previewPath: '/perfil',
-  },
-];
-
 export function AdminSiteContentPage() {
+  const brand = useBrand();
+  const tabs = useMemo(
+    (): { id: TabId; label: string; hint: string; previewPath: string }[] => [
+      {
+        id: 'about',
+        label: `Sobre — ${brand.platformShortName}`,
+        hint: 'Página /sobre — conteúdo institucional. Sem texto aqui, o site usa o texto padrão do sistema.',
+        previewPath: '/sobre',
+      },
+      {
+        id: 'contact',
+        label: 'Contato',
+        hint: 'Página /contato. Sem texto aqui, o site usa o modelo de contato padrão do sistema.',
+        previewPath: '/contato',
+      },
+      {
+        id: 'terms',
+        label: 'Termos de uso',
+        hint: 'Sem texto salvo no Firestore, o site exibe o documento em React no código. Use “Preencher com texto de referência” para copiar esse texto em Markdown e editar.',
+        previewPath: '/termos',
+      },
+      {
+        id: 'privacy',
+        label: 'Política de privacidade',
+        hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
+        previewPath: '/privacidade',
+      },
+      {
+        id: 'commitments',
+        label: 'Compromissos do participante',
+        hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
+        previewPath: '/compromissos',
+      },
+      {
+        id: 'vendorConfidentiality',
+        label: 'Confidencialidade (vendedor)',
+        hint: 'Sem texto salvo, o site usa o documento padrão do código. “Preencher com texto de referência” traz o mesmo conteúdo em Markdown.',
+        previewPath: '/confidencialidade-vendedor',
+      },
+      {
+        id: 'accountRights',
+        label: 'Área do usuário (LGPD)',
+        hint: 'Texto na coluna direita da página /perfil (direitos LGPD/GDPR e contacto). Deixe vazio para usar o texto padrão do sistema.',
+        previewPath: '/perfil',
+      },
+    ],
+    [brand.platformShortName],
+  );
+
   const [tab, setTab] = useState<TabId>('about');
   const [draft, setDraft] = useState<SitePublicContentDraft>(emptySitePublicContentDraft());
   const [loading, setLoading] = useState(true);
@@ -123,7 +127,7 @@ export function AdminSiteContentPage() {
     }
   }
 
-  const active = TABS.find((t) => t.id === tab)!;
+  const active = tabs.find((t) => t.id === tab)!;
   const markdownKey = `${tab}Markdown` as keyof SitePublicContentDraft;
   const versionKey = `${tab}Version` as keyof SitePublicContentDraft;
 
@@ -142,7 +146,7 @@ export function AdminSiteContentPage() {
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             type="button"

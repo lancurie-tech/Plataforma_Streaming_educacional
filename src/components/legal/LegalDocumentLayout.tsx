@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 type Props = {
   title: string;
@@ -19,6 +19,7 @@ export function LegalDocumentLayout({
   children,
   showLegalDisclaimer = true,
 }: Props) {
+  const brand = useBrand();
   return (
     <article className="mx-auto max-w-3xl px-4 py-10 sm:py-12">
       {showLegalDisclaimer ? (
@@ -33,7 +34,7 @@ export function LegalDocumentLayout({
         {children}
       </div>
       <p className="mt-12 border-t border-zinc-800 pt-6 text-xs text-zinc-600">
-        {PLATFORM_DISPLAY_NAME} — conteúdos educacionais. Em caso de dúvidas sobre tratamento de dados,
+        {brand.platformDisplayName} — conteúdos educacionais. Em caso de dúvidas sobre tratamento de dados,
         utilize os canais indicados na Política de Privacidade.
       </p>
       <Link to="/streaming" className="mt-4 inline-block text-sm text-emerald-400 hover:text-emerald-300 hover:underline">

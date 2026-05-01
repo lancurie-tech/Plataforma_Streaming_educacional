@@ -1,7 +1,8 @@
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 /** Wordmark branco em fundo transparente — para header escuro. */
 export function PlatformWordmarkWhite({ className = '' }: { className?: string }) {
+  const brand = useBrand();
   return (
     <svg
       className={className}
@@ -18,7 +19,7 @@ export function PlatformWordmarkWhite({ className = '' }: { className?: string }
         fill="#fafafa"
         style={{ fontFamily: 'system-ui, Segoe UI, sans-serif', fontSize: 14, fontWeight: 700 }}
       >
-        {PLATFORM_SHORT_NAME}
+        {brand.platformShortName}
       </text>
     </svg>
   );

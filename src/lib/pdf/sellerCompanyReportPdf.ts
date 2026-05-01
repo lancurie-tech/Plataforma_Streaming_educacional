@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { defaultResolvedBranding, type ResolvedBranding } from '@/lib/brand';
 import type { AssignmentExpiryRow } from '@/types';
 import type { ManagedCompanyOverview } from '@/lib/firestore/sellerDashboard';
 import type { SellerCompanyCourseMetricsPdf } from '@/lib/pdf/sellerCompanyMetricsPdf';
@@ -12,8 +12,9 @@ import {
   drawPdfCoverHeader,
   drawPdfSectionTitle,
   ensurePdfVerticalSpace,
-  loadPlatformLogoForPdf,
+  loadLogoForPdf,
   pdfStandardTableProps,
+  type PdfContinuationOpts,
 } from '@/lib/pdf/pdfBrandLayout';
 
 export type SellerPdfSectionFlags = {
@@ -34,6 +35,7 @@ export type SellerCompanyPdfDownloadInput = {
   chartImages?: SaudeMentalPdfChartImages;
   /** Opcional: evita segundo fetch se já carregado. */
   logoDataUrl?: string | null;
+  branding?: ResolvedBranding;
 };
 
 export type SellerPortfolioCompanyPdfPayload = {
@@ -51,6 +53,7 @@ export type SellerPortfolioPdfDownloadInput = {
   flags: SellerPdfSectionFlags;
   byCompany: Record<string, SellerPortfolioCompanyPdfPayload>;
   logoDataUrl?: string | null;
+  branding?: ResolvedBranding;
 };
 
 function slugifyFilename(s: string): string {
@@ -83,8 +86,9 @@ function renderCourseMetricsBlock(
   state: { y: number },
   studentCountPlatform: number,
   metrics: SellerCompanyCourseMetricsPdf,
+  pdfCont: PdfContinuationOpts,
 ): void {
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 52, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 52, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Métricas do curso (plataforma)');
   doc.setFontSize(PDF_BRAND.bodyFs);
   doc.setFont('helvetica', 'normal');
@@ -94,7 +98,7 @@ function renderCourseMetricsBlock(
   state.y += 6;
   const line2 = `Alunos com perfil nesta empresa: ${studentCountPlatform} · Matriculados neste curso: ${metrics.enrolledInCourseCount} · Concluíram o curso completo: ${metrics.completedFullCourseCount}`;
   const lines2 = doc.splitTextToSize(line2, pageW - margin * 2);
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, lines2.length * 5.6 + 4, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, lines2.length * 5.6 + 4, continuation, pdfCont);
   doc.text(lines2, margin, state.y);
   state.y += lines2.length * 5.6 + 4;
 
@@ -104,12 +108,12 @@ function renderCourseMetricsBlock(
     const avgMod = metrics.avgModulesCompleted != null ? String(metrics.avgModulesCompleted) : '—';
     const perf = `Desempenho em quiz: acerto agregado ${agg} · média da taxa de acerto por aluno ${avgU} · média de módulos concluídos (matriculados): ${avgMod} · respostas avaliadas: ${metrics.gradedAnswersTotal}`;
     const pl = doc.splitTextToSize(perf, pageW - margin * 2);
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, pl.length * 5.6 + 4, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, pl.length * 5.6 + 4, continuation, pdfCont);
     doc.setFontSize(PDF_BRAND.smallFs + 0.5);
     doc.text(pl, margin, state.y);
     state.y += pl.length * 5.6 + 4;
   } else {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 12, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 12, continuation, pdfCont);
     doc.setFontSize(PDF_BRAND.smallFs + 0.5);
     doc.setTextColor(...PDF_BRAND.muted);
     doc.text(
@@ -123,7 +127,7 @@ function renderCourseMetricsBlock(
   doc.setTextColor(...PDF_BRAND.inkSoft);
 
   if (metrics.moduleRows.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation, pdfCont);
     autoTable(doc, {
       startY: state.y,
       ...tbl(),
@@ -151,9 +155,10 @@ function addChartImage(
   state: { y: number },
   title: string,
   dataUrl: string | undefined,
+  pdfCont: PdfContinuationOpts,
 ): void {
   if (!dataUrl) return;
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation, pdfCont);
   doc.setFontSize(PDF_BRAND.sectionFs - 1);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...PDF_BRAND.ink);
@@ -163,7 +168,7 @@ function addChartImage(
   const maxW = pageW - 2 * margin;
   const w = maxW * 0.9;
   const h = (props.height * w) / props.width;
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, h + 6, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, h + 6, continuation, pdfCont);
   const x = margin + (maxW - w) / 2;
   doc.addImage(dataUrl, 'PNG', x, state.y, w, h);
   state.y += h + 10;
@@ -178,8 +183,9 @@ function renderSaudeMentalPdfSection(
   state: { y: number },
   sm: SaudeMentalCompanyPdfSnapshot,
   chartImages: SaudeMentalPdfChartImages | undefined,
+  pdfCont: PdfContinuationOpts,
 ): void {
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Saúde Mental — engajamento e autopercepção (T0–T2)');
 
   doc.setFontSize(PDF_BRAND.bodyFs);
@@ -188,7 +194,7 @@ function renderSaudeMentalPdfSection(
   doc.text(`Curso: ${sm.courseTitle}`, margin, state.y);
   state.y += 6;
   const rec = doc.splitTextToSize(sm.recorteDescription, pageW - margin * 2);
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, rec.length * 5.6 + 4, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, rec.length * 5.6 + 4, continuation, pdfCont);
   doc.text(rec, margin, state.y);
   state.y += rec.length * 5.6 + 6;
 
@@ -200,13 +206,13 @@ function renderSaudeMentalPdfSection(
   doc.setFontSize(PDF_BRAND.smallFs + 0.5);
   doc.setTextColor(...PDF_BRAND.muted);
   const expl = doc.splitTextToSize(sm.headlineT2.explanation, pageW - margin * 2);
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, expl.length * 5.2 + 4, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, expl.length * 5.2 + 4, continuation, pdfCont);
   doc.text(expl, margin, state.y);
   state.y += expl.length * 5.2 + 8;
   doc.setTextColor(...PDF_BRAND.inkSoft);
   doc.setFontSize(PDF_BRAND.bodyFs);
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation, pdfCont);
   autoTable(doc, {
     startY: state.y,
     ...tbl(),
@@ -219,7 +225,7 @@ function renderSaudeMentalPdfSection(
   const m = sm.courseMetrics;
   const j = `Elegíveis: ${m.eligibleCount} · Inscritos: ${m.enrolledCount} · Iniciaram: ${m.startedCount} · Concluíram curso: ${m.completedCount} · Adesão: ${m.adherenceRate.toFixed(1)}% · Conclusão (sobre inscritos): ${m.completionRate.toFixed(1)}%`;
   const jl = doc.splitTextToSize(j, pageW - margin * 2);
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, jl.length * 5.6 + 4, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, jl.length * 5.6 + 4, continuation, pdfCont);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(PDF_BRAND.bodyFs);
   doc.setTextColor(...PDF_BRAND.inkSoft);
@@ -227,12 +233,12 @@ function renderSaudeMentalPdfSection(
   state.y += jl.length * 5.6 + 4;
   const inst = `Instrumentos concluídos (sobre inscritos): ${sm.instrumentTitles.T0} — ${sm.instrumentRates.T0}% · ${sm.instrumentTitles.T1} — ${sm.instrumentRates.T1}% · ${sm.instrumentTitles.T2} — ${sm.instrumentRates.T2}%`;
   const il = doc.splitTextToSize(inst, pageW - margin * 2);
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, il.length * 5.6 + 4, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, il.length * 5.6 + 4, continuation, pdfCont);
   doc.text(il, margin, state.y);
   state.y += il.length * 5.6 + 6;
 
   if (sm.modulePerformance.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation, pdfCont);
     autoTable(doc, {
       startY: state.y,
       ...tbl(),
@@ -248,7 +254,7 @@ function renderSaudeMentalPdfSection(
   }
 
   if (sm.tracks.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation, pdfCont);
     autoTable(doc, {
       startY: state.y,
       ...tbl(),
@@ -258,7 +264,7 @@ function renderSaudeMentalPdfSection(
     state.y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
   }
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation, pdfCont);
   autoTable(doc, {
     startY: state.y,
     ...tbl(),
@@ -268,7 +274,7 @@ function renderSaudeMentalPdfSection(
   state.y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
 
   if (sm.dimensionsT2vsT0.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation, pdfCont);
     autoTable(doc, {
       startY: state.y,
       ...tbl(),
@@ -285,7 +291,7 @@ function renderSaudeMentalPdfSection(
   }
 
   if (sm.groupByTrilha.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation, pdfCont);
     autoTable(doc, {
       startY: state.y,
       ...tbl(),
@@ -296,9 +302,29 @@ function renderSaudeMentalPdfSection(
   }
 
   if (chartImages && (chartImages.funnel || chartImages.evolution || chartImages.radarGeral)) {
-    addChartImage(doc, pageW, pageH, margin, continuation, state, 'Funil (geral)', chartImages.funnel);
-    addChartImage(doc, pageW, pageH, margin, continuation, state, 'Evolução do score por momento (geral)', chartImages.evolution);
-    addChartImage(doc, pageW, pageH, margin, continuation, state, 'Radar geral das dimensões (T0, T1, T2)', chartImages.radarGeral);
+    addChartImage(doc, pageW, pageH, margin, continuation, state, 'Funil (geral)', chartImages.funnel, pdfCont);
+    addChartImage(
+      doc,
+      pageW,
+      pageH,
+      margin,
+      continuation,
+      state,
+      'Evolução do score por momento (geral)',
+      chartImages.evolution,
+      pdfCont,
+    );
+    addChartImage(
+      doc,
+      pageW,
+      pageH,
+      margin,
+      continuation,
+      state,
+      'Radar geral das dimensões (T0, T1, T2)',
+      chartImages.radarGeral,
+      pdfCont,
+    );
   }
 
   if (sm.perTempo.length > 0) {
@@ -306,7 +332,7 @@ function renderSaudeMentalPdfSection(
       drawPdfSectionTitle(doc, pageW, margin, state, `${pt.label} — métricas e comparativos`);
       const rowInfo = `Respostas válidas: ${pt.responses} · Score médio: ${pt.avgScore100}`;
       const rowLines = doc.splitTextToSize(rowInfo, pageW - margin * 2);
-      ensurePdfVerticalSpace(doc, pageW, pageH, state, rowLines.length * 5.6 + 4, continuation);
+      ensurePdfVerticalSpace(doc, pageW, pageH, state, rowLines.length * 5.6 + 4, continuation, pdfCont);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(PDF_BRAND.bodyFs);
       doc.setTextColor(...PDF_BRAND.inkSoft);
@@ -321,14 +347,14 @@ function renderSaudeMentalPdfSection(
       doc.setFontSize(PDF_BRAND.smallFs + 0.5);
       doc.setTextColor(...PDF_BRAND.muted);
       const e = doc.splitTextToSize(pt.headline.explanation, pageW - margin * 2);
-      ensurePdfVerticalSpace(doc, pageW, pageH, state, e.length * 5.2 + 4, continuation);
+      ensurePdfVerticalSpace(doc, pageW, pageH, state, e.length * 5.2 + 4, continuation, pdfCont);
       doc.text(e, margin, state.y);
       state.y += e.length * 5.2 + 5;
       doc.setFontSize(PDF_BRAND.bodyFs);
       doc.setTextColor(...PDF_BRAND.inkSoft);
 
       if (pt.dimensionsVsT0.length > 0) {
-        ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation);
+        ensurePdfVerticalSpace(doc, pageW, pageH, state, 32, continuation, pdfCont);
         autoTable(doc, {
           startY: state.y,
           ...tbl(),
@@ -345,7 +371,7 @@ function renderSaudeMentalPdfSection(
       }
 
       if (pt.groupByTrilha.length > 0) {
-        ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation);
+        ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation, pdfCont);
         autoTable(doc, {
           startY: state.y,
           ...tbl(),
@@ -362,7 +388,17 @@ function renderSaudeMentalPdfSection(
             : pt.tempo === 'T1'
               ? chartImages.radarT1
               : chartImages.radarT2;
-        addChartImage(doc, pageW, pageH, margin, continuation, state, `Radar das dimensões (${pt.label})`, chartByTempo);
+        addChartImage(
+          doc,
+          pageW,
+          pageH,
+          margin,
+          continuation,
+          state,
+          `Radar das dimensões (${pt.label})`,
+          chartByTempo,
+          pdfCont,
+        );
       }
     }
   }
@@ -386,6 +422,7 @@ function renderCompanyPage(
   generatedAt: Date,
   extras: CompanyPageExtras,
   logoDataUrl: string | null,
+  pdfCont: PdfContinuationOpts,
 ): void {
   const { company, studentCount, assignments } = overview;
   const { courseNames, flags, enrollmentMetrics, enrollmentError, saudeMentalSnapshot, saudeMentalError, chartImages } =
@@ -401,6 +438,7 @@ function renderCompanyPage(
       doc,
       pageW,
       logoDataUrl,
+      platformShortName: pdfCont.platformShortName,
       documentLabel: 'Relatório para empresa',
       mainTitle: 'Resumo e indicadores',
       subtitle: company.name,
@@ -408,7 +446,7 @@ function renderCompanyPage(
     }),
   };
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 30, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 30, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Identificação');
   doc.setFontSize(PDF_BRAND.bodyFs);
   doc.setFont('helvetica', 'normal');
@@ -420,7 +458,7 @@ function renderCompanyPage(
   doc.text(`Colaboradores cadastrados (alunos): ${studentCount}`, margin, state.y);
   state.y += 10;
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Cursos liberados');
   const courseRows = assignments.map((a) => [
     courseNames?.[a.courseId] ?? a.courseId,
@@ -436,7 +474,7 @@ function renderCompanyPage(
   });
   state.y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Prazos de liberação (resumo)');
   const exp = expiryRows.filter((r) => r.companyId === company.id);
   const expBody =
@@ -457,7 +495,7 @@ function renderCompanyPage(
 
   if (flags.includeEnrollment) {
     if (enrollmentError) {
-      ensurePdfVerticalSpace(doc, pageW, pageH, state, 16, continuation);
+      ensurePdfVerticalSpace(doc, pageW, pageH, state, 16, continuation, pdfCont);
       doc.setFontSize(PDF_BRAND.bodyFs);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...PDF_BRAND.warn);
@@ -473,13 +511,14 @@ function renderCompanyPage(
         state,
         studentCount,
         enrollmentMetrics,
+        pdfCont,
       );
     }
   }
 
   if (flags.includeSaudeMental) {
     if (saudeMentalError) {
-      ensurePdfVerticalSpace(doc, pageW, pageH, state, 16, continuation);
+      ensurePdfVerticalSpace(doc, pageW, pageH, state, 16, continuation, pdfCont);
       doc.setFontSize(PDF_BRAND.bodyFs);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...PDF_BRAND.warn);
@@ -488,7 +527,17 @@ function renderCompanyPage(
       });
       state.y += 12;
     } else if (saudeMentalSnapshot) {
-      renderSaudeMentalPdfSection(doc, pageW, pageH, margin, continuation, state, saudeMentalSnapshot, chartImages);
+      renderSaudeMentalPdfSection(
+        doc,
+        pageW,
+        pageH,
+        margin,
+        continuation,
+        state,
+        saudeMentalSnapshot,
+        chartImages,
+        pdfCont,
+      );
     }
   }
 }
@@ -497,6 +546,7 @@ function addSellerReportFooters(
   doc: jsPDF,
   flags: SellerPdfSectionFlags,
   chartImages: SaudeMentalPdfChartImages | undefined,
+  platformDisplayName: string,
 ): void {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -513,13 +563,15 @@ function addSellerReportFooters(
     );
   addPdfPageFooters(doc, pageW, pageH, margin, (i, t) =>
     flags.includeSaudeMental && hasCharts
-      ? `${PLATFORM_DISPLAY_NAME} — relatório com gráficos — confidencial — página ${i} de ${t}`
-      : `${PLATFORM_DISPLAY_NAME} — relatório para empresa — confidencial — página ${i} de ${t}`,
+      ? `${platformDisplayName} — relatório com gráficos — confidencial — página ${i} de ${t}`
+      : `${platformDisplayName} — relatório para empresa — confidencial — página ${i} de ${t}`,
   );
 }
 
 export async function downloadSellerCompanyPdf(input: SellerCompanyPdfDownloadInput): Promise<void> {
-  const logo = input.logoDataUrl ?? (await loadPlatformLogoForPdf());
+  const brand = input.branding ?? defaultResolvedBranding();
+  const logo = input.logoDataUrl ?? (await loadLogoForPdf(brand.logoSrc));
+  const pdfCont: PdfContinuationOpts = { logoDataUrl: logo, platformShortName: brand.platformShortName };
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const now = new Date();
   renderCompanyPage(doc, input.overview, input.vendorName, input.expiryRows, now, {
@@ -530,15 +582,17 @@ export async function downloadSellerCompanyPdf(input: SellerCompanyPdfDownloadIn
     saudeMentalSnapshot: input.saudeMentalSnapshot,
     saudeMentalError: input.saudeMentalError,
     chartImages: input.chartImages,
-  }, logo);
-  addSellerReportFooters(doc, input.flags, input.chartImages);
+  }, logo, pdfCont);
+  addSellerReportFooters(doc, input.flags, input.chartImages, brand.platformDisplayName);
   doc.save(`relatorio-empresa-${slugifyFilename(input.overview.company.slug)}.pdf`);
 }
 
 export async function downloadSellerPortfolioPdf(input: SellerPortfolioPdfDownloadInput): Promise<void> {
   const { overviews, vendorName, expiryRows, courseNames, flags, byCompany } = input;
   if (!overviews.length) return;
-  const logo = input.logoDataUrl ?? (await loadPlatformLogoForPdf());
+  const brand = input.branding ?? defaultResolvedBranding();
+  const logo = input.logoDataUrl ?? (await loadLogoForPdf(brand.logoSrc));
+  const pdfCont: PdfContinuationOpts = { logoDataUrl: logo, platformShortName: brand.platformShortName };
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const now = new Date();
   overviews.forEach((overview, i) => {
@@ -551,8 +605,8 @@ export async function downloadSellerPortfolioPdf(input: SellerPortfolioPdfDownlo
       enrollmentError: p.enrollmentError,
       saudeMentalSnapshot: p.saudeMentalSnapshot,
       saudeMentalError: p.saudeMentalError,
-    }, logo);
+    }, logo, pdfCont);
   });
-  addSellerReportFooters(doc, flags, undefined);
+  addSellerReportFooters(doc, flags, undefined, brand.platformDisplayName);
   doc.save(`relatorio-carteira-${slugifyFilename(vendorName || 'vendedor')}-${now.toISOString().slice(0, 10)}.pdf`);
 }

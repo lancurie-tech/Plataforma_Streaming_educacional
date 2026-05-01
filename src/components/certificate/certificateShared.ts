@@ -1,19 +1,17 @@
-import { PLATFORM_LOGO_SRC } from '@/lib/brand';
-
 export const BRAND_GREEN = '#66BC3F';
 export const GREEN_DEEP = '#2d6b1f';
 export const GOLD = '#C9A227';
 export const GOLD_DARK = '#8B6914';
 
-/** Caminho público do logo no certificado (ver `PLATFORM_LOGO_SRC` em `brand.ts`). */
-export const CERTIFICATE_LOGO_PATH = PLATFORM_LOGO_SRC;
-
 export const SEAL_CX = 50;
 export const SEAL_CY = 44;
 
-export function certificateLogoAbsoluteUrl(): string {
-  if (typeof window === 'undefined') return CERTIFICATE_LOGO_PATH;
-  return `${window.location.origin}${CERTIFICATE_LOGO_PATH}`;
+/** URL absoluta do logo no certificado/impressão (Storage ou caminho em `public/`). */
+export function certificateLogoAbsoluteUrl(logoSrc: string): string {
+  if (/^https?:\/\//i.test(logoSrc)) return logoSrc;
+  if (typeof window === 'undefined') return logoSrc.startsWith('/') ? logoSrc : `/${logoSrc}`;
+  const path = logoSrc.startsWith('/') ? logoSrc : `/${logoSrc}`;
+  return `${window.location.origin}${path}`;
 }
 
 export function starburstPath(

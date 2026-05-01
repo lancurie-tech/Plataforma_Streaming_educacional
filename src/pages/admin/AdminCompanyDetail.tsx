@@ -29,6 +29,7 @@ import type {
   ModuleContent,
 } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { useBrand } from '@/contexts/useBrand';
 import { generateCompanyPdf } from '@/lib/companyPdfExport';
 
 const DEFAULT_ROLES: CompanyRoleDef[] = [
@@ -392,6 +393,7 @@ function ModuleScheduleSection({
 }
 
 export function AdminCompanyDetail() {
+  const brand = useBrand();
   const { companyId } = useParams<{ companyId: string }>();
   const [company, setCompany] = useState<CompanyDoc | null>(null);
   const [catalog, setCatalog] = useState<CourseSummary[]>([]);
@@ -842,6 +844,7 @@ export function AdminCompanyDetail() {
                       assignments,
                       moduleNames,
                       moduleScheduleRowsByCourse,
+                      branding: brand,
                     });
                   })();
                 }}

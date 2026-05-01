@@ -46,6 +46,7 @@ import { VendorConfidentialityPage } from '@/pages/legal/VendorConfidentialityPa
 import { AboutPage } from '@/pages/legal/AboutPage';
 import { ContactPage } from '@/pages/legal/ContactPage';
 import { AdminSiteContentPage } from '@/pages/admin/AdminSiteContentPage';
+import { AdminIdentidadeVisualPage } from '@/pages/admin/AdminIdentidadeVisualPage';
 import { AuthPublicChrome } from '@/components/layout/AuthPublicChrome';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { WelcomeGatePage } from '@/pages/WelcomeGatePage';
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="streaming-banners" element={<AdminStreamingBannersPage />} />
         <Route path="streaming-analytics" element={<AdminStreamingAnalyticsPage />} />
         <Route path="vendedores" element={<AdminVendedores />} />
+        <Route path="identidade-visual" element={<AdminIdentidadeVisualPage />} />
         <Route path="conteudo-site" element={<AdminSiteContentPage />} />
         <Route
           path="saude-mental"

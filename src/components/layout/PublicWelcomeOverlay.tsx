@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { clsx } from 'clsx';
-import { PLATFORM_LOGO_SRC, PLATFORM_SHORT_NAME, STORAGE_NS } from '@/lib/brand';
+import { STORAGE_NS } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 type Phase = 'curtain' | 'ready' | 'leaving' | 'gone';
 
@@ -29,6 +30,7 @@ export function PublicWelcomeOverlay({
   variant = 'sessionOnce',
   onComplete,
 }: PublicWelcomeOverlayProps) {
+  const brand = useBrand();
   const shouldSkipInitialOverlay = variant === 'sessionOnce' && readWelcomeAlreadySeen();
   const [phase, setPhase] = useState<Phase>(() => (shouldSkipInitialOverlay ? 'gone' : 'curtain'));
 
@@ -108,8 +110,8 @@ export function PublicWelcomeOverlay({
         <div className="public-welcome-logo-wrap group relative">
           <div className="public-welcome-logo-ring pointer-events-none" aria-hidden />
           <img
-            src={PLATFORM_LOGO_SRC}
-            alt={PLATFORM_SHORT_NAME}
+            src={brand.logoSrc}
+            alt={brand.platformShortName}
             width={320}
             height={56}
             className="public-welcome-logo relative z-1 h-14 w-auto max-w-[min(85vw,320px)] object-contain sm:h-46"

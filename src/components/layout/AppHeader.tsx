@@ -11,10 +11,11 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
+import { useBrand } from '@/contexts/useBrand';
 import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 export function AppHeader() {
+  const brand = useBrand();
   const { logout, profile } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -45,7 +46,7 @@ export function AppHeader() {
         <Link
           to="/"
           className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 touch-manipulation"
-          aria-label={`${PLATFORM_SHORT_NAME} — página inicial e streaming`}
+          aria-label={`${brand.platformShortName} — página inicial e streaming`}
           title="Página inicial (streaming)"
         >
           <HeaderLogoImg />

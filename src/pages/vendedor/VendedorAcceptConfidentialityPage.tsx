@@ -8,9 +8,10 @@ import {
 } from '@/lib/firebase/callables';
 import { Button } from '@/components/ui/Button';
 import { AuthHeader } from '@/components/layout/AuthHeader';
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 export function VendedorAcceptConfidentialityPage() {
+  const brand = useBrand();
   const { user, profile, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [accepted, setAccepted] = useState(false);
@@ -87,7 +88,7 @@ export function VendedorAcceptConfidentialityPage() {
                 Termo de confidencialidade e obrigações do vendedor
               </Link>
               , incluindo o dever de sigilo sobre dados de empresas, colaboradores e conteúdos da{' '}
-              {PLATFORM_DISPLAY_NAME},
+              {brand.platformDisplayName},
               e estou ciente das consequências em caso de violação.
             </span>
           </label>

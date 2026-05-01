@@ -21,11 +21,10 @@ import {
   X,
 } from 'lucide-react';
 import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
+import { useBrand } from '@/contexts/useBrand';
 import { useAuth } from '@/contexts/useAuth';
 import { LegalFooter } from '@/components/legal/LegalFooter';
 import { StreamingAssistantWidget } from '@/components/public/StreamingAssistantWidget';
-import { PLATFORM_SHORT_NAME } from '@/lib/brand';
-
 /** Foco do vídeo em destaque na home (para o assistente e transcrição no servidor). */
 export type StreamingAssistantFocus = { trackId: string; entryId: string } | null;
 
@@ -135,6 +134,7 @@ const subNavCls = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export function PublicLayout() {
+  const brand = useBrand();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, profile, loading: authLoading, logout } = useAuth();
@@ -171,7 +171,7 @@ export function PublicLayout() {
           <Link
             to="/"
             className="flex justify-center"
-            aria-label={`${PLATFORM_SHORT_NAME} — entrada e boas-vindas`}
+            aria-label={`${brand.platformShortName} — entrada e boas-vindas`}
           >
             <HeaderLogoImg />
           </Link>

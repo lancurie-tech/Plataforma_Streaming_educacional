@@ -1,13 +1,13 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { defaultResolvedBranding, type ResolvedBranding } from '@/lib/brand';
 import {
   PDF_BRAND,
   addPdfPageFooters,
   drawPdfCoverHeader,
   drawPdfSectionTitle,
   ensurePdfVerticalSpace,
-  loadPlatformLogoForPdf,
+  loadLogoForPdf,
   pdfStandardTableProps,
 } from '@/lib/pdf/pdfBrandLayout';
 
@@ -26,6 +26,7 @@ export async function downloadVendorMetricsPdf({
   moduleBars,
   byUser,
   logoDataUrl: logoInput,
+  branding,
 }: {
   vendorName: string;
   courseTitle: string;
@@ -36,8 +37,11 @@ export async function downloadVendorMetricsPdf({
   moduleBars: ModuleBar[];
   byUser: UserRow[];
   logoDataUrl?: string | null;
+  branding?: ResolvedBranding;
 }): Promise<void> {
-  const logo = logoInput ?? (await loadPlatformLogoForPdf());
+  const brand = branding ?? defaultResolvedBranding();
+  const logo = logoInput ?? (await loadLogoForPdf(brand.logoSrc));
+  const pdfCont = { logoDataUrl: logo, platformShortName: brand.platformShortName };
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -50,6 +54,7 @@ export async function downloadVendorMetricsPdf({
       doc,
       pageW,
       logoDataUrl: logo,
+      platformShortName: brand.platformShortName,
       documentLabel: 'Relatório de métricas',
       mainTitle: 'Indicadores do curso',
       subtitle: courseTitle,
@@ -57,7 +62,7 @@ export async function downloadVendorMetricsPdf({
     }),
   };
 
-  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation);
+  ensurePdfVerticalSpace(doc, pageW, pageH, state, 28, continuation, pdfCont);
   drawPdfSectionTitle(doc, pageW, margin, state, 'Resumo');
   doc.setFontSize(PDF_BRAND.bodyFs);
   doc.setFont('helvetica', 'normal');
@@ -70,7 +75,7 @@ export async function downloadVendorMetricsPdf({
   state.y += 10;
 
   if (moduleBars.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 40, continuation, pdfCont);
     drawPdfSectionTitle(doc, pageW, margin, state, 'Conclusão por módulo');
     autoTable(doc, {
       startY: state.y,
@@ -88,7 +93,7 @@ export async function downloadVendorMetricsPdf({
 
   const enrolled = byUser.filter((u) => u.enrolled);
   if (enrolled.length > 0) {
-    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation);
+    ensurePdfVerticalSpace(doc, pageW, pageH, state, 36, continuation, pdfCont);
     drawPdfSectionTitle(doc, pageW, margin, state, 'Alunos matriculados');
     autoTable(doc, {
       startY: state.y,
@@ -103,7 +108,7 @@ export async function downloadVendorMetricsPdf({
   }
 
   addPdfPageFooters(doc, pageW, pageH, margin, (i, t) =>
-    `${PLATFORM_DISPLAY_NAME} — relatório de métricas — confidencial — página ${i} de ${t}`,
+    `${brand.platformDisplayName} — relatório de métricas — confidencial — página ${i} de ${t}`,
   );
 
   const slug = courseTitle

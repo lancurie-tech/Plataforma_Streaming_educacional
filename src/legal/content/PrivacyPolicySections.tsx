@@ -1,11 +1,12 @@
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 /** Texto-base para revisão pelo advogado — Política de privacidade (LGPD). */
 export function PrivacyPolicySections() {
+  const brand = useBrand();
   return (
     <>
       <p>
-        Esta Política de Privacidade descreve como a {PLATFORM_DISPLAY_NAME} trata dados pessoais no contexto
+        Esta Política de Privacidade descreve como a {brand.platformDisplayName} trata dados pessoais no contexto
         dos seus serviços digitais, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 —
         LGPD) e demais normas aplicáveis. <strong>Texto-base para revisão jurídica</strong>; ajuste de bases
         legais, titularidade, encarregado (DPO) e detalhes contratuais deve ser feito pelo advogado.
@@ -13,7 +14,7 @@ export function PrivacyPolicySections() {
 
       <h2>1. Controlador e encarregado</h2>
       <p>
-        A {PLATFORM_DISPLAY_NAME} atua como controladora dos dados pessoais tratados diretamente através da
+        A {brand.platformDisplayName} atua como controladora dos dados pessoais tratados diretamente através da
         plataforma, na medida em que define as finalidades e os meios do tratamento. O nome corporativo
         completo, CNPJ, endereço e canal de contato do encarregado de dados (DPO ou canal equivalente) devem
         ser inseridos aqui pelo advogado. Quando o tratamento ocorrer em nome de empresas contratantes (por

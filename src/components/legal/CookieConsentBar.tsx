@@ -1,13 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Cookie } from 'lucide-react';
 import { useAnalyticsConsent } from '@/contexts/AnalyticsConsentContext';
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 /**
  * Cartão central no ecrã (efeito “hover” no painel). Escolha gravada em localStorage.
  * Métricas opcionais (ex.: streaming) só com “Aceitar”.
  */
 export function CookieConsentBar() {
+  const brand = useBrand();
   const { pathname } = useLocation();
   const { consent, grant, deny } = useAnalyticsConsent();
 
@@ -40,7 +41,7 @@ export function CookieConsentBar() {
             </h2>
             <div id="cookie-consent-desc" className="space-y-2 text-xs leading-snug text-zinc-400 sm:text-[13px] sm:leading-relaxed">
               <p>
-                Os vídeos da {PLATFORM_DISPLAY_NAME} são exclusivamente educativos e informativos e{' '}
+                Os vídeos da {brand.platformDisplayName} são exclusivamente educativos e informativos e{' '}
                 <strong className="font-medium text-zinc-300">não substituem a consulta médica</strong>. Em caso de
                 sintomas ou dúvidas, procure seu médico de confiança.
               </p>

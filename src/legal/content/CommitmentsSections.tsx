@@ -1,12 +1,13 @@
-import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+import { useBrand } from '@/contexts/useBrand';
 
 /** Declarações e compromissos do participante (aluno) — base para o advogado. */
 export function CommitmentsSections() {
+  const brand = useBrand();
   return (
     <>
       <p>
         Este documento reúne declarações e compromissos do participante que se cadastra na{' '}
-        {PLATFORM_DISPLAY_NAME} por convite de empresa contratante, para fins de transparência e boa-fé
+        {brand.platformDisplayName} por convite de empresa contratante, para fins de transparência e boa-fé
         contratual e educacional.{' '}
         <strong>Não substitui os Termos de Uso nem a Política de Privacidade.</strong>
       </p>
@@ -22,13 +23,13 @@ export function CommitmentsSections() {
       <p>
         Comprometo-me a utilizar os cursos e materiais apenas para fins de aprendizagem no âmbito da relação com
         a empresa contratante, sem reprodução, distribuição pública ou comercial não autorizada de conteúdos
-        protegidos por direitos autorais ou segredos comerciais da {PLATFORM_DISPLAY_NAME} ou de terceiros.
+        protegidos por direitos autorais ou segredos comerciais da {brand.platformDisplayName} ou de terceiros.
       </p>
 
       <h2>3. Confidencialidade de credenciais</h2>
       <p>
         Comprometo-me a não partilhar login e senha com outras pessoas e a comunicar à empresa ou à{' '}
-        {PLATFORM_DISPLAY_NAME} suspeitas de uso indevido da conta.
+        {brand.platformDisplayName} suspeitas de uso indevido da conta.
       </p>
 
       <h2>4. Natureza educacional do conteúdo</h2>
@@ -51,7 +52,7 @@ export function CommitmentsSections() {
       <p>
         O descumprimento destes compromissos pode implicar suspensão de acesso, responsabilização civil ou
         administrativa conforme o caso, sem prejuízo de medidas previstas em contrato entre a{' '}
-        {PLATFORM_DISPLAY_NAME} e a empresa contratante.
+        {brand.platformDisplayName} e a empresa contratante.
       </p>
     </>
   );

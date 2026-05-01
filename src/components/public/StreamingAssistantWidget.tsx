@@ -9,27 +9,26 @@ import {
   useStreamingAssistantFocus,
 } from '@/components/layout/PublicLayout';
 import { useAuth } from '@/contexts/useAuth';
+import { useBrand } from '@/contexts/useBrand';
 import { Button } from '@/components/ui/Button';
 import {
   StreamingAssistantMessage,
   type EntryLabelInfo,
 } from '@/components/public/StreamingAssistantMessage';
-import {
-  PLATFORM_DISPLAY_NAME,
-  PLATFORM_SHORT_NAME,
-  STREAMING_ASSISTANT_CHAT_TITLE,
-} from '@/lib/brand';
+import { defaultResolvedBranding } from '@/lib/brand';
 
 type Msg = { role: 'user' | 'model'; content: string };
 
 const scrollerHideScrollbar =
   '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden';
 
-const INTRO_STREAMING: Msg = {
-  role: 'model',
-  content:
-    `Olá! Posso ajudar a encontrar vídeos na página inicial da ${PLATFORM_DISPLAY_NAME}. Diga o tema que procura (por exemplo cardiologia, liderança, bem-estar) ou em que contexto vai usar o conteúdo.`,
-};
+function streamingHomeIntro(displayName: string): Msg {
+  return {
+    role: 'model',
+    content:
+      `Olá! Posso ajudar a encontrar vídeos na página inicial da ${displayName}. Diga o tema que procura (por exemplo cardiologia, liderança, bem-estar) ou em que contexto vai usar o conteúdo.`,
+  };
+}
 
 function introForCourse(courseTitle: string): Msg {
   return {
@@ -52,6 +51,7 @@ function buildEntryLabels(
 }
 
 export function StreamingAssistantWidget() {
+  const brand = useBrand();
   const { focus } = useStreamingAssistantFocus();
   const { courseAssist, courseVideoAssist } = useAssistantCourse();
   const assistantPanel = useAssistantChatPanelOptional();
@@ -60,7 +60,9 @@ export function StreamingAssistantWidget() {
   const open = assistantPanel?.open ?? internalOpen;
   const setOpen = assistantPanel?.setOpen ?? setInternalOpen;
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Msg[]>([INTRO_STREAMING]);
+  const [messages, setMessages] = useState<Msg[]>(() => [
+    streamingHomeIntro(defaultResolvedBranding().platformDisplayName),
+  ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entryLabels, setEntryLabels] = useState<Record<string, EntryLabelInfo>>({});
@@ -68,8 +70,8 @@ export function StreamingAssistantWidget() {
 
   const introMessage = useMemo(
     () =>
-      courseAssist ? introForCourse(courseAssist.courseTitle) : INTRO_STREAMING,
-    [courseAssist]
+      courseAssist ? introForCourse(courseAssist.courseTitle) : streamingHomeIntro(brand.platformDisplayName),
+    [courseAssist, brand.platformDisplayName],
   );
 
   useEffect(() => {
@@ -164,13 +166,13 @@ export function StreamingAssistantWidget() {
         ? 'Vídeo em destaque (contexto enviado)'
         : null;
 
-  const chatTitle = courseAssist ? 'Mentor' : STREAMING_ASSISTANT_CHAT_TITLE;
+  const chatTitle = courseAssist ? 'Mentor' : brand.streamingAssistantChatTitle;
 
   const subtitle = courseAssist
     ? courseVideoAssist
       ? 'Modo vídeo: transcrição quando disponível'
       : 'Ajuda no curso (sem respostas de teste)'
-    : `Vídeos e cursos — ${PLATFORM_SHORT_NAME}`;
+    : `Vídeos e cursos — ${brand.platformShortName}`;
 
   return (
     <div className="pointer-events-none fixed bottom-3 right-3 z-100 flex max-w-[100vw] flex-col items-end gap-2 p-0 sm:bottom-5 sm:right-5">
