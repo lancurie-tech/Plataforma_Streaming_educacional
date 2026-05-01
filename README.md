@@ -174,7 +174,7 @@ A plataforma trata dados pessoais (ex.: e-mail, nome, CPF de colaboradores) e da
 ### Cloud Functions
 
 - Callables sensíveis exigem utilizador autenticado e, quando aplicável, verificação de papel **admin** no Firestore (`assertIsAdmin`).
-- **CORS** das callables: lista de origens (localhost, domínios Firebase Hosting, `*.web.app`, e opcionalmente `CALLABLE_CORS_ORIGINS` no ambiente das functions) para o browser poder invocar as funções.
+- **CORS** das callables: `cors: true` no servidor (preflight a partir de qualquer origem); acesso efectivo continua exigir Firebase Auth (e App Check se estiver em enforcement).
 
 ### Boas práticas de operação
 

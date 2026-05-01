@@ -148,14 +148,12 @@ Variáveis de ambiente / secrets das Functions:
 - `GEMINI_MODEL=gemini-2.5-flash` (parâmetro; ou variável no deploy)
 - `VIMEO_ACCESS_TOKEN` — **Secret Manager**, como `GOOGLE_API_KEY`: `firebase functions:secrets:set VIMEO_ACCESS_TOKEN`
 - `ENFORCE_APP_CHECK=false` (ativar quando pronto)
-- `CALLABLE_CORS_ORIGINS=https://seudominio.com.br`
 
 ## 7. Domínio Customizado
 
 1. Configurar domínio no Vercel
-2. Adicionar o domínio em `CALLABLE_CORS_ORIGINS` nas Functions
-3. Adicionar o domínio em Firebase Console → Authentication → Settings → Domínios autorizados
-4. Atualizar a URL de redefinição de senha em Authentication → Templates
+2. Adicionar o domínio em Firebase Console → Authentication → Settings → Domínios autorizados
+3. Atualizar a URL de redefinição de senha em Authentication → Templates
 
 ## 8. Monitoramento
 
@@ -173,3 +171,26 @@ Para evitar que testes afetem dados de produção:
 2. Configurar `.env.staging` com as variáveis do projeto staging
 3. No Vercel, criar ambiente Preview com variáveis do staging
 4. Branch `dev` faz deploy para staging automaticamente
+
+## 10. Erro “CORS” nas HTTPS callables (Gen 2) — na verdade é 403 no Cloud Run
+
+Se no browser aparece *blocked by CORS* / *No Access-Control-Allow-Origin* ao chamar  
+`https://REGION-PROJECT.cloudfunctions.net/nomeDaFuncao`, confira o **preflight** com:
+
+`curl -si -X OPTIONS "URL_DA_FUNCAO" -H "Origin: https://SEU_DOMINIO.web.app" -H "Access-Control-Request-Method: POST"`
+
+- Se a resposta for **`403 Forbidden`** com HTML do *Google Frontend* (“does not have permission to get URL”), **não é** falha do `cors` no código: o **OPTIONS** não chega à função porque o **Cloud Run** está a exigir autenticação na porta de entrada. O preflight **não envia** bearer token.
+
+**Corrigir (projeto GCP / Firebase):**
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → projeto **`streaming-educacional`** → **Cloud Run** (não “Cloud Functions” só).
+2. Abrir **cada** serviço que corresponde às functions (nomes costumam espelhar `streamingAssistantChat`, `logStreamingView`, etc.).
+3. Separador **Segurança** / **Security** → **Autenticação** → **Allow unauthenticated invocations** / permitir acesso público (ou equivalente “Require authentication” **desligado** para invocação anónima na entrada HTTP).
+4. Alternativa pela aba **Permissions / IAM**: principal **`allUsers`** com papel **Cloud Run Invoker** (`roles/run.invoker`). Confirmar no prompt de “resource may be public”.
+
+Depois disso, repetir o `curl OPTIONS` acima: deve surgir **204** (ou 200) **com** cabeçalhos `Access-Control-*`.
+
+**Notas:**
+
+- O código já usa `invoker: 'public'` nas callables; se o 403 continuar, o IAM em Cloud Run foi alterado à mão, o deploy não aplicou bind, ou existe **organization policy** que impede `allUsers` (ex.: *Domain Restricted Sharing*) — nesse caso só um admin da org pode permitir excepção ou usar outro modelo de acesso.
+- Atualizar **Firebase CLI** (`firebase-tools`) e voltar a `firebase deploy --only functions` por vezes reaplica políticas; não substitui confirmar o Cloud Run no passo 1–3.

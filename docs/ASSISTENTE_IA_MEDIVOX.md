@@ -54,7 +54,6 @@ A quota existe para **controlar custo** da API Gemini e abuso de chamadas.
    `firebase functions:secrets:set GOOGLE_API_KEY`
 2. Opcional: parâmetro **`GEMINI_MODEL`** (predefinição no código; pode ser sobrecarregado no deploy).
 3. Opcional: **secret** **`VIMEO_ACCESS_TOKEN`** (igual ao `GOOGLE_API_KEY`): `firebase functions:secrets:set VIMEO_ACCESS_TOKEN` — legendas/transcrições via API Vimeo.
-4. **`CALLABLE_CORS_ORIGINS`**: origens extra permitidas à callable (domínio customizado, etc.), se necessário.
 
 Ficheiro de referência local: `functions/.env.example` (não commitar segredos reais).
 

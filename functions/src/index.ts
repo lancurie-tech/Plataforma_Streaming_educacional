@@ -20,28 +20,17 @@ const authAdmin = getAuth();
 setGlobalOptions({ region: 'southamerica-east1', maxInstances: 10 });
 
 /**
- * Callables rodam no Cloud Run (2ª geração). O preflight OPTIONS precisa responder com
- * Access-Control-Allow-Origin; em alguns casos `cors: true` não aplica como esperado no browser.
- * Lista explícita cobre Vite (localhost), Firebase Hosting e domínio customizado via env.
+ * Callables (Gen 2 / Cloud Run): o browser faz preflight OPTIONS antes do POST.
+ * Listas com RegExp + `Origin` por vezes não ecoam `Access-Control-Allow-Origin` (browser mostra CORS genérico).
+ * `cors: true` aceita qualquer origem no preflight; proteção real vem do Firebase Auth nas próprias funções
+ * e, se ativo, do App Check (`enforceAppCheck`).
+ *
  */
-const extraCallableOrigins = (process.env.CALLABLE_CORS_ORIGINS ?? '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-const callableCors: Array<string | RegExp> = [
-  /^https?:\/\/localhost(?::\d+)?$/,
-  /^https?:\/\/127\.0\.0\.1(?::\d+)?$/,
-  /^https:\/\/.+\.firebaseapp\.com$/,
-  /^https:\/\/.+\.web\.app$/,
-  ...extraCallableOrigins,
-];
-
 const enforceAppCheck = process.env.ENFORCE_APP_CHECK === 'true';
 
 const callableHttp = {
   invoker: 'public' as const,
-  cors: callableCors,
+  cors: true,
   enforceAppCheck,
 };
 
