@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:min-h-0 lg:py-2 ${
-    isActive ? 'bg-emerald-500/15 text-emerald-400' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+    isActive ? 'bg-(--brand-primary) text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
   }`;
 
 export function AdminLayout() {

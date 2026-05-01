@@ -109,14 +109,16 @@ export function PublicWelcomeOverlay({
       >
         <div className="public-welcome-logo-wrap group relative">
           <div className="public-welcome-logo-ring pointer-events-none" aria-hidden />
-          <img
-            src={brand.logoSrc}
-            alt={brand.platformShortName}
-            width={320}
-            height={56}
-            className="public-welcome-logo relative z-1 h-14 w-auto max-w-[min(85vw,320px)] object-contain sm:h-46"
-            draggable={false}
-          />
+          {brand.logoSrc ? (
+            <img
+              src={brand.logoSrc}
+              alt={brand.platformShortName}
+              width={320}
+              height={56}
+              className="public-welcome-logo relative z-1 h-14 w-auto max-w-[min(85vw,320px)] object-contain sm:h-46"
+              draggable={false}
+            />
+          ) : null}
         </div>
 
         <h1

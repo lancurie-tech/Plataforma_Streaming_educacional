@@ -40,9 +40,9 @@ function StreamingChannelsStrip({ channels }: { channels: CatalogChannel[] }) {
           <Link
             key={ch.id}
             to={`/canal/${encodeURIComponent(ch.id)}`}
-            className="group flex max-w-26 flex-col items-center gap-2.5 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/70 sm:max-w-30"
+            className="group flex max-w-26 flex-col items-center gap-2.5 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover) sm:max-w-30"
           >
-            <span className="relative flex h-22 w-22 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-zinc-900 shadow-md transition-[border-color,box-shadow,transform] group-hover:border-emerald-500/45 group-hover:shadow-emerald-500/10 group-hover:-translate-y-0.5 sm:h-24 sm:w-24">
+            <span className="relative flex h-22 w-22 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-zinc-900 shadow-md transition-[border-color,box-shadow,transform] group-hover:border-(--brand-primary-hover) group-hover:shadow-black/25 group-hover:-translate-y-0.5 sm:h-24 sm:w-24">
               {ch.coverImageUrl ? (
                 <img
                   src={ch.coverImageUrl}
@@ -55,7 +55,7 @@ function StreamingChannelsStrip({ channels }: { channels: CatalogChannel[] }) {
                 <span className="text-xl font-semibold text-zinc-500">{ch.title.slice(0, 1).toUpperCase()}</span>
               )}
             </span>
-            <span className="line-clamp-2 text-sm font-medium leading-tight text-zinc-200 group-hover:text-emerald-300">
+            <span className="line-clamp-2 text-sm font-medium leading-tight text-zinc-200 group-hover:text-(--brand-primary-hover)">
               {ch.title}
             </span>
           </Link>
@@ -210,7 +210,7 @@ function TrackMediaScroller({
           <button
             type="button"
             onClick={() => scrollByDir(-1)}
-            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/90 hover:text-emerald-200"
+            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/90 hover:text-(--brand-primary-hover)"
             aria-label="Ver conteúdos anteriores"
           >
             <ChevronLeft size={22} strokeWidth={2} />
@@ -223,7 +223,7 @@ function TrackMediaScroller({
           <button
             type="button"
             onClick={() => scrollByDir(1)}
-            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/90 hover:text-emerald-200"
+            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/90 hover:text-(--brand-primary-hover)"
             aria-label="Ver mais conteúdos"
           >
             <ChevronRight size={22} strokeWidth={2} />
@@ -338,12 +338,12 @@ function StreamThumbnailCard({
       onClick={onOpen}
       className={clsx(
         'group border text-left transition-[transform,box-shadow,border-color] duration-300 ease-out',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/70',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)',
         !compact && 'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30',
         compact && 'hover:border-zinc-600',
         widthShape,
         selected
-          ? 'border-emerald-500/60 ring-2 ring-emerald-500/25'
+          ? 'border-(--brand-primary-hover) ring-2 ring-(--brand-primary)'
           : 'border-zinc-800 hover:border-zinc-600'
       )}
     >
@@ -557,7 +557,7 @@ export function StreamingHomePage() {
               /* scroll-mt alinhado ao header público (logo + subnav) para não “cortar” o título ao focar a trilha */
               'scroll-mt-40 rounded-2xl transition-[background-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:scroll-mt-44',
               isFocusedTrack &&
-                'bg-zinc-900/55 p-3 shadow-[0_0_0_1px_rgba(16,185,129,0.12)] ring-1 ring-emerald-500/15 sm:p-5 lg:p-6'
+                'bg-zinc-900/55 p-3 shadow-[0_0_0_1px_color-mix(in_srgb,var(--brand-primary)_25%,transparent)] ring-1 ring-(--brand-primary) sm:p-5 lg:p-6'
             )}
           >
             <div
@@ -592,7 +592,7 @@ export function StreamingHomePage() {
               <div className="flex min-h-0 flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
                 <div
                   key={activeEntry.id}
-                  className="stream-hero-animate min-h-0 min-w-0 flex-1 space-y-3 sm:space-y-4 lg:max-w-none max-lg:rounded-2xl max-lg:bg-zinc-950/35 max-lg:p-1 max-lg:shadow-[0_0_40px_-12px_rgba(16,185,129,0.22)] max-lg:ring-1 max-lg:ring-emerald-500/20"
+                  className="stream-hero-animate min-h-0 min-w-0 flex-1 space-y-3 sm:space-y-4 lg:max-w-none max-lg:rounded-2xl max-lg:bg-zinc-950/35 max-lg:p-1 max-lg:shadow-[0_0_40px_-12px_color-mix(in_srgb,var(--brand-primary)_30%,transparent)] max-lg:ring-1 max-lg:ring-(--brand-primary)"
                 >
                   <div className="mx-auto w-full max-w-5xl lg:mx-0">
                     <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50 ring-1 ring-white/5">

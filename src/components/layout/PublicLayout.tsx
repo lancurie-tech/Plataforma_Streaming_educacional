@@ -129,7 +129,7 @@ export function PublicAssistantProviders({ children }: { children: ReactNode }) 
 const subNavCls = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
     isActive
-      ? 'bg-emerald-500/15 text-emerald-300'
+      ? 'bg-(--brand-primary) text-white'
       : 'text-zinc-400 hover:bg-zinc-800/80 hover:text-zinc-200'
   }`;
 
@@ -181,7 +181,7 @@ export function PublicLayout() {
                 <button
                   type="button"
                   onClick={() => setAccountMenuOpen((v) => !v)}
-                  className="flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-zinc-600/90 px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/80 hover:text-emerald-200 sm:px-3 sm:text-sm"
+                  className="flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-zinc-600/90 px-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/80 hover:text-(--brand-primary-hover) sm:px-3 sm:text-sm"
                   aria-expanded={accountMenuOpen}
                   aria-haspopup="menu"
                   aria-label={accountMenuOpen ? 'Fechar menu da conta' : 'Abrir menu da conta'}
@@ -281,7 +281,7 @@ export function PublicLayout() {
             ) : !authLoading && !user ? (
               <Link
                 to="/login"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-600/90 text-zinc-300 transition-colors hover:border-emerald-500/55 hover:bg-emerald-500/10 hover:text-emerald-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/60"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-600/90 text-zinc-300 transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/80 hover:text-(--brand-primary-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)"
                 aria-label="Entrar"
                 title="Entrar"
               >
@@ -302,7 +302,7 @@ export function PublicLayout() {
               <span className="inline-flex items-center gap-1.5">
                 Education
                 <span
-                  className="rounded-full bg-emerald-500/20 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-emerald-200 ring-1 ring-emerald-400/40"
+                  className="rounded-full bg-(--brand-primary) px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-(--brand-primary-hover)"
                   title="Novo"
                 >
                   Novo

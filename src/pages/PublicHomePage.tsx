@@ -83,7 +83,7 @@ export function FeaturedCoursesScroller({ scrollKey, children }: { scrollKey: st
           <button
             type="button"
             onClick={() => scrollByDir(-1)}
-            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/90 hover:text-emerald-200"
+            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/90 hover:text-(--brand-primary-hover)"
             aria-label="Ver programas anteriores"
           >
             <ChevronLeft size={22} strokeWidth={2} />
@@ -96,7 +96,7 @@ export function FeaturedCoursesScroller({ scrollKey, children }: { scrollKey: st
           <button
             type="button"
             onClick={() => scrollByDir(1)}
-            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-emerald-500/50 hover:bg-zinc-800/90 hover:text-emerald-200"
+            className="pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/95 text-zinc-100 shadow-lg backdrop-blur transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/90 hover:text-(--brand-primary-hover)"
             aria-label="Ver mais programas"
           >
             <ChevronRight size={22} strokeWidth={2} />
@@ -197,12 +197,12 @@ export function IntroVimeoCarousel({
         onClick={() => onPick(slideIdx)}
         className={clsx(
           'group shrink-0 border text-left transition-[transform,box-shadow,border-color] duration-300 ease-out',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/70',
+          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)',
           compact
             ? 'w-37 rounded-lg sm:w-40'
             : 'w-full rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30',
           slideIdx === safeIdx
-            ? 'border-emerald-500/60 ring-2 ring-emerald-500/25'
+            ? 'border-(--brand-primary-hover) ring-2 ring-(--brand-primary)'
             : 'border-zinc-800 hover:border-zinc-600',
         )}
       >
@@ -257,7 +257,7 @@ export function IntroVimeoCarousel({
   return (
     <section
       aria-label={blockTitle}
-      className="rounded-2xl border border-zinc-800/80 bg-zinc-900/55 p-3 shadow-[0_0_0_1px_rgba(16,185,129,0.12)] ring-1 ring-emerald-500/15 sm:p-5 lg:p-6"
+      className="rounded-2xl border border-zinc-800/80 bg-zinc-900/55 p-3 shadow-[0_0_0_1px_color-mix(in_srgb,var(--brand-primary)_25%,transparent)] ring-1 ring-(--brand-primary) sm:p-5 lg:p-6"
     >
       <div className="mb-4 flex items-start justify-between gap-3 pt-0.5 sm:pt-1">
         <h3 className="text-lg font-semibold text-zinc-100 sm:text-xl">{blockTitle}</h3>
@@ -278,7 +278,7 @@ export function IntroVimeoCarousel({
       </div>
 
       <div className="flex min-h-0 flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
-        <div className="min-h-0 min-w-0 flex-1 space-y-3 sm:space-y-4 max-lg:rounded-2xl max-lg:bg-zinc-950/35 max-lg:p-1 max-lg:shadow-[0_0_40px_-12px_rgba(16,185,129,0.22)] max-lg:ring-1 max-lg:ring-emerald-500/20">
+        <div className="min-h-0 min-w-0 flex-1 space-y-3 sm:space-y-4 max-lg:rounded-2xl max-lg:bg-zinc-950/35 max-lg:p-1 max-lg:shadow-[0_0_40px_-12px_color-mix(in_srgb,var(--brand-primary)_30%,transparent)] max-lg:ring-1 max-lg:ring-(--brand-primary)">
           <div className="mx-auto w-full max-w-5xl lg:mx-0">
             <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50 ring-1 ring-white/5">
               <div className="relative aspect-video w-full">
@@ -294,7 +294,7 @@ export function IntroVimeoCarousel({
                   <button
                     type="button"
                     onClick={() => setHeroPlaying(true)}
-                    className="group absolute inset-0 z-0 overflow-hidden rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/70"
+                    className="group absolute inset-0 z-0 overflow-hidden rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)"
                     aria-label={`Reproduzir: ${heroTitle} — ${courseTitle}`}
                   >
                     <VimeoPosterThumb
@@ -364,7 +364,7 @@ export function CourseCatalogDetail({ entry }: { entry: CatalogEntry }) {
     >
       <div className="border-b border-zinc-800 bg-zinc-900/50 px-5 py-5 sm:px-8 sm:py-6">
         <div className="flex gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--brand-primary) text-white">
             <BookOpen size={22} />
           </span>
           <div>
@@ -401,7 +401,7 @@ export function CourseCatalogDetail({ entry }: { entry: CatalogEntry }) {
             <ol className="mt-6 space-y-6 border-l border-zinc-700 pl-6">
               {modules.map((mod, mi) => (
                 <li key={mod.id} className="relative">
-                  <span className="absolute -left-[calc(1.5rem+5px)] top-1.5 flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-zinc-950" />
+                  <span className="absolute -left-[calc(1.5rem+5px)] top-1.5 flex h-2.5 w-2.5 rounded-full bg-(--brand-primary) ring-4 ring-zinc-950" />
                   <p className="font-medium text-zinc-200">
                     <span className="mr-2 text-zinc-500">{mi + 1}.</span>
                     {mod.title || `Módulo ${mi + 1}`}
@@ -424,7 +424,7 @@ export function CourseCatalogDetail({ entry }: { entry: CatalogEntry }) {
         <div className="border-t border-zinc-800 pt-6">
           <Link
             to="/login"
-            className="inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
+            className="inline-flex text-sm font-medium text-(--brand-primary-hover) hover:underline"
           >
             Entrar para estudar →
           </Link>
@@ -456,9 +456,9 @@ export function CourseCarouselCard({ entry, selected, onDiscover }: CourseCardPr
       onClick={onDiscover}
       className={clsx(
         'group w-[min(100vw-3rem,280px)] shrink-0 snap-center sm:w-[280px] rounded-xl border text-left transition-[transform,box-shadow,border-color] duration-300 ease-out',
-        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/70',
+        'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)',
         selected
-          ? 'border-emerald-500/60 ring-2 ring-emerald-500/25'
+          ? 'border-(--brand-primary-hover) ring-2 ring-(--brand-primary)'
           : 'border-zinc-800 hover:border-zinc-600'
       )}
     >
@@ -619,7 +619,7 @@ export function PublicHomePage() {
         <GraduationCap className="mx-auto text-zinc-600" size={44} />
         <p className="mt-4 text-zinc-400">Nenhum curso publicado no catálogo no momento.</p>
         <p className="mt-2 text-sm text-zinc-500">
-          <Link to="/login" className="text-emerald-400 hover:underline">
+          <Link to="/login" className="text-(--brand-primary-hover) hover:underline">
             Entrar na plataforma
           </Link>
         </p>

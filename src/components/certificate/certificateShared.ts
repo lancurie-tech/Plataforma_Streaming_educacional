@@ -8,6 +8,7 @@ export const SEAL_CY = 44;
 
 /** URL absoluta do logo no certificado/impressão (Storage ou caminho em `public/`). */
 export function certificateLogoAbsoluteUrl(logoSrc: string): string {
+  if (!logoSrc.trim()) return '';
   if (/^https?:\/\//i.test(logoSrc)) return logoSrc;
   if (typeof window === 'undefined') return logoSrc.startsWith('/') ? logoSrc : `/${logoSrc}`;
   const path = logoSrc.startsWith('/') ? logoSrc : `/${logoSrc}`;

@@ -55,7 +55,7 @@ export function AdminChannelsPage() {
     <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--brand-primary) text-white">
             <Radio size={22} />
           </span>
           <div>

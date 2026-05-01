@@ -14,6 +14,16 @@ export type BrandingFirestoreDoc = {
   logoUrl?: string;
   /** Caminho no bucket para `deleteObject` ao substituir/remover. */
   logoStoragePath?: string;
+  /** URL pública do favicon (Storage). */
+  faviconUrl?: string;
+  /** Caminho no bucket do favicon para `deleteObject`. */
+  faviconStoragePath?: string;
+  palettePrimary?: string;
+  palettePrimaryHover?: string;
+  paletteAccent?: string;
+  paletteBackground?: string;
+  paletteText?: string;
+  paletteTextMuted?: string;
 };
 
 export type BrandingFormDraft = {
@@ -21,6 +31,15 @@ export type BrandingFormDraft = {
   platformShortName: string;
   streamingAssistantChatTitle: string;
   vendorDisplayFallback: string;
+};
+
+export type BrandingPaletteDraft = {
+  primary: string;
+  primaryHover: string;
+  accent: string;
+  background: string;
+  text: string;
+  textMuted: string;
 };
 
 function strField(data: Record<string, unknown>, k: string): string | undefined {
@@ -36,6 +55,14 @@ export function parseBrandingDoc(data: Record<string, unknown>): BrandingFiresto
     vendorDisplayFallback: strField(data, 'vendorDisplayFallback'),
     logoUrl: strField(data, 'logoUrl'),
     logoStoragePath: strField(data, 'logoStoragePath'),
+    faviconUrl: strField(data, 'faviconUrl'),
+    faviconStoragePath: strField(data, 'faviconStoragePath'),
+    palettePrimary: strField(data, 'palettePrimary'),
+    palettePrimaryHover: strField(data, 'palettePrimaryHover'),
+    paletteAccent: strField(data, 'paletteAccent'),
+    paletteBackground: strField(data, 'paletteBackground'),
+    paletteText: strField(data, 'paletteText'),
+    paletteTextMuted: strField(data, 'paletteTextMuted'),
   };
 }
 
@@ -98,6 +125,49 @@ export async function clearBrandingLogoFields(): Promise<void> {
   );
 }
 
+export async function saveBrandingFaviconFields(
+  faviconUrl: string,
+  faviconStoragePath: string,
+): Promise<void> {
+  await setDoc(
+    DOC_REF,
+    {
+      faviconUrl,
+      faviconStoragePath,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function clearBrandingFaviconFields(): Promise<void> {
+  await setDoc(
+    DOC_REF,
+    {
+      faviconUrl: deleteField(),
+      faviconStoragePath: deleteField(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function saveBrandingPalette(draft: BrandingPaletteDraft): Promise<void> {
+  await setDoc(
+    DOC_REF,
+    {
+      palettePrimary: fieldOrDelete(draft.primary),
+      palettePrimaryHover: fieldOrDelete(draft.primaryHover),
+      paletteAccent: fieldOrDelete(draft.accent),
+      paletteBackground: fieldOrDelete(draft.background),
+      paletteText: fieldOrDelete(draft.text),
+      paletteTextMuted: fieldOrDelete(draft.textMuted),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
 export function emptyBrandingFormDraft(): BrandingFormDraft {
   return {
     platformDisplayName: '',
@@ -115,4 +185,15 @@ export function docToBrandingFormDraft(data: BrandingFirestoreDoc | null): Brand
   if (data.streamingAssistantChatTitle) d.streamingAssistantChatTitle = data.streamingAssistantChatTitle;
   if (data.vendorDisplayFallback) d.vendorDisplayFallback = data.vendorDisplayFallback;
   return d;
+}
+
+export function docToBrandingPaletteDraft(data: BrandingFirestoreDoc | null): BrandingPaletteDraft {
+  return {
+    primary: data?.palettePrimary ?? '',
+    primaryHover: data?.palettePrimaryHover ?? '',
+    accent: data?.paletteAccent ?? '',
+    background: data?.paletteBackground ?? '',
+    text: data?.paletteText ?? '',
+    textMuted: data?.paletteTextMuted ?? '',
+  };
 }

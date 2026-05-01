@@ -25,7 +25,7 @@ function CertificateCard({ c }: { c: UserCertificate }) {
           <div>
             <h2 className="font-medium text-zinc-100">{c.courseTitle}</h2>
             {audienceLine ? (
-              <p className="mt-1 text-xs font-medium text-emerald-400/90">{audienceLine}</p>
+              <p className="mt-1 text-xs font-medium text-(--brand-primary-hover)">{audienceLine}</p>
             ) : null}
             <p className="mt-1 text-xs text-zinc-500">
               Este registro permanece disponível mesmo que o curso não esteja mais liberado para sua empresa.
@@ -87,7 +87,7 @@ export function CertificatesPage() {
     <div>
       <Link
         to="/cursos"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-emerald-400"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-(--brand-primary-hover)"
       >
         <ArrowLeft size={16} />
         Meus cursos

@@ -7,6 +7,7 @@ const LOGO_CLASS =
 
 export function HeaderLogoImg({ className }: { className?: string }) {
   const brand = useBrand();
+  if (!brand.logoSrc) return null;
   return (
     <img
       src={brand.logoSrc}
