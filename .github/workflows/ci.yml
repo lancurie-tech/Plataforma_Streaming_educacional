@@ -1,5 +1,5 @@
-# Valida build e lint em PRs e pushes — use como check obrigatório em main/dev (branch protection).
-# Deploy para Firebase Hosting: ver .github/workflows/deploy.yml.
+# Valida lint + build em PRs e pushes para **main** e **dev** (branch protection).
+# Deploy Firebase só na **main**: ver .github/workflows/deploy.yml.
 
 name: CI
 

@@ -1,13 +1,7 @@
-# Deploy Firebase: projeto DEV separado (Firestore/Auth próprios) e projeto PROD.
+# Deploy Firebase apenas em produção (branch **main**).
 #
-# - Push ou workflow_dispatch na branch **dev** → Hosting live + Firestore, Storage e
-#   Cloud Functions no projeto **dev** apenas.
-# - Push ou workflow_dispatch na **main** → idem no projeto **prod** apenas.
-# - Qualquer **PR** com base em `main` ou `dev` → preview de Hosting só no projeto **dev**,
-#   build com credenciais **dev** (não usa o banco de prod durante revisão).
-#
-# Pré-requisito: criar no Firebase um segundo projeto (ex.: `streaming-educacional-dev`), ativar Hosting
-# e gerar uma service account com permissão de deploy nesse projeto.
+# - Push ou workflow_dispatch na **main** → Hosting live + Firestore, Storage e Cloud Functions.
+# - Branch **dev**: sem deploy aqui — usar `.github/workflows/ci.yml` (lint + build com env fictício).
 #
 # Secrets — produção (projeto `streaming-educacional`):
 #   FIREBASE_SERVICE_ACCOUNT, VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN,
@@ -15,24 +9,14 @@
 #   VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID
 #   Opcional App Check (reCAPTCHA v3 site key): VITE_FIREBASE_APPCHECK_SITE_KEY
 #
-# Secrets — desenvolvimento (projeto `streaming-educacional-dev` ou o ID que usares):
-#   FIREBASE_SERVICE_ACCOUNT_DEV, VITE_FIREBASE_API_KEY_DEV, VITE_FIREBASE_AUTH_DOMAIN_DEV,
-#   VITE_FIREBASE_PROJECT_ID_DEV, VITE_FIREBASE_STORAGE_BUCKET_DEV,
-#   VITE_FIREBASE_MESSAGING_SENDER_ID_DEV, VITE_FIREBASE_APP_ID_DEV
-#   Opcional App Check dev: VITE_FIREBASE_APPCHECK_SITE_KEY_DEV
-#
 # Opcional — Settings → Secrets and variables → Actions → Variables:
-#   FIREBASE_PROJECT_DEV — ID GCP/Firebase do dev (default no YAML: streaming-educacional-dev)
-#   FIREBASE_PROJECT_PROD — ID de produção (default: streaming-educacional)
+#   FIREBASE_PROJECT_PROD — ID GCP/Firebase de produção (default: streaming-educacional)
 
-name: Deploy Firebase (dev + prod)
+name: Deploy Firebase (produção)
 
 on:
   push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
-    types: [opened, synchronize, reopened]
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -40,100 +24,11 @@ env:
 
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
 
 jobs:
-  deploy-dev:
-    name: Dev (preview ou live)
-    if: |
-      github.event_name == 'pull_request' ||
-      (github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
-    runs-on: ubuntu-latest
-    concurrency:
-      group: firebase-dev-${{ github.ref }}
-      cancel-in-progress: true
-    env:
-      FIREBASE_GCP_PROJECT: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
-      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY_DEV }}
-      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN_DEV }}
-      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID_DEV }}
-      VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET_DEV }}
-      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID_DEV }}
-      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID_DEV }}
-      VITE_FIREBASE_FUNCTIONS_REGION: southamerica-east1
-      VITE_FIREBASE_APPCHECK_SITE_KEY: ${{ secrets.VITE_FIREBASE_APPCHECK_SITE_KEY_DEV }}
-      # defineString('GEMINI_MODEL') — deploy não interativo exige valor no ambiente
-      GEMINI_MODEL: gemini-2.5-flash
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
-
-      - name: Confirmar secrets de build (sem imprimir valores)
-        run: |
-          ok=1
-          for v in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_STORAGE_BUCKET VITE_FIREBASE_MESSAGING_SENDER_ID VITE_FIREBASE_APP_ID; do
-            val="${!v}"
-            if [ -z "$val" ]; then echo "::error::Variável $v está vazia — verifica os secrets * _DEV no GitHub."; ok=0; fi
-          done
-          if [ "$VITE_FIREBASE_PROJECT_ID" != "$FIREBASE_GCP_PROJECT" ]; then
-            echo "::warning::O projectId do config Web (VITE_FIREBASE_PROJECT_ID) não coincide com o ID usado no deploy (FIREBASE_GCP_PROJECT). Alinha o secret VITE_FIREBASE_PROJECT_ID_DEV ou a variável FIREBASE_PROJECT_DEV."
-          fi
-          [ "$ok" = 1 ] || exit 1
-
-      - name: Hosting — preview (PR, projeto dev)
-        if: github.event_name == 'pull_request'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
-          expires: 30d
-          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
-
-      - name: Hosting — live (branch dev)
-        if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
-          channelId: live
-          projectId: ${{ vars.FIREBASE_PROJECT_DEV || 'streaming-educacional-dev' }}
-
-      - name: Autenticar Google Cloud (backend dev)
-        if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
-
-      - name: Dependências Cloud Functions (dev)
-        if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        run: npm ci --prefix functions
-
-      - name: Firestore, Storage e Cloud Functions (dev)
-        if: github.ref == 'refs/heads/dev' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-        run: |
-          # defineString / process.env — o CLI envia este .env para o runtime das Functions no deploy
-          printf 'GEMINI_MODEL=%s\n' "${GEMINI_MODEL:-gemini-2.5-flash}" > functions/.env
-          npx firebase-tools@latest deploy --only firestore,storage,functions --project "$FIREBASE_GCP_PROJECT" --non-interactive --force
-
   deploy-prod:
     name: Produção (main)
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:
       group: firebase-prod-${{ github.ref }}
