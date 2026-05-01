@@ -24,6 +24,7 @@ import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
 import { useAuth } from '@/contexts/useAuth';
 import { LegalFooter } from '@/components/legal/LegalFooter';
 import { StreamingAssistantWidget } from '@/components/public/StreamingAssistantWidget';
+import { PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 /** Foco do vídeo em destaque na home (para o assistente e transcrição no servidor). */
 export type StreamingAssistantFocus = { trackId: string; entryId: string } | null;
@@ -67,7 +68,7 @@ type AssistantCourseCtx = {
 
 const AssistantCourseContext = createContext<AssistantCourseCtx | null>(null);
 
-/** Abre/fecha o painel flutuante do Mentor / MedivoxAI (dentro de `PublicAssistantProviders`). */
+/** Abre/fecha o painel flutuante do Mentor / assistente de streaming (dentro de `PublicAssistantProviders`). */
 type AssistantPanelCtx = { open: boolean; setOpen: (v: boolean) => void };
 const AssistantPanelContext = createContext<AssistantPanelCtx | null>(null);
 
@@ -170,7 +171,7 @@ export function PublicLayout() {
           <Link
             to="/"
             className="flex justify-center"
-            aria-label="Medivox — entrada e boas-vindas"
+            aria-label={`${PLATFORM_SHORT_NAME} — entrada e boas-vindas`}
           >
             <HeaderLogoImg />
           </Link>

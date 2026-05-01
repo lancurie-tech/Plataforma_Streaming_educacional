@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, ChevronRight, GraduationCap, KeyRound, Users } from 'lucide-react';
 import { listPublishedCatalogCourses, listModules } from '@/lib/firestore/courses';
 import type { CourseSummary, ModuleContent, ModuleStep } from '@/types';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 
 function stepKindLabel(kind: ModuleStep['kind']): string {
   switch (kind) {
@@ -81,7 +82,7 @@ export function VendedorDocumentationPage() {
       <section className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/35 p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-zinc-100">
           <GraduationCap className="text-sky-400" size={22} />
-          Como a Medivox entrega o curso
+          Como a {PLATFORM_DISPLAY_NAME} entrega o curso
         </h2>
         <ul className="mt-4 list-inside list-disc space-y-2 text-sm leading-relaxed text-zinc-400">
           <li>

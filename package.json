@@ -1,8 +1,8 @@
 {
-  "name": "medivox",
+  "name": "plataforma-streaming-educacional",
   "private": true,
   "version": "0.0.0",
-  "description": "SPA Vite/React na raiz; Cloud Functions em functions/",
+  "description": "SPA Vite/React (streaming educacional B2B); Cloud Functions em functions/",
   "type": "module",
   "scripts": {
     "dev": "vite",

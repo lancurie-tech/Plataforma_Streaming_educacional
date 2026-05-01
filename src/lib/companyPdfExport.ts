@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PLATFORM_DISPLAY_NAME, PLATFORM_SHORT_NAME } from '@/lib/brand';
 import type {
   CompanyCourseAssignment,
   CompanyRoleDef,
@@ -163,7 +164,7 @@ export async function generateCompanyPdf({
     doc.setFontSize(footerFs);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.onDark);
-    doc.text('Medivox', margin, 7.5);
+    doc.text(PLATFORM_SHORT_NAME, margin, 7.5);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(footerFs - 0.5);
     doc.setTextColor(...C.onDarkMuted);
@@ -179,7 +180,7 @@ export async function generateCompanyPdf({
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...C.muted);
       doc.text(
-        `Medivox — documento confidencial — uso pela organização e colaboradores autorizados — página ${i} de ${total}`,
+        `${PLATFORM_DISPLAY_NAME} — documento confidencial — uso pela organização e colaboradores autorizados — página ${i} de ${total}`,
         pageW / 2,
         pageH - 7,
         { align: 'center', maxWidth: pageW - margin * 2 },
@@ -272,13 +273,13 @@ export async function generateCompanyPdf({
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(26);
       doc.setTextColor(...C.onDark);
-      doc.text('Medivox', pageW / 2, headerBandH / 2 + 4, { align: 'center' });
+      doc.text(PLATFORM_SHORT_NAME, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
     }
   } else {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
     doc.setTextColor(...C.onDark);
-    doc.text('Medivox', pageW / 2, headerBandH / 2 + 4, { align: 'center' });
+    doc.text(PLATFORM_SHORT_NAME, pageW / 2, headerBandH / 2 + 4, { align: 'center' });
   }
 
   // A partir daqui: sempre papel “branco” + texto escuro (nada de cinza claro sobre branco para corpo principal)
@@ -313,7 +314,7 @@ export async function generateCompanyPdf({
 
   addSection('1. Link de cadastro');
   addBody(
-    'Os colaboradores devem acessar o endereço abaixo para criar conta na plataforma Medivox. Envie o link por canal interno seguro.',
+    `Os colaboradores devem acessar o endereço abaixo para criar conta na ${PLATFORM_DISPLAY_NAME}. Envie o link por canal interno seguro.`,
   );
   if (y > pageH - 36) {
     doc.addPage();
@@ -394,7 +395,7 @@ export async function generateCompanyPdf({
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
     afterTable(doc);
   } else {
-    addBody('Nenhuma chave v2 gerada. Entre em contato com o administrador Medivox.');
+    addBody(`Nenhuma chave v2 gerada. Entre em contato com o administrador da ${PLATFORM_DISPLAY_NAME}.`);
   }
 
   const assignMap = new Map(assignments.map((a) => [a.courseId, a]));
@@ -486,7 +487,7 @@ export async function generateCompanyPdf({
     '• A organização é responsável pela distribuição das chaves corretas a cada colaborador, de acordo com o nível e a área.\n\n' +
       '• Se um colaborador utilizar a chave errada, ficará classificado de forma incorreta e poderá ver conteúdo diferente do previsto.\n\n' +
       '• Cada chave pode ser utilizada por vários colaboradores do mesmo nível e área.\n\n' +
-      '• Para dúvidas ou alteração de chaves, entre em contato com o administrador Medivox.',
+      `• Para dúvidas ou alteração de chaves, entre em contato com o administrador da ${PLATFORM_DISPLAY_NAME}.`,
   );
 
   addSection('7. Informações importantes');
@@ -497,5 +498,5 @@ export async function generateCompanyPdf({
   );
 
   addFooters();
-  doc.save(`Medivox_${slug}_guia_acesso.pdf`);
+  doc.save(`guia-acesso-${slug}.pdf`);
 }

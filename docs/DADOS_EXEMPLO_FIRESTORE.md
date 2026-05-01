@@ -1,4 +1,4 @@
-# Dados de exemplo — Firestore (Medivox)
+# Dados de exemplo — Firestore (Plataforma de streaming educacional)
 
 Use no **Console Firebase** para testar o esqueleto. Ajuste IDs (`demo`, `mod-01`, `SEU_UID`) conforme necessário.
 
@@ -10,7 +10,7 @@ Use no **Console Firebase** para testar o esqueleto. Ajuste IDs (`demo`, `mod-01
 
 | Campo | Valor exemplo |
 | --- | --- |
-| `title` | Curso demonstração Medivox |
+| `title` | Curso demonstração Plataforma de streaming educacional |
 | `description` | Texto opcional para a listagem |
 
 ## 2. Módulo (subcoleção `modules` de `courses/demo`)

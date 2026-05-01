@@ -12,7 +12,7 @@ export type InstrumentModuleMap = { T0: string; T1: string; T2: string };
 
 /**
  * Resolve os 3 módulos T0/T1/T2 (Instrumento 01 → 03).
- * Ordem de prioridade: `.env` → títulos Medivox ("Instrumento de Autopercepção 1/2" + terceiro sem sufixo)
+ * Ordem de prioridade: `.env` → títulos de referência no catálogo ("Instrumento de Autopercepção 1/2" + terceiro sem sufixo)
  * → legado "Instrumento 01/02/03".
  */
 export function resolveInstrumentModuleIds(modules: ModuleContent[]): InstrumentModuleMap | null {

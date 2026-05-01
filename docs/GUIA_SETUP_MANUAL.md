@@ -1,4 +1,4 @@
-# Medivox — Guia manual (Firebase, Vercel, GitHub)
+# Plataforma de streaming educacional — Guia manual (Firebase, Vercel, GitHub)
 
 Checklist do que **você** precisa executar nos consoles e serviços. O assistente não substitui login na sua conta Google/GitHub/Vercel.
 
@@ -10,14 +10,14 @@ Checklist do que **você** precisa executar nos consoles e serviços. O assisten
 
 **Nota técnica — gabarito e Security Rules**
 
-No Firestore, se o aluno tiver permissão de **ler** um documento, ele lê **todas** as chaves daquele documento. Por isso o gabarito **não** deve ficar no mesmo documento que o aluno lê para montar a prova. Opções usuais: (1) documento **irmão** ou subcoleção **só leitura Admin** (regras `allow read: if false` para client autenticado aluno); (2) segundo documento com sufixo path diferente e regras restritivas. O repositório Medivox, quando existir, deve trazer **regras** e **modelo de campos** coerentes com isso.
+No Firestore, se o aluno tiver permissão de **ler** um documento, ele lê **todas** as chaves daquele documento. Por isso o gabarito **não** deve ficar no mesmo documento que o aluno lê para montar a prova. Opções usuais: (1) documento **irmão** ou subcoleção **só leitura Admin** (regras `allow read: if false` para client autenticado aluno); (2) segundo documento com sufixo path diferente e regras restritivas. O repositório Plataforma de streaming educacional, quando existir, deve trazer **regras** e **modelo de campos** coerentes com isso.
 
 ---
 
 ## 1. Pré-requisitos
 
 - Conta **Google** (Firebase / GCP).
-- Conta **GitHub** (repositório do código Medivox).
+- Conta **GitHub** (repositório do código Plataforma de streaming educacional).
 - Conta **Vercel** (hospedagem do front Vite).
 - Navegador e acesso aos e-mails da conta de teste (para reset de senha).
 
@@ -25,7 +25,7 @@ No Firestore, se o aluno tiver permissão de **ler** um documento, ele lê **tod
 
 ## 2. Firebase — projeto e produtos
 
-1. Acesse [Firebase Console](https://console.firebase.google.com/) → **Adicionar projeto** (ou use um projeto existente dedicado ao Medivox).
+1. Acesse [Firebase Console](https://console.firebase.google.com/) → **Adicionar projeto** (ou use um projeto existente dedicado ao Plataforma de streaming educacional).
 2. Anote o **Project ID** (útil para variáveis de ambiente e documentação).
 
 ### 2.1 Authentication
@@ -38,7 +38,7 @@ No Firestore, se o aluno tiver permissão de **ler** um documento, ele lê **tod
 
 1. Crie o banco **Cloud Firestore** (modo **produção** recomendado para já pensar em regras; em desenvolvimento você pode usar emulador depois, se quiser).
 2. Escolha a **região** (idealmente a mesma que pretende usar para Storage, para latência e custo).
-3. Quando o repositório Medivox tiver arquivos `firestore.rules` (ou instruções na documentação), **publique as regras** no console (Firestore → Rules) ou via Firebase CLI — garantindo:
+3. Quando o repositório Plataforma de streaming educacional tiver arquivos `firestore.rules` (ou instruções na documentação), **publique as regras** no console (Firestore → Rules) ou via Firebase CLI — garantindo:
    - aluno lê **catálogo** só dos cursos em que está matriculado;
    - aluno **não** lê documentos/coleções onde está o **gabarito**;
    - aluno escreve só em **próprios** dados de progresso/respostas.
@@ -58,7 +58,7 @@ No Firestore, se o aluno tiver permissão de **ler** um documento, ele lê **tod
 
 ### 2.5 Índices Firestore
 
-Se as queries do Medivox exigirem índices compostos, o console ou o build mostrará um link para **criar índice**. Crie quando solicitado.
+Se as queries do Plataforma de streaming educacional exigirem índices compostos, o console ou o build mostrará um link para **criar índice**. Crie quando solicitado.
 
 ### 2.6 Dados iniciais (esqueleto)
 
@@ -71,7 +71,7 @@ Enquanto não houver script no repositório, você pode criar manualmente no Fir
 
 ## 3. Vercel
 
-1. Acesse [vercel.com](https://vercel.com) → **Add New Project** → importe o repositório GitHub do Medivox.
+1. Acesse [vercel.com](https://vercel.com) → **Add New Project** → importe o repositório GitHub do Plataforma de streaming educacional.
 2. **Framework Preset:** **Vite** (ou “Other” com build `npm run build` e pasta de saída `dist`).
 3. **Root Directory:** se o app estiver na raiz do repo, deixe em branco; se estiver em subpasta, informe-a.
 4. **Environment Variables:** cadastre todas as variáveis `VITE_FIREBASE_*` (ou nomes que o projeto definir), **iguais** às do Firebase Web App, para **Production** (e **Preview** se quiser previews funcionando).
@@ -95,7 +95,7 @@ Enquanto não houver script no repositório, você pode criar manualmente no Fir
 
 - [ ] E-mail/senha ativo no Firebase Auth  
 - [ ] Domínio Vercel (e `localhost`) nos domínios autorizados  
-- [ ] Firestore criado; regras publicadas conforme o repositório Medivox  
+- [ ] Firestore criado; regras publicadas conforme o repositório Plataforma de streaming educacional  
 - [ ] Storage ativo e rules alinhadas (se usar PDF no bucket)  
 - [ ] Variáveis `VITE_*` na Vercel e no `.env` local  
 - [ ] Pelo menos um curso, módulos, matrícula de teste e separação gabarito/conteúdo aluno  
@@ -111,4 +111,4 @@ Enquanto não houver script no repositório, você pode criar manualmente no Fir
 
 ---
 
-*Documento de apoio ao Medivox; revisar após o primeiro commit do código, pois nomes exatos de variáveis e paths podem ser ajustados no repositório.*
+*Documento de apoio ao Plataforma de streaming educacional; revisar após o primeiro commit do código, pois nomes exatos de variáveis e paths podem ser ajustados no repositório.*

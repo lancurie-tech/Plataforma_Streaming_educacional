@@ -2,7 +2,7 @@
  * Popula o Firestore a partir de scripts/seed-data.json
  * usando a conta de serviço (Admin SDK).
  *
- * Uso (PowerShell, na raiz Medivox):
+ * Uso (PowerShell, na raiz Plataforma de streaming educacional):
  *   $env:GOOGLE_APPLICATION_CREDENTIALS="C:\caminho\para\serviceAccountKey.json"
  *   npm run seed:firestore
  *

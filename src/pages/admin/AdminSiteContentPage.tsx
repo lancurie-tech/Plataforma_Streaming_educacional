@@ -18,6 +18,7 @@ import {
   DEFAULT_VENDOR_CONFIDENTIALITY_MARKDOWN,
 } from '@/legal/referenceLegalMarkdown';
 import { DEFAULT_ACCOUNT_RIGHTS_MARKDOWN } from '@/legal/defaultAccountRightsMarkdown';
+import { PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 type TabId =
   | 'about'
@@ -41,7 +42,7 @@ const REFERENCE_BY_TAB: Record<TabId, string> = {
 const TABS: { id: TabId; label: string; hint: string; previewPath: string }[] = [
   {
     id: 'about',
-    label: 'Sobre a Medivox',
+    label: `Sobre — ${PLATFORM_SHORT_NAME}`,
     hint: 'Página /sobre — conteúdo institucional. Sem texto aqui, o site usa o texto padrão do sistema.',
     previewPath: '/sobre',
   },

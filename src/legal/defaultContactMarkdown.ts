@@ -1,13 +1,13 @@
 /**
  * Texto inicial da página Contato. Substituível pelo Firestore (`contactMarkdown`).
  */
-export const DEFAULT_CONTACT_MARKDOWN = `## Fale com a Medivox
+export const DEFAULT_CONTACT_MARKDOWN = `## Fale connosco
 
 Estamos à disposição para dúvidas sobre a plataforma, parcerias e conteúdos educacionais. **Atualize os dados abaixo** na área administrativa (Conteúdo do site → Contato) com os canais oficiais da sua operação.
 
 ### Atendimento
 
-- **E-mail:** contato@medivox.com.br
+- **E-mail:** contato@exemplo.org
 - **Telefone / WhatsApp:** *(inserir número)*
 - **Horário sugerido:** segunda a sexta, 9h às 18h (horário de Brasília)
 

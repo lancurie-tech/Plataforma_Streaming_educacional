@@ -3,23 +3,25 @@
  * Usados no admin (“Preencher com texto de referência”) e podem ser colados no Firestore.
  */
 
-export const DEFAULT_TERMS_MARKDOWN = `Estes Termos de Uso ("Termos") regem o acesso e a utilização dos sites, aplicações e serviços oferecidos pela Medivox ("Medivox", "nós"), incluindo áreas de divulgação educacional de caráter público e a plataforma de cursos contratada por empresas para capacitação de colaboradores, nos termos aqui descritos.
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
+
+export const DEFAULT_TERMS_MARKDOWN = `Estes Termos de Uso ("Termos") regem o acesso e a utilização dos sites, aplicações e serviços oferecidos pela ${PLATFORM_DISPLAY_NAME} ("nós"), incluindo áreas de divulgação educacional de caráter público e a plataforma de cursos contratada por empresas para capacitação de colaboradores, nos termos aqui descritos.
 
 ## 1. Quem somos e aceitação dos Termos
 
-Ao criar conta, aceder ou utilizar os serviços Medivox, o utilizador declara ter lido e compreendido estes Termos e a Política de Privacidade aplicável. Se não concordar, não deve utilizar a plataforma. A Medivox poderá atualizar estes Termos; a continuidade de uso após comunicação de alterações relevantes poderá constituir aceitação, conforme a lei aplicável e a forma de aviso adotada (por exemplo, publicação na plataforma com indicação de versão e data).
+Ao criar conta, aceder ou utilizar os serviços da ${PLATFORM_DISPLAY_NAME}, o utilizador declara ter lido e compreendido estes Termos e a Política de Privacidade aplicável. Se não concordar, não deve utilizar a plataforma. A ${PLATFORM_DISPLAY_NAME} poderá atualizar estes Termos; a continuidade de uso após comunicação de alterações relevantes poderá constituir aceitação, conforme a lei aplicável e a forma de aviso adotada (por exemplo, publicação na plataforma com indicação de versão e data).
 
 ## 2. Natureza do serviço
 
-A Medivox disponibiliza conteúdos educacionais em formato digital (incluindo vídeos, textos, questionários e materiais de apoio), organizados em cursos e, quando aplicável, em trilhas de conteúdo de consulta pública. Os cursos contratados por empresas destinam-se à formação de colaboradores no âmbito das relações de trabalho e de obrigações legais e regulamentares que couberem a cada contratante (ex.: temas de saúde e segurança do trabalho, saúde mental no trabalho, conforme programas e cursos disponibilizados). A simples disponibilização de conteúdo sobre temas regulados não substitui assessoria jurídica, médica ou técnica específica ao caso concreto da empresa ou do participante.
+A ${PLATFORM_DISPLAY_NAME} disponibiliza conteúdos educacionais em formato digital (incluindo vídeos, textos, questionários e materiais de apoio), organizados em cursos e, quando aplicável, em trilhas de conteúdo de consulta pública. Os cursos contratados por empresas destinam-se à formação de colaboradores no âmbito das relações de trabalho e de obrigações legais e regulamentares que couberem a cada contratante (ex.: temas de saúde e segurança do trabalho, saúde mental no trabalho, conforme programas e cursos disponibilizados). A simples disponibilização de conteúdo sobre temas regulados não substitui assessoria jurídica, médica ou técnica específica ao caso concreto da empresa ou do participante.
 
 ## 3. Contas, perfis e acesso
 
-O acesso pode exigir registo com dados verídicos. Empresas contratantes podem disponibilizar links e chaves de cadastro diferenciadas (por exemplo, para perfis de gestor ou colaborador), conforme configurado para cada contrato. O utilizador é responsável pela confidencialidade das credenciais e por todas as atividades realizadas na sua conta. A Medivox poderá suspender ou encerrar contas em caso de violação destes Termos, de fraude, de risco à segurança ou por determinação legal ou contratual envolvendo a empresa contratante.
+O acesso pode exigir registo com dados verídicos. Empresas contratantes podem disponibilizar links e chaves de cadastro diferenciadas (por exemplo, para perfis de gestor ou colaborador), conforme configurado para cada contrato. O utilizador é responsável pela confidencialidade das credenciais e por todas as atividades realizadas na sua conta. A ${PLATFORM_DISPLAY_NAME} poderá suspender ou encerrar contas em caso de violação destes Termos, de fraude, de risco à segurança ou por determinação legal ou contratual envolvendo a empresa contratante.
 
 ## 4. Propriedade intelectual e licença de uso
 
-Conteúdos, marcas, software, bases de dados e materiais da Medivox ou de licenciadores estão protegidos por direitos de propriedade intelectual. Salvo disposição expressa em contrato ou licença, concede-se apenas licença limitada, não exclusiva, intransferível e revogável para visualização e utilização pessoal no âmbito do curso contratado, sem cópia, distribuição, engenharia reversa, scraping ou exploração comercial não autorizada.
+Conteúdos, marcas, software, bases de dados e materiais da ${PLATFORM_DISPLAY_NAME} ou de licenciadores estão protegidos por direitos de propriedade intelectual. Salvo disposição expressa em contrato ou licença, concede-se apenas licença limitada, não exclusiva, intransferível e revogável para visualização e utilização pessoal no âmbito do curso contratado, sem cópia, distribuição, engenharia reversa, scraping ou exploração comercial não autorizada.
 
 ## 5. Conduta e uso aceitável
 
@@ -32,26 +34,26 @@ Conteúdos, marcas, software, bases de dados e materiais da Medivox ou de licenc
 
 ## 6. Certificados e registos educacionais
 
-Quando previsto no curso, poderá ser emitido certificado ou comprovação de conclusão, conforme regras do curso e da plataforma. Tais documentos refletem a conclusão registrada na plataforma e não garantem, por si só, o cumprimento de todas as obrigações legais da empresa contratante perante terceiros (como autoridades reguladoras), que dependem de processos internos, documentação e conformidade além do escopo da Medivox.
+Quando previsto no curso, poderá ser emitido certificado ou comprovação de conclusão, conforme regras do curso e da plataforma. Tais documentos refletem a conclusão registrada na plataforma e não garantem, por si só, o cumprimento de todas as obrigações legais da empresa contratante perante terceiros (como autoridades reguladoras), que dependem de processos internos, documentação e conformidade além do escopo da ${PLATFORM_DISPLAY_NAME}.
 
 ## 7. Limitação de responsabilidade
 
-Na medida máxima permitida pela lei aplicável, os serviços são fornecidos "no estado em que se encontram". A Medivox não se responsabiliza por lucros cessantes, danos indiretos ou consequenciais, salvo disposição legal em contrário. Em nenhuma hipótese a responsabilidade agregada excederá o montante pago pelo contratante pelo serviço discutido nos últimos doze meses, quando aplicável, salvo dolo ou culpa grave conforme definido em lei.
+Na medida máxima permitida pela lei aplicável, os serviços são fornecidos "no estado em que se encontram". A ${PLATFORM_DISPLAY_NAME} não se responsabiliza por lucros cessantes, danos indiretos ou consequenciais, salvo disposição legal em contrário. Em nenhuma hipótese a responsabilidade agregada excederá o montante pago pelo contratante pelo serviço discutido nos últimos doze meses, quando aplicável, salvo dolo ou culpa grave conforme definido em lei.
 
 ## 8. Lei aplicável e foro
 
-Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da comarca de domicílio da Medivox, salvo prerrogativa legal especial do consumidor ou outra norma imperativa.
+Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da comarca de domicílio da ${PLATFORM_DISPLAY_NAME}, salvo prerrogativa legal especial do consumidor ou outra norma imperativa.
 
 ## 9. Contato
 
-Para questões sobre estes Termos ou sobre exercício de direitos relacionados a dados pessoais, utilize o canal indicado na Política de Privacidade (e-mail institucional a ser definido pela Medivox e pelo advogado).
+Para questões sobre estes Termos ou sobre exercício de direitos relacionados a dados pessoais, utilize o canal indicado na Política de Privacidade (e-mail institucional a ser definido pela ${PLATFORM_DISPLAY_NAME} e pelo advogado).
 `;
 
-export const DEFAULT_PRIVACY_MARKDOWN = `Esta Política de Privacidade descreve como a Medivox trata dados pessoais no contexto dos seus serviços digitais, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD) e demais normas aplicáveis. **Texto-base para revisão jurídica**; ajuste de bases legais, titularidade, encarregado (DPO) e detalhes contratuais deve ser feito pelo advogado.
+export const DEFAULT_PRIVACY_MARKDOWN = `Esta Política de Privacidade descreve como a ${PLATFORM_DISPLAY_NAME} trata dados pessoais no contexto dos seus serviços digitais, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD) e demais normas aplicáveis. **Texto-base para revisão jurídica**; ajuste de bases legais, titularidade, encarregado (DPO) e detalhes contratuais deve ser feito pelo advogado.
 
 ## 1. Controlador e encarregado
 
-A Medivox atua como controladora dos dados pessoais tratados diretamente através da plataforma, na medida em que define as finalidades e os meios do tratamento. O nome corporativo completo, CNPJ, endereço e canal de contato do encarregado de dados (DPO ou canal equivalente) devem ser inseridos aqui pelo advogado. Quando o tratamento ocorrer em nome de empresas contratantes (por exemplo, relatórios de participação de colaboradores), poderá haver co-controlador ou encaminhamento de solicitações conforme contratos e lei.
+A ${PLATFORM_DISPLAY_NAME} atua como controladora dos dados pessoais tratados diretamente através da plataforma, na medida em que define as finalidades e os meios do tratamento. O nome corporativo completo, CNPJ, endereço e canal de contato do encarregado de dados (DPO ou canal equivalente) devem ser inseridos aqui pelo advogado. Quando o tratamento ocorrer em nome de empresas contratantes (por exemplo, relatórios de participação de colaboradores), poderá haver co-controlador ou encaminhamento de solicitações conforme contratos e lei.
 
 ## 2. Quais dados podemos tratar
 
@@ -96,10 +98,10 @@ Esta política pode ser atualizada. Recomenda-se registrar versão e data de pub
 
 ## 11. Contato para privacidade
 
-E-mail: **[privacidade@medivox.com.br — a definir]**
+E-mail: **[privacidade@exemplo.org — a definir]**
 `;
 
-export const DEFAULT_COMMITMENTS_MARKDOWN = `Este documento reúne declarações e compromissos do participante que se cadastra na plataforma Medivox por convite de empresa contratante, para fins de transparência e boa-fé contratual e educacional. **Não substitui os Termos de Uso nem a Política de Privacidade.**
+export const DEFAULT_COMMITMENTS_MARKDOWN = `Este documento reúne declarações e compromissos do participante que se cadastra na ${PLATFORM_DISPLAY_NAME} por convite de empresa contratante, para fins de transparência e boa-fé contratual e educacional. **Não substitui os Termos de Uso nem a Política de Privacidade.**
 
 ## 1. Veracidade das informações
 
@@ -107,11 +109,11 @@ Declaro que os dados fornecidos no cadastro (incluindo nome, e-mail, CPF quando 
 
 ## 2. Uso adequado da plataforma
 
-Comprometo-me a utilizar os cursos e materiais apenas para fins de aprendizagem no âmbito da relação com a empresa contratante, sem reprodução, distribuição pública ou comercial não autorizada de conteúdos protegidos por direitos autorais ou segredos comerciais da Medivox ou de terceiros.
+Comprometo-me a utilizar os cursos e materiais apenas para fins de aprendizagem no âmbito da relação com a empresa contratante, sem reprodução, distribuição pública ou comercial não autorizada de conteúdos protegidos por direitos autorais ou segredos comerciais da ${PLATFORM_DISPLAY_NAME} ou de terceiros.
 
 ## 3. Confidencialidade de credenciais
 
-Comprometo-me a não partilhar login e senha com outras pessoas e a comunicar à empresa ou à Medivox suspeitas de uso indevido da conta.
+Comprometo-me a não partilhar login e senha com outras pessoas e a comunicar à empresa ou à ${PLATFORM_DISPLAY_NAME} suspeitas de uso indevido da conta.
 
 ## 4. Natureza educacional do conteúdo
 
@@ -123,10 +125,10 @@ Estou ciente de que a empresa contratante pode receber informações sobre progr
 
 ## 6. Sanções em caso de violação
 
-O descumprimento destes compromissos pode implicar suspensão de acesso, responsabilização civil ou administrativa conforme o caso, sem prejuízo de medidas previstas em contrato entre a Medivox e a empresa contratante.
+O descumprimento destes compromissos pode implicar suspensão de acesso, responsabilização civil ou administrativa conforme o caso, sem prejuízo de medidas previstas em contrato entre a ${PLATFORM_DISPLAY_NAME} e a empresa contratante.
 `;
 
-export const DEFAULT_VENDOR_CONFIDENTIALITY_MARKDOWN = `Este instrumento estabelece obrigações de confidencialidade e conduta para pessoas autorizadas a atuar como **vendedores ou representantes comerciais** da Medivox, com acesso a informações sobre empresas clientes, colaboradores (no limite dos dados expostos nas funcionalidades da plataforma), conteúdos de cursos e relatórios. **Texto-base para revisão jurídica.**
+export const DEFAULT_VENDOR_CONFIDENTIALITY_MARKDOWN = `Este instrumento estabelece obrigações de confidencialidade e conduta para pessoas autorizadas a atuar como **vendedores ou representantes comerciais** da ${PLATFORM_DISPLAY_NAME}, com acesso a informações sobre empresas clientes, colaboradores (no limite dos dados expostos nas funcionalidades da plataforma), conteúdos de cursos e relatórios. **Texto-base para revisão jurídica.**
 
 ## 1. Informações confidenciais
 
@@ -139,15 +141,15 @@ Consideram-se confidenciais, sem lista exaustiva:
 
 ## 2. Dever de sigilo
 
-O vendedor obriga-se a manter sigilo absoluto sobre as informações confidenciais, utilizando-as apenas para as finalidades autorizadas pela Medivox (prospecção, relacionamento, suporte comercial e acompanhamento contratual permitido), não podendo divulgá-las, copiá-las, gravá-las em dispositivos não autorizados, transmiti-las a concorrentes ou utilizá-las em benefício próprio ou de terceiros.
+O vendedor obriga-se a manter sigilo absoluto sobre as informações confidenciais, utilizando-as apenas para as finalidades autorizadas pela ${PLATFORM_DISPLAY_NAME} (prospecção, relacionamento, suporte comercial e acompanhamento contratual permitido), não podendo divulgá-las, copiá-las, gravá-las em dispositivos não autorizados, transmiti-las a concorrentes ou utilizá-las em benefício próprio ou de terceiros.
 
 ## 3. Medidas de segurança
 
-O vendedor deve proteger credenciais de acesso, ativar boas práticas de senha, não partilhar conta, e comunicar imediatamente à Medivox qualquer suspeita de acesso indevido ou vazamento.
+O vendedor deve proteger credenciais de acesso, ativar boas práticas de senha, não partilhar conta, e comunicar imediatamente à ${PLATFORM_DISPLAY_NAME} qualquer suspeita de acesso indevido ou vazamento.
 
 ## 4. Propriedade intelectual
 
-Reconhece-se que conteúdos e materiais Medivox permanecem de titularidade da Medivox ou de licenciadores, não podendo ser reproduzidos ou distribuídos fora do estritamente necessário à atividade autorizada.
+Reconhece-se que conteúdos e materiais da ${PLATFORM_DISPLAY_NAME} permanecem de titularidade da ${PLATFORM_DISPLAY_NAME} ou de licenciadores, não podendo ser reproduzidos ou distribuídos fora do estritamente necessário à atividade autorizada.
 
 ## 5. Prazo
 

@@ -1,9 +1,11 @@
+import { PLATFORM_SHORT_NAME } from '@/lib/brand';
+
 /** Wordmark vetorial (sem fundo) — ícone com barras paralelas + texto. */
-export function MedivoxWordmark({ className = '' }: { className?: string }) {
+export function PlatformWordmark({ className = '' }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 200 40"
+      viewBox="0 0 260 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
@@ -14,9 +16,9 @@ export function MedivoxWordmark({ className = '' }: { className?: string }) {
         x="38"
         y="27"
         fill="currentColor"
-        style={{ fontFamily: 'system-ui, Segoe UI, sans-serif', fontSize: 22, fontWeight: 700 }}
+        style={{ fontFamily: 'system-ui, Segoe UI, sans-serif', fontSize: 14, fontWeight: 700 }}
       >
-        Medivox
+        {PLATFORM_SHORT_NAME}
       </text>
     </svg>
   );

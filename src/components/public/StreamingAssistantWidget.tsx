@@ -14,6 +14,11 @@ import {
   StreamingAssistantMessage,
   type EntryLabelInfo,
 } from '@/components/public/StreamingAssistantMessage';
+import {
+  PLATFORM_DISPLAY_NAME,
+  PLATFORM_SHORT_NAME,
+  STREAMING_ASSISTANT_CHAT_TITLE,
+} from '@/lib/brand';
 
 type Msg = { role: 'user' | 'model'; content: string };
 
@@ -23,7 +28,7 @@ const scrollerHideScrollbar =
 const INTRO_STREAMING: Msg = {
   role: 'model',
   content:
-    'Olá! Posso ajudar a encontrar vídeos na página inicial do Medivox. Diga o tema que procura (por exemplo cardiologia, liderança, bem-estar) ou em que contexto vai usar o conteúdo.',
+    `Olá! Posso ajudar a encontrar vídeos na página inicial da ${PLATFORM_DISPLAY_NAME}. Diga o tema que procura (por exemplo cardiologia, liderança, bem-estar) ou em que contexto vai usar o conteúdo.`,
 };
 
 function introForCourse(courseTitle: string): Msg {
@@ -159,13 +164,13 @@ export function StreamingAssistantWidget() {
         ? 'Vídeo em destaque (contexto enviado)'
         : null;
 
-  const chatTitle = courseAssist ? 'Mentor' : 'MedivoxAI';
+  const chatTitle = courseAssist ? 'Mentor' : STREAMING_ASSISTANT_CHAT_TITLE;
 
   const subtitle = courseAssist
     ? courseVideoAssist
       ? 'Modo vídeo: transcrição quando disponível'
       : 'Ajuda no curso (sem respostas de teste)'
-    : 'Vídeos e cursos Medivox';
+    : `Vídeos e cursos — ${PLATFORM_SHORT_NAME}`;
 
   return (
     <div className="pointer-events-none fixed bottom-3 right-3 z-100 flex max-w-[100vw] flex-col items-end gap-2 p-0 sm:bottom-5 sm:right-5">

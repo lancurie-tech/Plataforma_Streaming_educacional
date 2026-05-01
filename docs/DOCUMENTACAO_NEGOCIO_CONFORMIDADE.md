@@ -1,6 +1,6 @@
-# Medivox — Documentação de negócio, produto e enquadramento de conformidade
+# Plataforma de streaming educacional — Documentação de negócio, produto e enquadramento de conformidade
 
-**Finalidade deste documento:** apresentar, de forma estruturada e acessível a decisores não técnicos, **o que a plataforma Medivox é**, **que problemas resolve**, **como funciona na prática**, **que cuidados de segurança e privacidade foram incorporados na conceção técnica** e **como se relacionam os textos legais publicados na aplicação** (termos de uso, política de privacidade, compromissos do participante e confidencialidade do vendedor).
+**Finalidade deste documento:** apresentar, de forma estruturada e acessível a decisores não técnicos, **o que a plataforma Plataforma de streaming educacional é**, **que problemas resolve**, **como funciona na prática**, **que cuidados de segurança e privacidade foram incorporados na conceção técnica** e **como se relacionam os textos legais publicados na aplicação** (termos de uso, política de privacidade, compromissos do participante e confidencialidade do vendedor).
 
 **Público-alvo:** responsável pelo negócio, parceiro estratégico ou equipa jurídica que precise avaliar se o conjunto **produto + documentação + operação** está adequado antes de avançar para produção em escala.
 
@@ -11,14 +11,14 @@
 ## 1. Aviso importante (limites deste documento)
 
 - Este texto **descreve o estado atual da aplicação** e as **intenções de desenho** em matéria de proteção de dados e segurança. **Não substitui parecer jurídico**, auditoria de conformidade nem avaliação contratual frente a cada empresa cliente.
-- Os textos legais exibidos no site foram elaborados como **bases para revisão por advogado** (há marcações explícitas no código-fonte dos conteúdos). **A validação final dos textos, da titularidade do tratamento (controlador / operador / co-controlador), das bases legais por finalidade, do canal de titulares e do contrato com empresas contratantes é responsabilidade da organização operadora da Medivox e do seu assessoramento jurídico.**
+- Os textos legais exibidos no site foram elaborados como **bases para revisão por advogado** (há marcações explícitas no código-fonte dos conteúdos). **A validação final dos textos, da titularidade do tratamento (controlador / operador / co-controlador), das bases legais por finalidade, do canal de titulares e do contrato com empresas contratantes é responsabilidade da organização operadora da Plataforma de streaming educacional e do seu assessoramento jurídico.**
 - Decisões comerciais (preços, SLAs, responsabilidade civil em contrato B2B) **não** estão integralmente refletidas neste documento, salvo quando mencionadas nos próprios termos publicados.
 
 ---
 
 ## 2. Resumo executivo
 
-**Medivox** é uma plataforma **web** de **cursos corporativos (B2B)**. Empresas contratantes utilizam-na para **capacitar colaboradores** com conteúdo digital (vídeos, materiais, questionários), **acompanhar progresso e resultados** e, quando aplicável, **emitir certificados**. Existe ainda um **site público** de divulgação (experiência tipo “streaming” e catálogo de cursos) e um papel interno de **vendedor**, com acesso a **relatórios** apenas das empresas que lhe são atribuídas.
+**Plataforma de streaming educacional** é uma plataforma **web** de **cursos corporativos (B2B)**. Empresas contratantes utilizam-na para **capacitar colaboradores** com conteúdo digital (vídeos, materiais, questionários), **acompanhar progresso e resultados** e, quando aplicável, **emitir certificados**. Existe ainda um **site público** de divulgação (experiência tipo “streaming” e catálogo de cursos) e um papel interno de **vendedor**, com acesso a **relatórios** apenas das empresas que lhe são atribuídas.
 
 Do ponto de vista de **privacidade e boa governança**, a plataforma foi desenhada para:
 
@@ -31,7 +31,7 @@ Do ponto de vista de **privacidade e boa governança**, a plataforma foi desenha
 
 ## 3. Problema de negócio e proposta de valor
 
-| Necessidade | Como a Medivox responde |
+| Necessidade | Como a Plataforma de streaming educacional responde |
 |-------------|-------------------------|
 | Formação obrigatória ou estratégica em temas regulados (ex.: saúde e segurança, saúde mental no trabalho) | Cursos estruturados em módulos, com vídeo, materiais e avaliação quando configurados |
 | Prova de participação e conclusão | Registo de progresso, certificados quando o curso e a lógica da plataforma o permitem |
@@ -74,7 +74,7 @@ Do ponto de vista de **privacidade e boa governança**, a plataforma foi desenha
 
 - **Home** com experiência de conteúdo em trilhas (vídeos hospedados via integração com Vimeo, conforme configuração).
 - **Catálogo** de cursos marcados como publicados para divulgação, sem expor conteúdo completo de forma indevida.
-- **Assistente de IA** (chat) para utilizadores autenticados: apoio à descoberta de vídeos e cursos; no percurso de um curso, regras técnicas desencorajam respostas a **avaliações** (ver secção 10 e [ASSISTENTE_IA_MEDIVOX.md](./ASSISTENTE_IA_MEDIVOX.md)).
+- **Assistente de IA** (chat) para utilizadores autenticados: apoio à descoberta de vídeos e cursos; no percurso de um curso, regras técnicas desencorajam respostas a **avaliações** (ver secção 10 e [ASSISTENTE_IA.md](./ASSISTENTE_IA.md)).
 
 ### 5.2. Cadastro e autenticação do colaborador
 
@@ -111,7 +111,7 @@ Todos os textos abaixo estão **integrados na aplicação** (páginas dedicadas)
 
 ### 6.1. Termos de uso
 
-- **Função:** estabelecer as **regras de utilização** dos serviços Medivox (natureza educacional, contas e acesso, propriedade intelectual, conduta, limitações de responsabilidade, lei e foro, contacto).
+- **Função:** estabelecer as **regras de utilização** dos serviços Plataforma de streaming educacional (natureza educacional, contas e acesso, propriedade intelectual, conduta, limitações de responsabilidade, lei e foro, contacto).
 - **Destinatários:** utilizadores em geral que criam conta ou utilizam os serviços.
 - **Estado:** texto-base preparado para **revisão jurídica**; inclui menções a atualização de termos e relação com a política de privacidade.
 
@@ -200,14 +200,14 @@ A **Política de Privacidade** na aplicação já enumera categorias típicas. E
 
 ---
 
-## 10. Assistente de IA (chat Medivox)
+## 10. Assistente de IA (chat Plataforma de streaming educacional)
 
 A plataforma inclui um **assistente conversacional** (modelo **Google Gemini**), disponível na **home pública (streaming)**, na **lista de cursos** e **durante a navegação num curso**, para utilizadores **autenticados**.
 
 - **Finalidade:** apoio à descoberta de conteúdos (vídeos em trilhas, cursos do catálogo), esclarecimento de conceitos e estudo; na página de um curso, o desenho técnico **reforça no servidor** que o modelo **não deve** responder a pedidos que constituam **resposta a avaliações ou questionários** (integridade formativa).
 - **Dados enviados ao fornecedor de IA:** mensagens do utilizador, contexto agregado no *backend* (metadados e textos públicos já presentes no Firestore, transcrições de vídeos quando aplicável). **Não** é garantido que o fornecedor trate os dados apenas na UE; a organização operadora deve avaliar **cláusulas contratuais** com Google Cloud / Google AI e informar titulares na política de privacidade se necessário.
-- **Quota:** limite diário de mensagens por conta (ver [ASSISTENTE_IA_MEDIVOX.md](./ASSISTENTE_IA_MEDIVOX.md)) para controlo de custo e uso razoável.
-- **Detalhe técnico:** [README principal](../README.md) (secção *Assistente de IA*) e [ASSISTENTE_IA_MEDIVOX.md](./ASSISTENTE_IA_MEDIVOX.md).
+- **Quota:** limite diário de mensagens por conta (ver [ASSISTENTE_IA.md](./ASSISTENTE_IA.md)) para controlo de custo e uso razoável.
+- **Detalhe técnico:** [README principal](../README.md) (secção *Assistente de IA*) e [ASSISTENTE_IA.md](./ASSISTENTE_IA.md).
 
 ---
 
@@ -225,10 +225,10 @@ Para o responsável pelo negócio fechar a avaliação “está legal / falta X�
 
 ## 12. Conclusão
 
-A Medivox foi desenhada como **produto B2B de formação**, com **separação clara de papéis**, **aceites legais registados com versão** nos fluxos de colaborador e vendedor, e **controlo de acessos** na base de dados. O conjunto oferece uma **base sólida de transparência e segurança técnica**, que deve ser **completada** pela **revisão jurídica dos textos**, pela **governança da entidade operadora** e pelos **contratos** com clientes e fornecedores.
+A Plataforma de streaming educacional foi desenhada como **produto B2B de formação**, com **separação clara de papéis**, **aceites legais registados com versão** nos fluxos de colaborador e vendedor, e **controlo de acessos** na base de dados. O conjunto oferece uma **base sólida de transparência e segurança técnica**, que deve ser **completada** pela **revisão jurídica dos textos**, pela **governança da entidade operadora** e pelos **contratos** com clientes e fornecedores.
 
 Para detalhes de implementação (rotas, funções, comandos de deploy), usar o [README principal](../README.md).
 
 ---
 
-*Documento de apoio à decisão — Medivox. Mantido junto da documentação do repositório.*
+*Documento de apoio à decisão — Plataforma de streaming educacional. Mantido junto da documentação do repositório.*

@@ -1,6 +1,7 @@
 import type { jsPDF } from 'jspdf';
+import { PLATFORM_LOGO_SRC, PLATFORM_SHORT_NAME } from '@/lib/brand';
 
-/** Paleta alinhada ao guia de acesso Medivox (navy + texto escuro em papel branco). */
+/** Paleta para PDFs institucionais (navy + texto escuro em papel branco). */
 export const PDF_BRAND = {
   margin: 18,
   headerBandH: 22,
@@ -56,12 +57,12 @@ export function pdfStandardTableProps() {
 }
 
 /**
- * Logo Medivox para PDF (rasterizado sobre fundo navy).
+ * Logo da plataforma para PDF (SVG rasterizado; mesmo ficheiro que `PLATFORM_LOGO_SRC`).
  */
-export async function loadMedivoxLogoPngDataUrl(): Promise<string | null> {
+export async function loadPlatformLogoForPdf(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
   try {
-    const res = await fetch(`${window.location.origin}/logo.svg`);
+    const res = await fetch(`${window.location.origin}${PLATFORM_LOGO_SRC}`);
     if (!res.ok) return null;
     const svgText = await res.text();
     const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
@@ -150,13 +151,13 @@ export function drawPdfCoverHeader(opts: PdfCoverHeaderOpts): number {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(26);
       doc.setTextColor(...PDF_BRAND.onDark);
-      doc.text('Medivox', pageW / 2, band / 2 + 4, { align: 'center' });
+      doc.text(PLATFORM_SHORT_NAME, pageW / 2, band / 2 + 4, { align: 'center' });
     }
   } else {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(26);
     doc.setTextColor(...PDF_BRAND.onDark);
-    doc.text('Medivox', pageW / 2, band / 2 + 4, { align: 'center' });
+    doc.text(PLATFORM_SHORT_NAME, pageW / 2, band / 2 + 4, { align: 'center' });
   }
 
   doc.setFont('helvetica', 'normal');
@@ -232,7 +233,7 @@ export function ensurePdfVerticalSpace(
 ): void {
   if (state.y + needMm <= pageH - 16) return;
   doc.addPage();
-  drawPdfContinuationBand(doc, pageW, pageH, logoDataUrl ?? null, 'Medivox', continuationRight);
+  drawPdfContinuationBand(doc, pageW, pageH, logoDataUrl ?? null, PLATFORM_SHORT_NAME, continuationRight);
   state.y = 18;
 }
 

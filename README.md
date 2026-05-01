@@ -1,4 +1,4 @@
-# Medivox — Plataforma de cursos corporativos (B2B)
+# Plataforma de streaming educacional (cursos corporativos B2B)
 
 Documentação da aplicação web para empresas oferecerem formação a colaboradores: **autenticação Firebase**, conteúdo e progresso no **Firestore**, cadastro por **empresa** (slug + chave de acesso), **site público** (experiência tipo streaming + catálogo de cursos), **assistente de IA** (Gemini) na home e no percurso do aluno, área **administrativa** e área **vendedor** (carteira de empresas e relatórios).
 
@@ -204,7 +204,7 @@ A plataforma trata dados pessoais (ex.: e-mail, nome, CPF de colaboradores) e da
 
 ## Assistente de IA (chat)
 
-Chat contextual alimentado por **Google Gemini** (via Cloud Function `streamingAssistantChat`). Documentação de operação e custos: **[docs/ASSISTENTE_IA_MEDIVOX.md](./docs/ASSISTENTE_IA_MEDIVOX.md)**.
+Chat contextual alimentado por **Google Gemini** (via Cloud Function `streamingAssistantChat`). Documentação de operação e custos: **[docs/ASSISTENTE_IA.md](./docs/ASSISTENTE_IA.md)**.
 
 ### Onde aparece
 
@@ -320,7 +320,7 @@ Sem **Blaze** / sem deploy das functions: utilizadores já criados e grande part
 ## Estrutura do repositório
 
 ```
-Medivox/
+.
 ├── .github/workflows/     # CI e deploy Firebase (dev + prod)
 ├── docs/                  # Documentação suplementar (índice em docs/README.md)
 ├── functions/             # Cloud Functions (Firebase)
@@ -394,7 +394,7 @@ Criar em Firestore `users/{uid}` alinhado ao UID do Firebase Authentication, com
 
 Material mais detalhado em **`docs/`** — ver **[docs/README.md](docs/README.md)** (setup manual, importação Firestore, dados de exemplo, arquitetura do modelo de curso, **assistente de IA**).
 
-Para **visão de negócio, conformidade (LGPD), textos legais e segurança** orientada a decisores, ver **[docs/DOCUMENTACAO_NEGOCIO_CONFORMIDADE_MEDIVOX.md](docs/DOCUMENTACAO_NEGOCIO_CONFORMIDADE_MEDIVOX.md)**.
+Para **visão de negócio, conformidade (LGPD), textos legais e segurança** orientada a decisores, ver **[docs/DOCUMENTACAO_NEGOCIO_CONFORMIDADE.md](docs/DOCUMENTACAO_NEGOCIO_CONFORMIDADE.md)**.
 
 ---
 

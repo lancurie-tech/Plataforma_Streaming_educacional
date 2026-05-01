@@ -1,4 +1,4 @@
-# Medivox — Plataforma de curso (decisão executiva)
+# Plataforma de streaming educacional — Plataforma de curso (decisão executiva)
 
 Especificação enxuta para **decisão de arquitetura e custo**. Sem código de aplicação.  
 Preços e cotas: [Firebase](https://firebase.google.com/pricing), [Firestore](https://cloud.google.com/firestore/pricing), [Vercel Hobby](https://vercel.com/docs/plans/hobby), [Vercel Pro](https://vercel.com/docs/plans/pro-plan), [Fair use](https://vercel.com/docs/limits/fair-use-guidelines) (referência março/2026 — conferir fontes antes de fechar orçamento).
@@ -17,7 +17,7 @@ Preços e cotas: [Firebase](https://firebase.google.com/pricing), [Firestore](ht
 
 ---
 
-## 2. Stack Medivox
+## 2. Stack Plataforma de streaming educacional
 
 | Camada | Escolha |
 | --- | --- |

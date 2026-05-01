@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 import type { AssignmentExpiryRow } from '@/types';
 import type { ManagedCompanyOverview } from '@/lib/firestore/sellerDashboard';
 import type { SellerCompanyCourseMetricsPdf } from '@/lib/pdf/sellerCompanyMetricsPdf';
@@ -11,7 +12,7 @@ import {
   drawPdfCoverHeader,
   drawPdfSectionTitle,
   ensurePdfVerticalSpace,
-  loadMedivoxLogoPngDataUrl,
+  loadPlatformLogoForPdf,
   pdfStandardTableProps,
 } from '@/lib/pdf/pdfBrandLayout';
 
@@ -512,13 +513,13 @@ function addSellerReportFooters(
     );
   addPdfPageFooters(doc, pageW, pageH, margin, (i, t) =>
     flags.includeSaudeMental && hasCharts
-      ? `Medivox — relatório com gráficos — confidencial — página ${i} de ${t}`
-      : `Medivox — relatório para empresa — confidencial — página ${i} de ${t}`,
+      ? `${PLATFORM_DISPLAY_NAME} — relatório com gráficos — confidencial — página ${i} de ${t}`
+      : `${PLATFORM_DISPLAY_NAME} — relatório para empresa — confidencial — página ${i} de ${t}`,
   );
 }
 
 export async function downloadSellerCompanyPdf(input: SellerCompanyPdfDownloadInput): Promise<void> {
-  const logo = input.logoDataUrl ?? (await loadMedivoxLogoPngDataUrl());
+  const logo = input.logoDataUrl ?? (await loadPlatformLogoForPdf());
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const now = new Date();
   renderCompanyPage(doc, input.overview, input.vendorName, input.expiryRows, now, {
@@ -531,13 +532,13 @@ export async function downloadSellerCompanyPdf(input: SellerCompanyPdfDownloadIn
     chartImages: input.chartImages,
   }, logo);
   addSellerReportFooters(doc, input.flags, input.chartImages);
-  doc.save(`medivox-relatorio-${slugifyFilename(input.overview.company.slug)}.pdf`);
+  doc.save(`relatorio-empresa-${slugifyFilename(input.overview.company.slug)}.pdf`);
 }
 
 export async function downloadSellerPortfolioPdf(input: SellerPortfolioPdfDownloadInput): Promise<void> {
   const { overviews, vendorName, expiryRows, courseNames, flags, byCompany } = input;
   if (!overviews.length) return;
-  const logo = input.logoDataUrl ?? (await loadMedivoxLogoPngDataUrl());
+  const logo = input.logoDataUrl ?? (await loadPlatformLogoForPdf());
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const now = new Date();
   overviews.forEach((overview, i) => {
@@ -553,5 +554,5 @@ export async function downloadSellerPortfolioPdf(input: SellerPortfolioPdfDownlo
     }, logo);
   });
   addSellerReportFooters(doc, flags, undefined);
-  doc.save(`medivox-relatorio-carteira-${slugifyFilename(vendorName || 'vendedor')}-${now.toISOString().slice(0, 10)}.pdf`);
+  doc.save(`relatorio-carteira-${slugifyFilename(vendorName || 'vendedor')}-${now.toISOString().slice(0, 10)}.pdf`);
 }

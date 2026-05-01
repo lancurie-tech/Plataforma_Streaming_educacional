@@ -2,7 +2,7 @@
 
 ## 1. Script de seed no repositório (recomendado para desenvolvimento)
 
-Na **raiz do repositório** Medivox existe:
+Na **raiz do repositório** Plataforma de streaming educacional existe:
 
 - `scripts/seed-data.json` — edite este JSON (cursos, módulos, `answerKeys`).
 - `scripts/seed-firestore.mjs` — envia esses dados com **Firebase Admin SDK**.
@@ -10,13 +10,13 @@ Na **raiz do repositório** Medivox existe:
 **Requisito:** arquivo JSON da **conta de serviço** (nunca commite no Git).
 
 1. Firebase Console → ⚙️ **Configurações do projeto** → **Contas de serviço** → **Gerar nova chave privada**.
-2. Salve o arquivo em um lugar seguro (ex.: `C:\Secrets\medivox-adminsdk.json`).
-3. Instale dependências: `npm install` (na raiz `Medivox/`).
+2. Salve o arquivo em um lugar seguro (ex.: `C:\Secrets\Plataforma de streaming educacional-adminsdk.json`).
+3. Instale dependências: `npm install` (na raiz `Plataforma de streaming educacional/`).
 4. No PowerShell:
 
 ```powershell
-cd C:\Projetos\Medivox
-$env:GOOGLE_APPLICATION_CREDENTIALS="C:\Secrets\medivox-adminsdk.json"
+cd C:\Projetos\Plataforma de streaming educacional
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\Secrets\Plataforma de streaming educacional-adminsdk.json"
 # opcional: matricular um usuário existente (UID do Authentication)
 $env:ENROLL_UID="coleAquiOUid"
 npm run seed:firestore
@@ -46,4 +46,4 @@ O fluxo oficial de **import/export** do Firestore usa **formato próprio** (buck
 - **Cloud Functions** disparadas uma vez para popular dados.
 - **Ferramentas de terceiros** (ex.: emulators + fixtures).
 
-Para o Medivox, o caminho mais simples costuma ser **editar `seed-data.json` + `npm run seed:firestore`**.
+Para o Plataforma de streaming educacional, o caminho mais simples costuma ser **editar `seed-data.json` + `npm run seed:firestore`**.

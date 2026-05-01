@@ -6,6 +6,7 @@ import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayo
 import { PublicAssistantProviders } from '@/components/layout/PublicLayout';
 import { StreamingAssistantWidget } from '@/components/public/StreamingAssistantWidget';
 import { VendedorOnboardingTour } from '@/components/vendedor/VendedorOnboardingTour';
+import { PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:min-h-0 lg:py-2 ${
@@ -62,7 +63,7 @@ export function VendedorLayout() {
     <PublicAssistantProviders>
       <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
         <div className="min-h-0 flex-1">
-          <DashboardSidebarLayout sidebarTitle="Medivox · Vendas" sidebarBody={sidebarBody}>
+          <DashboardSidebarLayout sidebarTitle={`${PLATFORM_SHORT_NAME} · Vendas`} sidebarBody={sidebarBody}>
             <Outlet />
           </DashboardSidebarLayout>
         </div>

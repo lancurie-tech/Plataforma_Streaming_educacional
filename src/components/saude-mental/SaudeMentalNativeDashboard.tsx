@@ -26,10 +26,10 @@ import {
   calculateCourseMetrics,
   calculateTrackDistribution,
   filterCourseParticipants,
-  buildModulePerformanceFromMedivox,
+  buildModulePerformanceFromCourseModules,
   buildTrackRequirementSummary,
   getCoursePeriodOptions,
-} from '@/features/saude-mental/courseMetricsMedivox';
+} from '@/features/saude-mental/courseMetricsModules';
 import {
   buildCourseParticipantsFromRows,
   buildSurveyResponsesFromRows,
@@ -292,7 +292,7 @@ export function SaudeMentalNativeDashboard({
   );
   const modulePerformance = useMemo(() => {
     if (!ctx) return [];
-    return buildModulePerformanceFromMedivox(
+    return buildModulePerformanceFromCourseModules(
       filteredParticipants,
       ctx.modules,
       instrumentSet,

@@ -1,16 +1,19 @@
+import { PLATFORM_LOGO_SRC } from '@/lib/brand';
+
 export const BRAND_GREEN = '#66BC3F';
 export const GREEN_DEEP = '#2d6b1f';
 export const GOLD = '#C9A227';
 export const GOLD_DARK = '#8B6914';
 
-export const MEDIVOX_LOGO_PATH = '/logo_medivox.png';
+/** Caminho público do logo no certificado (ver `PLATFORM_LOGO_SRC` em `brand.ts`). */
+export const CERTIFICATE_LOGO_PATH = PLATFORM_LOGO_SRC;
 
 export const SEAL_CX = 50;
 export const SEAL_CY = 44;
 
 export function certificateLogoAbsoluteUrl(): string {
-  if (typeof window === 'undefined') return MEDIVOX_LOGO_PATH;
-  return `${window.location.origin}${MEDIVOX_LOGO_PATH}`;
+  if (typeof window === 'undefined') return CERTIFICATE_LOGO_PATH;
+  return `${window.location.origin}${CERTIFICATE_LOGO_PATH}`;
 }
 
 export function starburstPath(

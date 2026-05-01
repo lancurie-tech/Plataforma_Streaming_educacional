@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Cookie } from 'lucide-react';
 import { useAnalyticsConsent } from '@/contexts/AnalyticsConsentContext';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 
 /**
  * Cartão central no ecrã (efeito “hover” no painel). Escolha gravada em localStorage.
@@ -39,7 +40,7 @@ export function CookieConsentBar() {
             </h2>
             <div id="cookie-consent-desc" className="space-y-2 text-xs leading-snug text-zinc-400 sm:text-[13px] sm:leading-relaxed">
               <p>
-                Os vídeos da Medivox são exclusivamente educativos e informativos e{' '}
+                Os vídeos da {PLATFORM_DISPLAY_NAME} são exclusivamente educativos e informativos e{' '}
                 <strong className="font-medium text-zinc-300">não substituem a consulta médica</strong>. Em caso de
                 sintomas ou dúvidas, procure seu médico de confiança.
               </p>

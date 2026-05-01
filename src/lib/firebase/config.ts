@@ -18,7 +18,7 @@ function assertConfig() {
     .map(([k]) => k);
   if (missing.length > 0) {
     console.warn(
-      '[Medivox] Variáveis Firebase ausentes:',
+      '[Firebase] Variáveis Firebase ausentes:',
       missing.join(', '),
       '— configure o arquivo .env (veja .env.example).'
     );

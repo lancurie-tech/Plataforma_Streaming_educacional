@@ -7,6 +7,7 @@ import { isCompanyActive } from '@/lib/firestore/companyAccess';
 import { getCourse } from '@/lib/firestore/courses';
 import { listVisibleCourseIdsForStudent } from '@/lib/firestore/studentCourses';
 import type { CourseSummary } from '@/types';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 
 export function CoursesPage() {
   const { setAssistantCourse } = useAssistantCourse();
@@ -85,7 +86,7 @@ export function CoursesPage() {
       {companyBlocked ? (
         <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
           O acesso da sua empresa foi temporariamente desativado. Entre em contato com o responsável na
-          empresa ou com o suporte Medivox.
+          empresa ou com o suporte da {PLATFORM_DISPLAY_NAME}.
         </div>
       ) : null}
 

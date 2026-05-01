@@ -121,10 +121,10 @@ node scripts/seed-firestore.mjs
 
 ---
 
-## 9. Migração quando passares da conta pessoal para Medivox
+## 9. Migração quando passares da conta pessoal para Plataforma de streaming educacional
 
-1. Cria o projeto **produção** Medivox (definitivo).
-2. Cria o projeto **dev** Medivox.
+1. Cria o projeto **produção** Plataforma de streaming educacional (definitivo).
+2. Cria o projeto **dev** Plataforma de streaming educacional.
 3. Atualiza os **GitHub Actions secrets** (e variáveis) de *build* de **produção** com o `firebaseConfig` do projeto **produção**.
 4. Idem para os *secrets* `*_DEV` e *deploy* de `dev` / PRs com o projeto **dev**.
 5. Migra dados se necessário (export/import Firestore — fora do âmbito deste guia; trata com cuidado e em janela de manutenção).

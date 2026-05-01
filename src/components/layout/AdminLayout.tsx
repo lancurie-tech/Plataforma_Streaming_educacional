@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/contexts/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
+import { PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:min-h-0 lg:py-2 ${
@@ -96,7 +97,7 @@ export function AdminLayout() {
   );
 
   return (
-    <DashboardSidebarLayout sidebarTitle="Medivox Admin" sidebarBody={sidebarBody}>
+    <DashboardSidebarLayout sidebarTitle={`${PLATFORM_SHORT_NAME} · Admin`} sidebarBody={sidebarBody}>
       <Outlet />
     </DashboardSidebarLayout>
   );

@@ -4,12 +4,13 @@ import {
   GOLD,
   GOLD_DARK,
   GREEN_DEEP,
-  MEDIVOX_LOGO_PATH,
+  CERTIFICATE_LOGO_PATH,
   SEAL_CX,
   SEAL_CY,
   formatDateLong,
   starburstPath,
 } from '@/components/certificate/certificateShared';
+import { PLATFORM_DISPLAY_NAME, PLATFORM_SHORT_NAME } from '@/lib/brand';
 import {
   formatCertificateAudienceLine,
   type UserCertificate,
@@ -86,7 +87,7 @@ function SealMedallionSvg({
       {/* Disco central metálico */}
       <circle cx={SEAL_CX} cy={SEAL_CY} r="33.5" fill={`url(#${radId})`} stroke={GOLD_DARK} strokeWidth="0.4" />
 
-      {/* Logo Medivox (cores da marca no PNG) dentro do selo */}
+      {/* Logo da plataforma dentro do selo */}
       <image
         href={logoSrc}
         x="25"
@@ -158,7 +159,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
         flipX
       />
 
-      {/* Selo com logo Medivox — canto inferior direito */}
+      {/* Selo com logo — canto inferior direito */}
       <div
         className="pointer-events-none absolute bottom-2 right-2 z-10 sm:bottom-3 sm:right-3 md:bottom-4 md:right-5"
         aria-hidden
@@ -166,7 +167,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
         <SealMedallionSvg
           gradId={`sg${sealUid}lin`}
           radId={`sg${sealUid}rad`}
-          logoSrc={MEDIVOX_LOGO_PATH}
+          logoSrc={CERTIFICATE_LOGO_PATH}
         />
       </div>
 
@@ -191,7 +192,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
             className="pb-1 text-[10px] font-semibold uppercase leading-normal tracking-[0.2em] text-[#444] sm:pb-1.5 sm:text-[11px]"
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
-            A plataforma Medivox confere a
+            A {PLATFORM_DISPLAY_NAME} confere a
           </p>
 
           <p
@@ -243,7 +244,7 @@ export function CertificateVisual({ c, className = '' }: Props) {
                   className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#555] sm:text-[10px]"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  Plataforma Medivox
+                  {PLATFORM_SHORT_NAME}
                 </p>
               </div>
               <div className="text-center">

@@ -5,12 +5,12 @@ import {
   resolveInstrumentModuleIds,
 } from '@/features/saude-mental/buildSaudeMentalLive';
 import {
-  buildModulePerformanceFromMedivox,
+  buildModulePerformanceFromCourseModules,
   calculateCourseFunnel,
   calculateCourseMetrics,
   calculateTrackDistribution,
   filterCourseParticipants,
-} from '@/features/saude-mental/courseMetricsMedivox';
+} from '@/features/saude-mental/courseMetricsModules';
 import { getCourseTrackLabel } from '@/features/saude-mental/courseLabels';
 import {
   calculateDimensionAnalysis,
@@ -153,7 +153,7 @@ export async function buildSaudeMentalCompanyPdfSnapshot(
 
   const courseMetrics = calculateCourseMetrics(filteredParticipants);
   const funnel = calculateCourseFunnel(courseMetrics);
-  const modulePerformanceRaw = buildModulePerformanceFromMedivox(
+  const modulePerformanceRaw = buildModulePerformanceFromCourseModules(
     filteredParticipants,
     ctx.modules,
     instrumentSet,

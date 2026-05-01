@@ -14,7 +14,7 @@ export function SaudeMentalPanelPage() {
           <h1 className="text-xl font-semibold text-zinc-100 sm:text-2xl">Saúde Mental nas Empresas</h1>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">
             Painel alinhado ao modelo do programa (instrumentos T0–T2, dimensões e funil de engajamento), alimentado
-            diretamente pelas matrículas e respostas no Medivox. O vendedor vê apenas as empresas da sua carteira; o
+            diretamente pelas matrículas e respostas na plataforma. O vendedor vê apenas as empresas da sua carteira; o
             administrador vê todas.
           </p>
         </div>

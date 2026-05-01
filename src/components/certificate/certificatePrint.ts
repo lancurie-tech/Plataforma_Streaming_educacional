@@ -11,6 +11,7 @@ import {
   formatCertificateAudienceLine,
   type UserCertificate,
 } from '@/lib/firestore/certificates';
+import { PLATFORM_DISPLAY_NAME, PLATFORM_SHORT_NAME } from '@/lib/brand';
 
 export function openCertificatePrintWindow(c: UserCertificate): void {
   const w = window.open('', '_blank');
@@ -321,14 +322,14 @@ export function openCertificatePrintWindow(c: UserCertificate): void {
     <h1 class="cert-title">CERTIFICADO</h1>
     <p class="cert-sub">de conclusão</p>
     <div class="inner">
-      <p class="grant">A plataforma Medivox confere a</p>
+      <p class="grant">${escapeHtml(`A ${PLATFORM_DISPLAY_NAME} confere a`)}</p>
       <p class="name" title="${safeName}">${safeName}</p>
       <p class="body">O título de conclusão do curso abaixo, obtido mediante o cumprimento de todos os módulos e critérios estabelecidos, em comprovação de esforço e dedicação.</p>
       <p class="course-label">Curso</p>
       <p class="course-name">${safeTitle}</p>
       ${safeAudience ? `<p class="course-audience">${safeAudience}</p>` : ''}
       <div class="sigs">
-        <div class="sig"><div class="sig-line"></div><p class="sig-label">Plataforma Medivox</p></div>
+        <div class="sig"><div class="sig-line"></div><p class="sig-label">${escapeHtml(PLATFORM_SHORT_NAME)}</p></div>
         <div class="sig"><div class="sig-line"></div><p class="sig-label">Validação digital</p></div>
       </div>
       <p class="reg-subtle"><span style="text-transform:uppercase;letter-spacing:0.14em;">Registro</span> <span class="mono">${safeCode}</span> <span style="color:#d4d4d8;">·</span> <time datetime="${iso}">${escapeHtml(issued)}</time></p>

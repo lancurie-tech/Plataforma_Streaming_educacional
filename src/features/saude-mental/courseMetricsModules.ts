@@ -1,6 +1,6 @@
 /**
  * Métricas de engajamento (funil, módulos, trilhas) — baseadas no dashboard de referência,
- * adaptadas a IDs de módulo Medivox (`mod-*`) e participantes derivados do Firestore.
+ * adaptadas a IDs de módulo (`mod-*`) e participantes derivados do Firestore.
  */
 import type { ModuleContent } from '@/types';
 import { moduleAppliesToCompanyRole } from '@/lib/courseVisibility';
@@ -183,7 +183,7 @@ export const getCoursePeriodOptions = (participants: CourseParticipant[]): Cours
 };
 
 /** Uma barra por módulo de conteúdo (exclui os 3 módulos de instrumento). */
-export function buildModulePerformanceFromMedivox(
+export function buildModulePerformanceFromCourseModules(
   participants: CourseParticipant[],
   modules: ModuleContent[],
   instrumentIds: Set<string>,

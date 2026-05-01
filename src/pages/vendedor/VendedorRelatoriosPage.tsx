@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { FileDown } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
+import { VENDOR_DISPLAY_FALLBACK } from '@/lib/brand';
 import { getCompany, listActiveAllowedCourseIds, listCoursesCatalog } from '@/lib/firestore/admin';
 import {
   buildCourseAnalyticsReport,
@@ -71,7 +72,7 @@ export function VendedorRelatoriosPage() {
   const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const managedIds = profile?.managedCompanyIds ?? NO_MANAGED_COMPANY_IDS;
-  const vendorName = profile?.name ?? 'Vendedor Medivox';
+  const vendorName = profile?.name ?? VENDOR_DISPLAY_FALLBACK;
 
   const [overviews, setOverviews] = useState<ManagedCompanyOverview[]>([]);
   const [loadingOverviews, setLoadingOverviews] = useState(true);

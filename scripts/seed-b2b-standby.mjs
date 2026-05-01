@@ -7,7 +7,7 @@
  *
  * O cadastro em /{slug}/cadastro só funciona com registerWithCompany deployada.
  *
- * Uso (PowerShell, raiz Medivox):
+ * Uso (PowerShell, raiz Plataforma de streaming educacional):
  *   $env:GOOGLE_APPLICATION_CREDENTIALS="C:\caminho\serviceAccountKey.json"
  *   npm run seed:build-demo && npm run seed:firestore
  *   npm run seed:b2b-standby
@@ -44,7 +44,7 @@ const auth = admin.auth();
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 
 /** Senha única para os 3 logins de teste (troque em produção / apague usuários de teste). */
-const TEST_USER_PASSWORD = 'MedivoxTeste123!';
+const TEST_USER_PASSWORD = 'DemoStreaming123!';
 
 /**
  * CPFs só com dígitos, válidos algoritmicamente, distintos (único por “empresa” no seed).

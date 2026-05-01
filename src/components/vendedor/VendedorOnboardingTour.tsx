@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { Link } from 'react-router-dom';
 import { BookOpen, FileText, Home, LayoutDashboard, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { STORAGE_NS } from '@/lib/brand';
 
-const STORAGE_KEY_PREFIX = 'medivox.vendedor.onboarding.v1:';
+const STORAGE_KEY_PREFIX = `${STORAGE_NS}.vendedor.onboarding.v1:`;
 
 /** Padding ao redor do item do menu destacado */
 const HOLE_PAD = 10;
@@ -77,7 +78,8 @@ const STEPS: Step[] = [
         </p>
         <p className="text-sm text-zinc-500">
           Para rever este tour, limpe o armazenamento do site ou a chave{' '}
-          <code className="rounded bg-zinc-800 px-1 font-mono text-xs">medivox.vendedor.onboarding.v1</code> no
+          <code className="rounded bg-zinc-800 px-1 font-mono text-xs">{STORAGE_NS}.vendedor.onboarding.v1</code>{' '}
+          no
           navegador.
         </p>
       </div>

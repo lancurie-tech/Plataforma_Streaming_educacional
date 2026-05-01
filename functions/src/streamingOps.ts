@@ -762,7 +762,7 @@ REGRAS OBRIGATÓRIAS — INTEGRIDADE DA AVALIAÇÃO:
 `
       : '';
 
-  const system = `És o assistente do site Medivox (streaming na página inicial + cursos no catálogo público).
+  const system = `És o assistente da plataforma de streaming educacional (streaming na página inicial + cursos no catálogo público).
 Responde em português do Brasil, de forma breve e útil.
 ${courseModeBlock}
 REGRAS:

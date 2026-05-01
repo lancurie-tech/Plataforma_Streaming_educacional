@@ -12,7 +12,7 @@
  *   - Conta de serviço: GOOGLE_APPLICATION_CREDENTIALS
  *   - Curso demo no Firestore: npm run seed:build-demo && npm run seed:firestore
  *
- * Uso (raiz do repo Medivox):
+ * Uso (raiz do repo Plataforma de streaming educacional):
  *   npm run seed:analytics-demo
  *
  * Opcional: rode antes `npm run seed:b2b-standby` para Alpha/Beta + chaves;
@@ -42,7 +42,7 @@ const db = admin.firestore();
 const auth = admin.auth();
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 
-const TEST_USER_PASSWORD = 'MedivoxTeste123!';
+const TEST_USER_PASSWORD = 'DemoStreaming123!';
 
 const DEMO_MODULES = ['mod-01', 'mod-02'];
 const BETA_COURSE_ID = 'curso_beta';
@@ -262,7 +262,7 @@ async function main() {
   for (let i = 0; i < 24; i++) {
     const company = i % 2 === 0 ? companiesDef[0] : companiesDef[1];
     rows.push({
-      email: `medivox.analytics.${i + 1}@example.com`,
+      email: `streaming-edu.analytics.${i + 1}@example.com`,
       name: `Aluno Analytics ${i + 1}`,
       companyDocId: company.id,
       companySlug: company.slug,

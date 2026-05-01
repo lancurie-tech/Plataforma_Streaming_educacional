@@ -1,6 +1,7 @@
 import type { ModuleStepProgress } from '@/types';
+import { STORAGE_NS } from '@/lib/brand';
 
-const PREFIX = 'medivox:moduleDraft:v1:';
+const PREFIX = `${STORAGE_NS}:moduleDraft:v1:`;
 
 export type ModuleDraftLocalV1 = {
   v: 1;

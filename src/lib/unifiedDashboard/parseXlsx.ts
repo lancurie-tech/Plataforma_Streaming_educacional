@@ -1,5 +1,5 @@
 /**
- * Base unificada tipo `Base_*_Empresas_Dashboard_Medivox_Unificada.xlsx`.
+ * Base unificada tipo `Base_*_Empresas_Dashboard_Unificada.xlsx`.
  * O parser é tolerante: detecta coluna de empresa e colunas numéricas automaticamente.
  */
 

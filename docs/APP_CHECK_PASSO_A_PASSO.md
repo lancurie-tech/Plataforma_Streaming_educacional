@@ -2,7 +2,7 @@
 
 Este guia alinha-se ao código existente: `src/lib/firebase/appCheck.ts` (`initAppCheck`) e `functions/src/index.ts` (`enforceAppCheck` via `ENFORCE_APP_CHECK`).
 
-**Quando executar:** de preferência **já no projeto Firebase definitivo** (conta Medivox). Podes repetir os mesmos passos no projeto atual e migrar depois; não é obrigatório esperar, mas evita trabalho duplicado.
+**Quando executar:** de preferência **já no projeto Firebase definitivo** (conta Google Cloud da organização). Podes repetir os mesmos passos no projeto atual e migrar depois; não é obrigatório esperar, mas evita trabalho duplicado.
 
 ---
 
@@ -13,14 +13,14 @@ Este guia alinha-se ao código existente: `src/lib/firebase/appCheck.ts` (`initA
 
 ---
 
-## 2. Custo e faturação (Blaze / mudança para conta Medivox)
+## 2. Custo e faturação (Blaze / mudança de conta Google Cloud)
 
 | Item | Notas |
 |------|--------|
 | **Firebase App Check** | Não aparece como linha separada “App Check” no extrato por utilização típica; faz parte da proteção do produto Firebase. |
 | **Plano Blaze** | Já necessário para Cloud Functions, etc. O App Check **não** exige um plano além do Blaze por si só. |
 | **reCAPTCHA v3** (usado como fornecedor Web no App Check) | Uso normal de uma app legítima costuma ficar dentro das **quotas gratuitas** do Google; picos enormes de tráfego podem entrar em limites pagos do lado Google — consulta [preços reCAPTCHA](https://cloud.google.com/recaptcha-enterprise/pricing) se no futuro migrares para Enterprise; o fluxo **padrão App Check Web** segue a documentação Firebase. |
-| **Conta Medivox** | Ao mudar o projeto para outra conta Google Cloud, **recrias** App Check e chaves no **novo** projeto Firebase; não há “transferência” automática de configuração App Check entre projetos. |
+| **Nova conta Google Cloud** | Ao mudar o projeto para outra conta Google Cloud, **recrias** App Check e chaves no **novo** projeto Firebase; não há “transferência” automática de configuração App Check entre projetos. |
 
 **Resumo:** para o volume típico de uma plataforma em crescimento, o impacto de custo direto do App Check é **geralmente nulo ou residual** em relação ao que já gastas em Functions/Firestore; o risco principal de custo continua a ser **uso da API** (ex.: Gemini), não o App Check em si.
 
@@ -40,11 +40,11 @@ Se ativares enforcement **antes** do frontend enviar tokens, **utilizadores leg�
 
 ## 4. Passo a passo — Firebase Console
 
-1. Entra em [Firebase Console](https://console.firebase.google.com) e seleciona o **projeto** (pessoal ou Medivox).
+1. Entra em [Firebase Console](https://console.firebase.google.com) e seleciona o **projeto** Firebase correto.
 2. Menu lateral → **Build** → **App Check** (ou pesquisa “App Check” na consola).
 3. Clica em **Get started** / **Registar app** se ainda não existir app Web.
 4. Escolhe a plataforma **Web** (`</>`).
-5. Dá um **apelido** (ex.: “Medivox Web”).
+5. Dá um **apelido** (ex.: “Web streaming educacional”).
 6. Fornecedor: **reCAPTCHA v3** (predefinição para Web).
 7. Segue o assistente: em geral precisas de criar / associar uma **reCAPTCHA key** no Google Cloud (a consola pode abrir o fluxo). Aceita os domínios onde a app corre:
    - Produção: `seudominio.com`, `www.seudominio.com`
@@ -56,7 +56,7 @@ Se ativares enforcement **antes** do frontend enviar tokens, **utilizadores leg�
 
 ## 5. Passo a passo — Vercel
 
-1. **Vercel** → projeto Medivox → **Settings** → **Environment Variables**.
+1. **Vercel** → projeto do frontend → **Settings** → **Environment Variables**.
 2. Adiciona:
    - **Name:** `VITE_FIREBASE_APPCHECK_SITE_KEY`
    - **Value:** (site key do passo anterior)
@@ -124,7 +124,7 @@ Depois de `true`, callables **rejeitam** pedidos **sem** token App Check válido
 
 ---
 
-## 10. Migração para o projeto Firebase Medivox
+## 10. Migração para o projeto Firebase definitivo
 
 1. Repete os passos 4–9 no **novo** projeto.
 2. Gera nova site key / registo App Check para a app Web nesse projeto.

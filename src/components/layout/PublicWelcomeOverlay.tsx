@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { clsx } from 'clsx';
+import { PLATFORM_LOGO_SRC, PLATFORM_SHORT_NAME, STORAGE_NS } from '@/lib/brand';
 
 type Phase = 'curtain' | 'ready' | 'leaving' | 'gone';
 
 /** Só para `variant="sessionOnce"` (ex.: cadastro): não repetir overlay na mesma sessão. */
-const WELCOME_SEEN_KEY = 'medivox.publicWelcomeSeen';
+const WELCOME_SEEN_KEY = `${STORAGE_NS}.publicWelcomeSeen`;
 
 function readWelcomeAlreadySeen(): boolean {
   try {
@@ -107,8 +108,8 @@ export function PublicWelcomeOverlay({
         <div className="public-welcome-logo-wrap group relative">
           <div className="public-welcome-logo-ring pointer-events-none" aria-hidden />
           <img
-            src="/logo_medivo_branco.png"
-            alt="Medivox"
+            src={PLATFORM_LOGO_SRC}
+            alt={PLATFORM_SHORT_NAME}
             width={320}
             height={56}
             className="public-welcome-logo relative z-1 h-14 w-auto max-w-[min(85vw,320px)] object-contain sm:h-46"

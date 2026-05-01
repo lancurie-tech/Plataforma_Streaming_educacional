@@ -1,4 +1,4 @@
-# Assistente de IA (chat Medivox)
+# Assistente de IA (chat Plataforma de streaming educacional)
 
 Referência para **desenvolvimento**, **operação** e **suporte**: o que é o chat, onde aparece, como é limitado e que variáveis de ambiente precisa.
 
@@ -73,12 +73,12 @@ Ficheiro de referência local: `functions/.env.example` (não commitar segredos 
 
 ## 6. Privacidade e conformidade (nota)
 
-As mensagens e o contexto são processados pelo **Google** conforme os termos do produto Gemini / Google Cloud. A organização operadora da Medivox deve:
+As mensagens e o contexto são processados pelo **Google** conforme os termos do produto Gemini / Google Cloud. A organização operadora da Plataforma de streaming educacional deve:
 
 - Mencionar o uso de **IA** na **política de privacidade** e nos **termos**, se ainda não estiver refletido.
 - Avaliar **localização de dados** e **contratos** com o fornecedor em relação a empresas clientes (B2B) e titulares (colaboradores).
 
-Documento de negócio relacionado: [DOCUMENTACAO_NEGOCIO_CONFORMIDADE_MEDIVOX.md](./DOCUMENTACAO_NEGOCIO_CONFORMIDADE_MEDIVOX.md) (secção 10).
+Documento de negócio relacionado: [DOCUMENTACAO_NEGOCIO_CONFORMIDADE.md](./DOCUMENTACAO_NEGOCIO_CONFORMIDADE.md) (secção 10).
 
 ---
 

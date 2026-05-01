@@ -1,4 +1,4 @@
-# Checklist de Produção — Medivox
+# Checklist de Produção — Plataforma de streaming educacional
 
 ## 1. Branch Protection (GitHub)
 
@@ -12,7 +12,7 @@
 | Repositório **privado** + GitHub **Free** (pessoal) | **Limitado** — regras avançadas (ex.: revisores obrigatórios, branches protegidas completas em privado) costumam exigir **GitHub Pro** (conta pessoal) ou plano pago na organização |
 | Organização **Team** | Útil por **equipes**, permissões, SSO, auditoria — não é pré-requisito técnico só para “ligar” proteção em repo público |
 
-**Se o Medivox está no seu GitHub pessoal, repo privado, sem Pro:** você pode **adiar** as regras formais até migrar para o GitHub da empresa. **O que você perde ao não configurar agora:**
+**Se o Plataforma de streaming educacional está no seu GitHub pessoal, repo privado, sem Pro:** você pode **adiar** as regras formais até migrar para o GitHub da empresa. **O que você perde ao não configurar agora:**
 
 - **Processo:** risco maior de `git push` direto em `main` sem PR (erro humano).
 - **Não perde:** o workflow **CI** (`.github/workflows/ci.yml`) continua a correr em **push** e em **PR** — o código continua validado; só falta o **bloqueio** no servidor GitHub.
@@ -23,13 +23,13 @@
 2. Não usar `git push origin main` com commits locais diretos em produção.
 3. Opcional: no Vercel, confirmar que **Production** faz deploy **apenas** a partir de `main`, para um push errado não ir parar em produção sem passar pelo fluxo que você definir.
 
-Quando o repositório estiver na **organização Medivox**, aí vale aplicar a regra completa abaixo (e, se o repo for **privado** na org, conferir no plano da org se as opções aparecem; em **público** na org Free, as regras costumam ser as mesmas que em repo público pessoal).
+Quando o repositório estiver na **organização Plataforma de streaming educacional**, aí vale aplicar a regra completa abaixo (e, se o repo for **privado** na org, conferir no plano da org se as opções aparecem; em **público** na org Free, as regras costumam ser as mesmas que em repo público pessoal).
 
 ---
 
 ### 1.2 Onde clicar (passo a passo)
 
-1. Abra o repositório no GitHub (ex.: `https://github.com/USUARIO/Medivox`).
+1. Abra o repositório no GitHub (ex.: `https://github.com/USUARIO/Plataforma de streaming educacional`).
 2. **Settings** (aba do repositório; só aparece se você tiver permissão de admin).
 3. Menu lateral: **Code and automation** → **Rules** → **Rulesets** (recomendado no GitHub atual) **ou** **Branches** → **Branch protection rules** → **Add rule** / **Add branch ruleset** (a interface pode mostrar “rulesets” em contas novas).
 4. Se usar **classic** “Branch protection rules”:
@@ -92,7 +92,7 @@ Se o GitHub mostrar **Repository rules** / **Rulesets** em vez de “Branch prot
 
 ## 2. App Check (Firebase Console)
 
-Guia completo (ordem dos passos, custos, debug local, enforcement, migração para conta Medivox):
+Guia completo (ordem dos passos, custos, debug local, enforcement, migração para conta Plataforma de streaming educacional):
 
 **[APP_CHECK_PASSO_A_PASSO.md](./APP_CHECK_PASSO_A_PASSO.md)**
 
@@ -102,7 +102,7 @@ Resumo: registar app Web no App Check → colocar `VITE_FIREBASE_APPCHECK_SITE_K
 
 ## 2b. Ambiente dev / staging (Firebase separado da produção)
 
-Passo a passo para criar um segundo projeto Firebase, variáveis no Vercel (Preview vs Production) e boas práticas — **para implementares quando estiveres no Firebase certo** (ex.: organização Medivox):
+Passo a passo para criar um segundo projeto Firebase, variáveis no Vercel (Preview vs Production) e boas práticas — **para implementares quando estiveres no Firebase certo** (ex.: organização Plataforma de streaming educacional):
 
 **[FIREBASE_AMBIENTE_DEV_STAGING.md](./FIREBASE_AMBIENTE_DEV_STAGING.md)**
 
@@ -173,6 +173,8 @@ Para evitar que testes afetem dados de produção:
 4. Branch `dev` faz deploy para staging automaticamente
 
 ## 10. Erro “CORS” nas HTTPS callables (Gen 2) — na verdade é 403 no Cloud Run
+
+**Nota:** `firebase deploy --only storage` publica **só** as regras do **Firebase Storage** (`storage.rules`). **Não** altera IAM do **Cloud Run** nem aplica `allUsers` às callables. Para IAM das callables use `firebase deploy --only functions` (devia aplicar `invoker: public`) ou a configuração manual no Cloud Run abaixo.
 
 Se no browser aparece *blocked by CORS* / *No Access-Control-Allow-Origin* ao chamar  
 `https://REGION-PROJECT.cloudfunctions.net/nomeDaFuncao`, confira o **preflight** com:

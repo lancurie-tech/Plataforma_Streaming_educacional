@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 
 type Props = {
   title: string;
@@ -32,7 +33,7 @@ export function LegalDocumentLayout({
         {children}
       </div>
       <p className="mt-12 border-t border-zinc-800 pt-6 text-xs text-zinc-600">
-        Medivox — plataforma de conteúdos educacionais. Em caso de dúvidas sobre tratamento de dados,
+        {PLATFORM_DISPLAY_NAME} — conteúdos educacionais. Em caso de dúvidas sobre tratamento de dados,
         utilize os canais indicados na Política de Privacidade.
       </p>
       <Link to="/streaming" className="mt-4 inline-block text-sm text-emerald-400 hover:text-emerald-300 hover:underline">

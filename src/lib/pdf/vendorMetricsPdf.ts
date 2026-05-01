@@ -1,12 +1,13 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PLATFORM_DISPLAY_NAME } from '@/lib/brand';
 import {
   PDF_BRAND,
   addPdfPageFooters,
   drawPdfCoverHeader,
   drawPdfSectionTitle,
   ensurePdfVerticalSpace,
-  loadMedivoxLogoPngDataUrl,
+  loadPlatformLogoForPdf,
   pdfStandardTableProps,
 } from '@/lib/pdf/pdfBrandLayout';
 
@@ -36,7 +37,7 @@ export async function downloadVendorMetricsPdf({
   byUser: UserRow[];
   logoDataUrl?: string | null;
 }): Promise<void> {
-  const logo = logoInput ?? (await loadMedivoxLogoPngDataUrl());
+  const logo = logoInput ?? (await loadPlatformLogoForPdf());
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -102,7 +103,7 @@ export async function downloadVendorMetricsPdf({
   }
 
   addPdfPageFooters(doc, pageW, pageH, margin, (i, t) =>
-    `Medivox — relatório de métricas — confidencial — página ${i} de ${t}`,
+    `${PLATFORM_DISPLAY_NAME} — relatório de métricas — confidencial — página ${i} de ${t}`,
   );
 
   const slug = courseTitle
@@ -110,5 +111,5 @@ export async function downloadVendorMetricsPdf({
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9_-]/g, '')
     .slice(0, 30);
-  doc.save(`medivox-metricas-${slug}-${new Date().toISOString().slice(0, 10)}.pdf`);
+  doc.save(`metricas-curso-${slug}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }

@@ -1,5 +1,7 @@
+import { STORAGE_NS } from '@/lib/brand';
+
 /** Chave versionada para permitir futuras migrações sem misturar valores antigos. */
-export const ANALYTICS_CONSENT_STORAGE_KEY = 'medivox.consent.analytics.v1';
+export const ANALYTICS_CONSENT_STORAGE_KEY = `${STORAGE_NS}.consent.analytics.v1`;
 
 export type AnalyticsConsentValue = 'granted' | 'denied';
 
@@ -21,4 +23,4 @@ export function writeAnalyticsConsent(value: AnalyticsConsentValue): void {
   }
 }
 
-export const ANALYTICS_CONSENT_CHANGED_EVENT = 'medivox-analytics-consent-changed';
+export const ANALYTICS_CONSENT_CHANGED_EVENT = `${STORAGE_NS}-analytics-consent-changed`;
