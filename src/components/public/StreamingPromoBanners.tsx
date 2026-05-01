@@ -58,9 +58,9 @@ function BannerTile({ banner, featured, eagerImage }: BannerTileProps) {
   const wrapCls = clsx(
     'group relative block h-full w-full overflow-hidden rounded-xl outline-none',
     'transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-    'focus-visible:ring-2 focus-visible:ring-emerald-500/70',
+    'focus-visible:ring-2 focus-visible:ring-(--brand-primary-hover)',
     featured
-      ? 'z-10 -translate-y-1.5 scale-[1.05] border-2 border-emerald-500/45 shadow-xl shadow-black/40 ring-2 ring-emerald-400/30 sm:-translate-y-2 sm:scale-[1.07] md:scale-[1.06]'
+      ? 'z-10 -translate-y-1.5 scale-[1.05] border-2 border-(--brand-primary-hover) shadow-xl shadow-black/40 ring-2 ring-(--brand-primary) sm:-translate-y-2 sm:scale-[1.07] md:scale-[1.06]'
       : 'scale-[0.9] border border-zinc-700/90 shadow-md shadow-black/25 sm:scale-[0.94] md:scale-[0.96]',
   );
 
@@ -207,7 +207,7 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
           <button
             type="button"
             onClick={goPrev}
-            className="absolute left-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/90 text-zinc-100 shadow-lg backdrop-blur hover:border-emerald-500/50 hover:bg-zinc-800/95 sm:left-0 sm:h-10 sm:w-10"
+            className="absolute left-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/90 text-zinc-100 shadow-lg backdrop-blur hover:border-(--brand-primary-hover) hover:bg-zinc-800/95 sm:left-0 sm:h-10 sm:w-10"
             aria-label="Destaque anterior"
           >
             <ChevronLeft size={20} strokeWidth={2} className="sm:h-[22px] sm:w-[22px]" />
@@ -215,7 +215,7 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
           <button
             type="button"
             onClick={goNext}
-            className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/90 text-zinc-100 shadow-lg backdrop-blur hover:border-emerald-500/50 hover:bg-zinc-800/95 sm:right-0 sm:h-10 sm:w-10"
+            className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-600/80 bg-zinc-950/90 text-zinc-100 shadow-lg backdrop-blur hover:border-(--brand-primary-hover) hover:bg-zinc-800/95 sm:right-0 sm:h-10 sm:w-10"
             aria-label="Próximo destaque"
           >
             <ChevronRight size={20} strokeWidth={2} className="sm:h-[22px] sm:w-[22px]" />
@@ -235,7 +235,7 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
                 onClick={() => goToDot(i)}
                 className={clsx(
                   'h-2 rounded-full transition-all',
-                  i === activeIndex ? 'w-6 bg-emerald-500' : 'w-2 bg-zinc-600 hover:bg-zinc-500',
+                  i === activeIndex ? 'w-6 bg-(--brand-primary)' : 'w-2 bg-zinc-600 hover:bg-zinc-500',
                 )}
               />
             ))}

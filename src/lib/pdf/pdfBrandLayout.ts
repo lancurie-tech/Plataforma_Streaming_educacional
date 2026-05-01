@@ -117,6 +117,7 @@ async function rasterizeBlobImageToPngDataUrl(blob: Blob): Promise<string | null
  */
 export async function loadLogoForPdf(logoSrc: string): Promise<string | null> {
   if (typeof window === 'undefined') return null;
+  if (!logoSrc.trim()) return null;
   const absolute =
     /^https?:\/\//i.test(logoSrc)
       ? logoSrc

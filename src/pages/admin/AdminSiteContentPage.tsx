@@ -153,7 +153,7 @@ export function AdminSiteContentPage() {
             onClick={() => setTab(t.id)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               tab === t.id
-                ? 'bg-emerald-500/20 text-emerald-300'
+                ? 'bg-(--brand-primary) text-white'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
             }`}
           >
@@ -171,7 +171,7 @@ export function AdminSiteContentPage() {
               to={active.previewPath}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-(--brand-primary-hover) hover:underline"
             >
               Abrir página no site
               <ExternalLink size={14} />
@@ -207,7 +207,7 @@ export function AdminSiteContentPage() {
                 }))
               }
               placeholder="Ex.: 2026-04-18-v2 (vazio = usa a versão padrão do código)"
-              className="mt-2 w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
+              className="mt-2 w-full max-w-md rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-(--brand-primary-hover) focus:outline-none focus:ring-1 focus:ring-(--brand-primary-hover)"
             />
           </div>
 
@@ -224,7 +224,7 @@ export function AdminSiteContentPage() {
                 }))
               }
               rows={22}
-              className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950/80 px-3 py-3 font-mono text-sm leading-relaxed text-zinc-200 placeholder:text-zinc-600 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
+              className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950/80 px-3 py-3 font-mono text-sm leading-relaxed text-zinc-200 placeholder:text-zinc-600 focus:border-(--brand-primary-hover) focus:outline-none focus:ring-1 focus:ring-(--brand-primary-hover)"
               placeholder="Deixe vazio para usar o conteúdo padrão do sistema…"
             />
           </div>
@@ -235,7 +235,7 @@ export function AdminSiteContentPage() {
             </p>
           ) : null}
           {ok ? (
-            <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100/90">
+            <p className="rounded-lg border border-(--brand-primary-hover) bg-(--brand-primary) px-3 py-2 text-sm text-white/95">
               {ok}
             </p>
           ) : null}

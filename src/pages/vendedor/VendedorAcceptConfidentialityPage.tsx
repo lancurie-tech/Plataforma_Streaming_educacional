@@ -73,7 +73,7 @@ export function VendedorAcceptConfidentialityPage() {
           <label className="flex cursor-pointer gap-3 text-sm leading-relaxed text-zinc-300">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 accent-emerald-600"
+              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 accent-(--brand-primary)"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
             />
@@ -83,7 +83,7 @@ export function VendedorAcceptConfidentialityPage() {
                 to="/confidencialidade-vendedor"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-emerald-400 underline-offset-2 hover:underline"
+                className="font-medium text-(--brand-primary-hover) underline-offset-2 hover:underline"
               >
                 Termo de confidencialidade e obrigações do vendedor
               </Link>

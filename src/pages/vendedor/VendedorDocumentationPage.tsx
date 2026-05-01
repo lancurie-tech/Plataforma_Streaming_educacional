@@ -117,7 +117,7 @@ export function VendedorDocumentationPage() {
             <Users className="mt-0.5 shrink-0 text-zinc-500" size={18} />
             <span>
               A empresa divulga internamente o <strong className="text-zinc-300">link</strong> no formato{' '}
-              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-emerald-400">
+              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-(--brand-primary-hover)">
                 /nome-da-empresa/cadastro
               </code>
               . O colaborador preenche dados e aceita termos; a liberação de cursos depende do contrato ativo.

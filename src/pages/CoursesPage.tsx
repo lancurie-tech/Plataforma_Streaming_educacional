@@ -110,10 +110,10 @@ export function CoursesPage() {
             <li key={c.id}>
               <Link
                 to={`/curso/${c.id}`}
-                className="block touch-manipulation rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 transition-colors active:bg-zinc-900/80 sm:p-6 hover:border-emerald-600/40 hover:bg-zinc-900"
+                className="block touch-manipulation rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 transition-colors active:bg-zinc-900/80 sm:p-6 hover:border-(--brand-primary-hover) hover:bg-zinc-900"
               >
                 <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--brand-primary) text-white">
                     <BookOpen size={20} />
                   </span>
                   <div>

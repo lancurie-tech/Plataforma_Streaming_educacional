@@ -23,9 +23,34 @@ export const VENDOR_DISPLAY_FALLBACK = 'Vendedor';
 export const STORAGE_NS = 'pse';
 
 /**
- * Logo principal em `public/` (SVG ou PNG) quando não há `logoUrl` no Firestore.
+ * Sem fallback local para logo em white-label:
+ * a marca deve vir apenas do `logoUrl` configurado no Firestore.
  */
-export const PLATFORM_LOGO_SRC = '/logo.svg';
+export const PLATFORM_LOGO_SRC = '';
+export const PLATFORM_FAVICON_SRC = '';
+
+export type BrandPalette = {
+  primary: string;
+  primaryHover: string;
+  accent: string;
+  background: string;
+  text: string;
+  textMuted: string;
+};
+
+export const DEFAULT_BRAND_PALETTE: BrandPalette = {
+  primary: '#059669',
+  primaryHover: '#10b981',
+  accent: '#34d399',
+  background: '#0c0c0f',
+  text: '#f4f4f5',
+  textMuted: '#a1a1aa',
+};
+
+function pickHexOrDefault(value: string | undefined, fallback: string): string {
+  const t = value?.trim();
+  return t && /^#[0-9a-fA-F]{6}$/.test(t) ? t : fallback;
+}
 
 /** Identidade já aplicando overrides do Firestore (uso em runtime React/PDF). */
 export type ResolvedBranding = {
@@ -35,6 +60,9 @@ export type ResolvedBranding = {
   vendorDisplayFallback: string;
   /** URL absoluta Storage ou caminho em `public/` (ex. `/logo.svg`). */
   logoSrc: string;
+  /** URL absoluta Storage ou caminho em `public/` para ícone do navegador. */
+  faviconSrc: string;
+  palette: BrandPalette;
 };
 
 export function defaultResolvedBranding(): ResolvedBranding {
@@ -44,6 +72,8 @@ export function defaultResolvedBranding(): ResolvedBranding {
     streamingAssistantChatTitle: STREAMING_ASSISTANT_CHAT_TITLE,
     vendorDisplayFallback: VENDOR_DISPLAY_FALLBACK,
     logoSrc: PLATFORM_LOGO_SRC,
+    faviconSrc: PLATFORM_FAVICON_SRC,
+    palette: DEFAULT_BRAND_PALETTE,
   };
 }
 
@@ -56,5 +86,14 @@ export function mergeFirestoreBranding(doc: BrandingFirestoreDoc | null): Resolv
     streamingAssistantChatTitle: doc.streamingAssistantChatTitle?.trim() || d.streamingAssistantChatTitle,
     vendorDisplayFallback: doc.vendorDisplayFallback?.trim() || d.vendorDisplayFallback,
     logoSrc: doc.logoUrl?.trim() || d.logoSrc,
+    faviconSrc: doc.faviconUrl?.trim() || d.faviconSrc,
+    palette: {
+      primary: pickHexOrDefault(doc.palettePrimary, d.palette.primary),
+      primaryHover: pickHexOrDefault(doc.palettePrimaryHover, d.palette.primaryHover),
+      accent: pickHexOrDefault(doc.paletteAccent, d.palette.accent),
+      background: pickHexOrDefault(doc.paletteBackground, d.palette.background),
+      text: pickHexOrDefault(doc.paletteText, d.palette.text),
+      textMuted: pickHexOrDefault(doc.paletteTextMuted, d.palette.textMuted),
+    },
   };
 }

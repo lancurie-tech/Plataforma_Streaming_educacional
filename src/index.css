@@ -1,11 +1,178 @@
 @import 'tailwindcss';
 
+:root {
+  --brand-primary: #059669;
+  --brand-primary-hover: #10b981;
+  --brand-accent: #34d399;
+  --brand-bg: #0c0c0f;
+  --brand-text: #f4f4f5;
+  --brand-text-muted: #a1a1aa;
+}
+
+/* Bridge de tema: utilitários legacy "emerald-*" seguem a paleta configurável. */
+.text-emerald-500,
+.text-emerald-500\/95,
+.text-emerald-400,
+.text-emerald-400\/95,
+.text-emerald-400\/90,
+.text-emerald-400\/80,
+.text-emerald-300,
+.text-emerald-300\/90,
+.text-emerald-200,
+.text-emerald-200\/90,
+.text-emerald-200\/70,
+.text-emerald-100,
+.text-emerald-100\/95,
+.text-emerald-100\/90 {
+  color: var(--brand-primary-hover) !important;
+}
+
+.bg-emerald-600,
+.bg-emerald-500,
+.bg-emerald-500\/20,
+.bg-emerald-500\/15,
+.bg-emerald-500\/10,
+.bg-emerald-500\/5 {
+  background-color: color-mix(in srgb, var(--brand-primary) 70%, transparent) !important;
+}
+
+.bg-emerald-900\/40,
+.bg-emerald-950\/20,
+.bg-emerald-950\/30,
+.bg-emerald-950\/10 {
+  background-color: color-mix(in srgb, var(--brand-primary) 28%, #020617 72%) !important;
+}
+
+.border-emerald-600,
+.border-emerald-600\/60,
+.border-emerald-600\/50,
+.border-emerald-500,
+.border-emerald-500\/70,
+.border-emerald-500\/60,
+.border-emerald-500\/50,
+.border-emerald-500\/45,
+.border-emerald-500\/40,
+.border-emerald-500\/30,
+.border-emerald-500\/25,
+.border-emerald-400\/45 {
+  border-color: var(--brand-primary-hover) !important;
+}
+
+.ring-emerald-500,
+.ring-emerald-500\/60,
+.ring-emerald-500\/25,
+.ring-emerald-500\/20,
+.ring-emerald-500\/15,
+.ring-emerald-400\/40,
+.ring-emerald-400\/30 {
+  --tw-ring-color: color-mix(in srgb, var(--brand-primary) 45%, transparent) !important;
+}
+
+.accent-emerald-600,
+.text-emerald-500 {
+  accent-color: var(--brand-primary) !important;
+}
+
+.shadow-emerald-900\/40,
+.shadow-emerald-500\/10 {
+  --tw-shadow-color: color-mix(in srgb, var(--brand-primary) 30%, transparent) !important;
+}
+
+.hover\:text-emerald-400:hover,
+.hover\:text-emerald-300:hover,
+.hover\:text-emerald-200:hover {
+  color: var(--brand-primary-hover) !important;
+}
+
+.hover\:bg-emerald-600:hover,
+.hover\:bg-emerald-500:hover,
+.hover\:bg-emerald-500\/25:hover,
+.hover\:bg-emerald-500\/10:hover {
+  background-color: color-mix(in srgb, var(--brand-primary-hover) 70%, transparent) !important;
+}
+
+.hover\:border-emerald-600\/50:hover,
+.hover\:border-emerald-500\/55:hover,
+.hover\:border-emerald-500\/50:hover,
+.hover\:border-emerald-500\/45:hover {
+  border-color: var(--brand-primary-hover) !important;
+}
+
+.focus\:border-emerald-600:focus,
+.focus\:border-emerald-500:focus,
+.focus\:border-emerald-500\/50:focus {
+  border-color: var(--brand-primary-hover) !important;
+}
+
+.focus\:ring-emerald-500:focus,
+.focus\:ring-emerald-500\/30:focus {
+  --tw-ring-color: color-mix(in srgb, var(--brand-primary) 50%, transparent) !important;
+}
+
+.focus-visible\:outline-emerald-500\/70:focus-visible,
+.focus-visible\:outline-emerald-500\/60:focus-visible {
+  outline-color: var(--brand-primary-hover) !important;
+}
+
+/* Bridge de tipografia: utilitários zinc seguem texto principal/secundário da marca. */
+.text-zinc-50,
+.text-zinc-100 {
+  color: var(--brand-text) !important;
+}
+
+.text-zinc-200,
+.text-zinc-300 {
+  color: color-mix(in srgb, var(--brand-text) 88%, var(--brand-text-muted) 12%) !important;
+}
+
+.text-zinc-400,
+.text-zinc-500,
+.text-zinc-600 {
+  color: var(--brand-text-muted) !important;
+}
+
+/* Bridge de superfícies: classes de fundo escuro passam a derivar do fundo configurado. */
+.bg-zinc-950,
+.bg-zinc-950\/98,
+.bg-zinc-950\/95,
+.bg-zinc-950\/90,
+.bg-zinc-950\/80,
+.bg-zinc-950\/60,
+.bg-zinc-950\/50,
+.bg-zinc-950\/40,
+.bg-zinc-950\/35,
+.bg-zinc-900,
+.bg-zinc-900\/98,
+.bg-zinc-900\/95,
+.bg-zinc-900\/90,
+.bg-zinc-900\/80,
+.bg-zinc-900\/60,
+.bg-zinc-900\/55,
+.bg-zinc-900\/50,
+.bg-zinc-900\/40,
+.bg-zinc-900\/30 {
+  background-color: color-mix(in srgb, var(--brand-bg) 88%, #000 12%) !important;
+}
+
+.border-zinc-800,
+.border-zinc-800\/90,
+.border-zinc-800\/80,
+.border-zinc-700,
+.border-zinc-700\/90,
+.border-zinc-700\/80,
+.border-zinc-700\/60,
+.border-zinc-600,
+.border-zinc-600\/90,
+.border-zinc-600\/80 {
+  border-color: color-mix(in srgb, var(--brand-text-muted) 38%, transparent) !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: #0c0c0f;
-  color: #f4f4f5;
+  background: var(--brand-bg);
+  color: var(--brand-text);
 }
 
 #root {
@@ -91,9 +258,9 @@ body {
 }
 
 .public-welcome-root {
-  background: radial-gradient(ellipse 120% 80% at 50% 20%, rgba(16, 185, 129, 0.14), transparent 55%),
+  background: radial-gradient(ellipse 120% 80% at 50% 20%, color-mix(in srgb, var(--brand-primary-hover) 28%, transparent), transparent 55%),
     radial-gradient(ellipse 90% 60% at 80% 90%, rgba(59, 130, 246, 0.06), transparent 45%),
-    linear-gradient(165deg, #09090b 0%, #0c0c0f 40%, #0a0a0c 100%);
+    linear-gradient(165deg, #09090b 0%, var(--brand-bg) 40%, #0a0a0c 100%);
   transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1), filter 0.48s ease;
 }
 
@@ -104,7 +271,7 @@ body {
 }
 
 .public-welcome-glow {
-  background: radial-gradient(circle at 50% 42%, rgba(52, 211, 153, 0.12) 0%, transparent 42%);
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--brand-accent) 24%, transparent) 0%, transparent 42%);
   animation: public-welcome-bg-shift 10s ease-in-out infinite;
 }
 
@@ -148,8 +315,8 @@ body {
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(52, 211, 153, 0.2) 0%,
-    rgba(52, 211, 153, 0.05) 35%,
+    color-mix(in srgb, var(--brand-accent) 40%, transparent) 0%,
+    color-mix(in srgb, var(--brand-accent) 10%, transparent) 35%,
     transparent 65%
   );
   animation: public-welcome-ring-pulse 3.2s ease-in-out infinite;
@@ -169,7 +336,8 @@ body {
 
 .public-welcome-logo-wrap:hover .public-welcome-logo,
 .public-welcome-logo-wrap:focus-within .public-welcome-logo {
-  filter: drop-shadow(0 0 28px rgba(52, 211, 153, 0.45)) drop-shadow(0 8px 32px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--brand-accent) 45%, transparent))
+    drop-shadow(0 8px 32px rgba(0, 0, 0, 0.5));
 }
 
 .public-welcome-content {
