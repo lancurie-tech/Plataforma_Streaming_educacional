@@ -337,7 +337,11 @@ Atualização do catálogo: deploy + seed administrativo ou painel master “pub
 Atualizar quando novos guias existirem:
 
 - `docs/GUIA_SETUP_MANUAL.md` — baseline de ambiente.
-- *(adicionar)* `docs/MODULOS_IDS.md` — após Fase 0.
+- `docs/MODULOS_IDS.md` — contrato comercial (`streaming` / `cursos` / `chat` / `vendedores`) e mapeamento interno.
+- `docs/PLANOS_LIMITES_RASCUNHO.md` — dimensões de limites por plano (Fase 0).
+- `docs/FASE1_MULTI_TENANT_MINIMO.md` — schema e validação inicial de isolamento por tenant.
+- `docs/FASE3_CONSOLE_MASTER.md` — claim `master_admin`, Rules e UI `/master`.
+- `docs/FASE4_MARKETPLACE.md` — catálogo `catalog/platform/modules`, `marketplaceRequests`, UI `/admin/marketplace` e `/master/marketplace`.
 - *(adicionar)* `docs/RUNBOOK_NOVO_TENANT.md` — após Fase 3–5.
 
 ---

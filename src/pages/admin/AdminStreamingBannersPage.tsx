@@ -13,8 +13,10 @@ import {
   saveStreamingBannerAdmin,
 } from '@/lib/firestore/streamingBannersAdmin';
 import type { StreamingBanner } from '@/types';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 
 export function AdminStreamingBannersPage() {
+  const paths = useTenantPublicPaths();
   const [items, setItems] = useState<StreamingBanner[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -144,7 +146,7 @@ export function AdminStreamingBannersPage() {
             ocupar o centro por vez. Arte em proporção mais quadrada (ex. 4:3 ou 16:10) costuma ler melhor nas
             laterais; imagem opcional para telemóvel. Destino do clique: rota interna (ex.{' '}
             <code className="rounded bg-zinc-800 px-1 text-xs">/cursos?program=ID</code>,{' '}
-            <code className="rounded bg-zinc-800 px-1 text-xs">/streaming?entry=ID</code>) ou URL completa.
+            <code className="rounded bg-zinc-800 px-1 text-xs">/empresa/streaming?entry=ID</code>) ou URL completa.
           </p>
         </div>
         <Button type="button" onClick={() => void handleNew()} disabled={creating} isLoading={creating}>
@@ -155,7 +157,7 @@ export function AdminStreamingBannersPage() {
       <p className="mt-4 text-sm text-zinc-500">
         Pré-visualizar:{' '}
         <Link
-          to="/streaming"
+          to={paths.streaming}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-emerald-400 hover:underline"

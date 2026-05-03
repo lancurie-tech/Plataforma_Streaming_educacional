@@ -10,6 +10,12 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_FUNCTIONS_REGION?: string;
   readonly VITE_FIREBASE_APPCHECK_SITE_KEY?: string;
   readonly VITE_FIREBASE_APPCHECK_DEBUG?: string;
+  /** Domínio apex do site (ex.: plataforma.com) — extração de subdomínio por tenant. */
+  readonly VITE_PUBLIC_APP_APEX_DOMAIN?: string;
+  /** Origem canónica do apex (ex.: https://plataforma.com) — redirects do console master. */
+  readonly VITE_PUBLIC_APP_ORIGIN?: string;
+  /** Em localhost, simula o slug do tenant (subdomínio) para desenvolvimento. */
+  readonly VITE_PUBLIC_TENANT_SLUG_DEV?: string;
 }
 
 interface ImportMeta {

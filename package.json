@@ -5,8 +5,9 @@
   "description": "SPA Vite/React (streaming educacional B2B); Cloud Functions em functions/",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode production",
     "prod": "vite --mode production",
+    "dev:development-env": "vite",
     "build": "tsc -b && vite build",
     "build:dev": "tsc -b && vite build --mode development",
     "lint": "eslint .",
@@ -14,7 +15,10 @@
     "seed:build-demo": "node scripts/build-seed-demo.mjs",
     "seed:firestore": "node scripts/seed-firestore.mjs",
     "seed:b2b-standby": "node scripts/seed-b2b-standby.mjs",
-    "seed:analytics-demo": "node scripts/seed-analytics-demo.mjs"
+    "seed:analytics-demo": "node scripts/seed-analytics-demo.mjs",
+    "seed:fase1-tenants": "node scripts/seed-fase1-tenants.mjs",
+    "seed:marketplace-catalog": "node scripts/seed-marketplace-catalog.mjs",
+    "master:set-claim": "node scripts/set-master-claim.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",

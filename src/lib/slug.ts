@@ -1,5 +1,6 @@
 /** Slugs reservados — não podem ser usados como URL de empresa (alinhado às Cloud Functions). */
 export const RESERVED_COMPANY_SLUGS = new Set([
+  'master',
   'admin',
   'login',
   'registro',

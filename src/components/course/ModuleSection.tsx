@@ -362,7 +362,9 @@ export function ModuleSection({
   afterFinishNextModule = null,
 }: Props) {
   const brand = useBrand();
-  const { profile } = useAuth();
+  const { profile, hasModule } = useAuth();
+  const courseAiChatEnabled =
+    previewMode || (hasModule('cursos') && hasModule('chat'));
   const assistantLayout = useAssistantCourseOptional();
   const assistantChatPanel = useAssistantChatPanelOptional();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -1072,7 +1074,9 @@ export function ModuleSection({
                             onPlaybackEnded={handleVideoPlaybackEnded}
                             previewMode={false}
                           />
-                          {assistantLayout?.setCourseVideoAssist && currentStep.vimeoUrl ? (
+                          {assistantLayout?.setCourseVideoAssist &&
+                          currentStep.vimeoUrl &&
+                          courseAiChatEnabled ? (
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                               <Button
                                 type="button"
@@ -1176,7 +1180,9 @@ export function ModuleSection({
                           onVideoEnded={markVideoWatchedToEnd}
                           previewMode={false}
                         />
-                        {assistantLayout?.setCourseVideoAssist && module.vimeoUrl ? (
+                        {assistantLayout?.setCourseVideoAssist &&
+                        module.vimeoUrl &&
+                        courseAiChatEnabled ? (
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                             <Button
                               type="button"

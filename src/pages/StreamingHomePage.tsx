@@ -22,13 +22,20 @@ import type { CatalogChannel, StreamingBanner, StreamingEntry, StreamingTrack } 
 import { logStreamingViewCallable } from '@/lib/firebase/callables';
 import { useAssistantCourse, useStreamingAssistantFocus } from '@/components/layout/PublicLayout';
 import { useAuth } from '@/contexts/useAuth';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { useAnalyticsConsent } from '@/contexts/AnalyticsConsentContext';
 
 type Row = { track: StreamingTrack; entries: StreamingEntry[] };
 
 type FocusState = { trackId: string; entryId: string };
 
-function StreamingChannelsStrip({ channels }: { channels: CatalogChannel[] }) {
+function StreamingChannelsStrip({
+  channels,
+  canalHref,
+}: {
+  channels: CatalogChannel[];
+  canalHref: (channelId: string) => string;
+}) {
   if (channels.length === 0) return null;
   return (
     <section aria-label="Canais" className="scroll-mt-40 sm:scroll-mt-44">
@@ -39,7 +46,7 @@ function StreamingChannelsStrip({ channels }: { channels: CatalogChannel[] }) {
         {channels.map((ch) => (
           <Link
             key={ch.id}
-            to={`/canal/${encodeURIComponent(ch.id)}`}
+            to={canalHref(ch.id)}
             className="group flex max-w-26 flex-col items-center gap-2.5 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover) sm:max-w-30"
           >
             <span className="relative flex h-22 w-22 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-zinc-900 shadow-md transition-[border-color,box-shadow,transform] group-hover:border-(--brand-primary-hover) group-hover:shadow-black/25 group-hover:-translate-y-0.5 sm:h-24 sm:w-24">
@@ -380,6 +387,7 @@ function StreamThumbnailCard({
 
 export function StreamingHomePage() {
   const [searchParams] = useSearchParams();
+  const paths = useTenantPublicPaths();
   const { user } = useAuth();
   const { analyticsAllowed } = useAnalyticsConsent();
   const { setStreamingFocus } = useStreamingAssistantFocus();
@@ -529,8 +537,10 @@ export function StreamingHomePage() {
 
   return (
     <div className="flex flex-col gap-10 sm:gap-12">
-      {promoBanners.length > 0 ? <StreamingPromoBanners banners={promoBanners} /> : null}
-      <StreamingChannelsStrip channels={channels} />
+      {promoBanners.length > 0 ? (
+        <StreamingPromoBanners banners={promoBanners} streamingHomePath={paths.streaming} />
+      ) : null}
+      <StreamingChannelsStrip channels={channels} canalHref={paths.canal} />
 
       {!showTracks ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-10 text-center">

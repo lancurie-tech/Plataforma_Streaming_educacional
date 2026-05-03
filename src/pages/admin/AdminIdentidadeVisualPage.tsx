@@ -28,6 +28,8 @@ import {
   STREAMING_ASSISTANT_CHAT_TITLE,
   VENDOR_DISPLAY_FALLBACK,
 } from '@/lib/brand';
+import { useAuth } from '@/contexts/useAuth';
+import { resolveTenantIdFromProfile } from '@/lib/firestore/tenancy';
 
 const PALETTE_PRESETS: {
   id: string;
@@ -77,6 +79,8 @@ const PALETTE_PRESETS: {
 ];
 
 export function AdminIdentidadeVisualPage() {
+  const { profile } = useAuth();
+  const brandingTenantId = resolveTenantIdFromProfile(profile);
   const defaults = defaultResolvedBranding();
   const [remote, setRemote] = useState<BrandingFirestoreDoc | null>(null);
   const [draft, setDraft] = useState<BrandingFormDraft>(emptyBrandingFormDraft());
@@ -92,7 +96,7 @@ export function AdminIdentidadeVisualPage() {
     setLoading(true);
     setErr(null);
     try {
-      const data = await loadBrandingForAdmin();
+      const data = await loadBrandingForAdmin(brandingTenantId);
       setRemote(data);
       setDraft(docToBrandingFormDraft(data));
       setPaletteDraft(docToBrandingPaletteDraft(data));
@@ -101,7 +105,7 @@ export function AdminIdentidadeVisualPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [brandingTenantId]);
 
   useEffect(() => {
     void load();
@@ -112,7 +116,7 @@ export function AdminIdentidadeVisualPage() {
     setErr(null);
     setOk(null);
     try {
-      await saveBrandingTexts(draft);
+      await saveBrandingTexts(draft, brandingTenantId);
       setOk('Textos salvos. O site atualiza automaticamente para todos os visitantes.');
       await load();
     } catch (e) {
@@ -133,7 +137,7 @@ export function AdminIdentidadeVisualPage() {
           throw new Error(`Valor inválido em ${k}. Use formato hexadecimal como #1A2B3C.`);
         }
       }
-      await saveBrandingPalette(paletteDraft);
+      await saveBrandingPalette(paletteDraft, brandingTenantId);
       setOk('Paleta salva. O site atualiza automaticamente para todos os visitantes.');
       await load();
     } catch (e) {
@@ -205,7 +209,7 @@ export function AdminIdentidadeVisualPage() {
         }
       }
       const { url, storagePath } = await uploadBrandingLogo(file);
-      await saveBrandingLogoFields(url, storagePath);
+      await saveBrandingLogoFields(url, storagePath, brandingTenantId);
       setOk('Logo atualizado.');
       await load();
     } catch (e) {
@@ -227,7 +231,7 @@ export function AdminIdentidadeVisualPage() {
           /* ignore */
         }
       }
-      await clearBrandingLogoFields();
+      await clearBrandingLogoFields(brandingTenantId);
       setOk('Logo removido.');
       await load();
     } catch (e) {
@@ -251,7 +255,7 @@ export function AdminIdentidadeVisualPage() {
         }
       }
       const { url, storagePath } = await uploadBrandingFavicon(file);
-      await saveBrandingFaviconFields(url, storagePath);
+      await saveBrandingFaviconFields(url, storagePath, brandingTenantId);
       setOk('Favicon atualizado.');
       await load();
     } catch (e) {
@@ -273,7 +277,7 @@ export function AdminIdentidadeVisualPage() {
           /* ignore */
         }
       }
-      await clearBrandingFaviconFields();
+      await clearBrandingFaviconFields(brandingTenantId);
       setOk('Favicon removido.');
       await load();
     } catch (e) {
@@ -298,6 +302,12 @@ export function AdminIdentidadeVisualPage() {
             Personalize nome comercial, textos do assistente/vendedor e o logo sem alterar código. Os valores vazios
             voltam aos <strong className="font-medium text-zinc-300">defaults</strong> definidos no projeto (fallback).
           </p>
+          {brandingTenantId ? (
+            <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-950/35 px-3 py-2 text-sm text-emerald-100/95">
+              Alterações aplicam-se ao <strong>site público desta organização</strong> (URL com slug). Campos não
+              preenchidos continuam a usar a marca global em <code className="text-xs">siteContent/branding</code>.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -309,8 +319,12 @@ export function AdminIdentidadeVisualPage() {
             <h2 className="text-sm font-semibold text-zinc-200">Logo</h2>
             <p className="mt-1 text-xs text-zinc-500">
               PNG, JPG, SVG ou WebP (até 6 MB). O ficheiro fica no{' '}
-              <strong className="text-zinc-400">Firebase Storage</strong>; apenas a URL é guardada no Firestore (
-              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[11px]">siteContent/branding</code>
+              <strong className="text-zinc-400">Firebase Storage</strong>;               apenas a URL é guardada no Firestore (
+              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[11px]">
+                {brandingTenantId
+                  ? `tenants/${brandingTenantId}/public/branding`
+                  : 'siteContent/branding'}
+              </code>
               ).
             </p>
             <div className="mt-4 flex flex-wrap items-end gap-4">
@@ -361,7 +375,12 @@ export function AdminIdentidadeVisualPage() {
             <p className="mt-1 text-xs text-zinc-500">
               PNG, JPG, SVG, WebP ou ICO (até 2 MB). Fica no{' '}
               <strong className="text-zinc-400">Firebase Storage</strong>; a URL é guardada no Firestore (
-              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[11px]">siteContent/branding</code>).
+              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[11px]">
+                {brandingTenantId
+                  ? `tenants/${brandingTenantId}/public/branding`
+                  : 'siteContent/branding'}
+              </code>
+              ).
             </p>
             <div className="mt-4 flex flex-wrap items-end gap-4">
               <div className="rounded-xl border border-zinc-700 bg-zinc-950/60 px-4 py-3">

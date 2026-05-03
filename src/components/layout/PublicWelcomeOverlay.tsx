@@ -18,7 +18,7 @@ function readWelcomeAlreadySeen(): boolean {
 
 export type PublicWelcomeOverlayProps = {
   /**
-   * `gate` — rota `/`: sempre mostrar, depois `onComplete` (navegar para `/streaming`).
+   * `gate` — reservado se no futuro `/` voltar a usar overlay antes de navegar.
    * `sessionOnce` — ex. cadastro: pode omitir se já visto nesta sessão.
    */
   variant?: 'gate' | 'sessionOnce';

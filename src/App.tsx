@@ -1,15 +1,19 @@
 import { Navigate, Route, Routes, Outlet, useLocation } from 'react-router-dom';
+import {
+  publicSurfaceLegalRouteChildren,
+  publicSurfaceRouteChildren,
+} from '@/app/publicSurfaceRoutes';
+import { TenantSlugSegmentOutlet } from '@/components/tenantHost/TenantSlugSegmentOutlet';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { CookieConsentBar } from '@/components/legal/CookieConsentBar';
 import { GuestRoute } from '@/components/auth/GuestRoute';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminRoute } from '@/components/auth/AdminRoute';
+import { ModuleEntitlementRoute } from '@/components/auth/ModuleEntitlementRoute';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { PublicCoursesPage } from '@/pages/PublicCoursesPage';
-import { StreamingHomePage } from '@/pages/StreamingHomePage';
-import { ChannelPublicPage } from '@/pages/ChannelPublicPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
@@ -39,18 +43,24 @@ import { VendedorDocumentationPage } from '@/pages/vendedor/VendedorDocumentatio
 import { VendedorCoursesPage } from '@/pages/vendedor/VendedorCoursesPage';
 import { VendedorDefinirSenhaPage } from '@/pages/vendedor/VendedorDefinirSenhaPage';
 import { VendedorAcceptConfidentialityPage } from '@/pages/vendedor/VendedorAcceptConfidentialityPage';
-import { TermsOfServicePage } from '@/pages/legal/TermsOfServicePage';
-import { PrivacyPolicyPage } from '@/pages/legal/PrivacyPolicyPage';
-import { CommitmentsPage } from '@/pages/legal/CommitmentsPage';
-import { VendorConfidentialityPage } from '@/pages/legal/VendorConfidentialityPage';
-import { AboutPage } from '@/pages/legal/AboutPage';
-import { ContactPage } from '@/pages/legal/ContactPage';
 import { AdminSiteContentPage } from '@/pages/admin/AdminSiteContentPage';
 import { AdminIdentidadeVisualPage } from '@/pages/admin/AdminIdentidadeVisualPage';
 import { AuthPublicChrome } from '@/components/layout/AuthPublicChrome';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
-import { WelcomeGatePage } from '@/pages/WelcomeGatePage';
+import { TenantSlugWelcomePage } from '@/pages/TenantSlugWelcomePage';
 import { PublicWelcomeOverlay } from '@/components/layout/PublicWelcomeOverlay';
+import { MasterRoute } from '@/components/auth/MasterRoute';
+import { MasterLayout } from '@/components/layout/MasterLayout';
+import { MasterTenantsPage } from '@/pages/master/MasterTenantsPage';
+import { MasterTenantNewPage } from '@/pages/master/MasterTenantNewPage';
+import { MasterTenantDetailPage } from '@/pages/master/MasterTenantDetailPage';
+import { MasterMarketplaceInboxPage } from '@/pages/master/MasterMarketplaceInboxPage';
+import { AdminMarketplacePage } from '@/pages/admin/AdminMarketplacePage';
+
+function MeusCursosRedirect() {
+  const { cursos } = useTenantPublicPaths();
+  return <Navigate to={cursos} replace />;
+}
 
 function GuestLayout() {
   const { pathname } = useLocation();
@@ -82,6 +92,19 @@ export default function App() {
         }
       />
       <Route
+        path="/master"
+        element={
+          <MasterRoute>
+            <MasterLayout />
+          </MasterRoute>
+        }
+      >
+        <Route index element={<MasterTenantsPage />} />
+        <Route path="tenants/novo" element={<MasterTenantNewPage />} />
+        <Route path="tenants/:tenantId" element={<MasterTenantDetailPage />} />
+        <Route path="marketplace" element={<MasterMarketplaceInboxPage />} />
+      </Route>
+      <Route
         path="/admin"
         element={
           <AdminRoute>
@@ -89,50 +112,142 @@ export default function App() {
           </AdminRoute>
         }
       >
-        <Route index element={<AdminDashboard />} />
-        <Route path="empresas" element={<AdminCompanies />} />
-        <Route path="empresas/:companyId" element={<AdminCompanyDetail />} />
-        <Route path="cursos" element={<AdminCourses />} />
-        <Route path="cursos/novo" element={<AdminCourseEditor />} />
-        <Route path="cursos/:courseId/edit" element={<AdminCourseEditor />} />
-        <Route path="dashboard" element={<AdminAnalytics />} />
-        <Route path="metricas" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route
+          index
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminDashboard />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="empresas"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminCompanies />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="empresas/:companyId"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminCompanyDetail />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="cursos"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminCourses />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="cursos/novo"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminCourseEditor />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="cursos/:courseId/edit"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminCourseEditor />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="dashboard"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <AdminAnalytics />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="metricas"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <Navigate to="/admin/dashboard" replace />
+            </ModuleEntitlementRoute>
+          }
+        />
         <Route path="conta" element={<AdminAccountPage />} />
-        <Route path="streaming" element={<AdminStreamingPage />} />
-        <Route path="canais" element={<AdminChannelsPage />} />
-        <Route path="canais/:channelId/edit" element={<AdminChannelEditor />} />
-        <Route path="streaming-banners" element={<AdminStreamingBannersPage />} />
-        <Route path="streaming-analytics" element={<AdminStreamingAnalyticsPage />} />
-        <Route path="vendedores" element={<AdminVendedores />} />
+        <Route path="marketplace" element={<AdminMarketplacePage />} />
+        <Route
+          path="streaming"
+          element={
+            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+              <AdminStreamingPage />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="canais"
+          element={
+            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+              <AdminChannelsPage />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="canais/:channelId/edit"
+          element={
+            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+              <AdminChannelEditor />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="streaming-banners"
+          element={
+            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+              <AdminStreamingBannersPage />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="streaming-analytics"
+          element={
+            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+              <AdminStreamingAnalyticsPage />
+            </ModuleEntitlementRoute>
+          }
+        />
+        <Route
+          path="vendedores"
+          element={
+            <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/admin/conta">
+              <AdminVendedores />
+            </ModuleEntitlementRoute>
+          }
+        />
         <Route path="identidade-visual" element={<AdminIdentidadeVisualPage />} />
         <Route path="conteudo-site" element={<AdminSiteContentPage />} />
         <Route
           path="saude-mental"
-          element={<Navigate to="/admin/dashboard?painel=saude-mental" replace />}
-        />
-      </Route>
-
-      <Route path="/" element={<WelcomeGatePage />} />
-
-      <Route element={<PublicLayout />}>
-        <Route path="streaming" element={<StreamingHomePage />} />
-        <Route path="canal/:channelId" element={<ChannelPublicPage />} />
-        <Route path="cursos" element={<PublicCoursesPage />} />
-        <Route
-          path="curso/:courseId"
           element={
-            <ProtectedRoute>
-              <CourseDetailPage />
-            </ProtectedRoute>
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+              <Navigate to="/admin/dashboard?painel=saude-mental" replace />
+            </ModuleEntitlementRoute>
           }
         />
-        <Route path="sobre" element={<AboutPage />} />
-        <Route path="contato" element={<ContactPage />} />
-        <Route path="termos" element={<TermsOfServicePage />} />
-        <Route path="privacidade" element={<PrivacyPolicyPage />} />
-        <Route path="compromissos" element={<CommitmentsPage />} />
-        <Route path="confidencialidade-vendedor" element={<VendorConfidentialityPage />} />
       </Route>
+
+      {/** Apex sem slug: só área master — visitantes vão para login (conteúdo público em `/:slug/...`). */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/** Institucional no apex; plataforma (streaming/cursos) só em `/:slug/...`. */}
+      <Route element={<PublicLayout />}>{publicSurfaceLegalRouteChildren}</Route>
+
+      <Route path="/streaming" element={<Navigate to="/login" replace />} />
+      <Route path="/cursos" element={<Navigate to="/login" replace />} />
+      <Route path="/canal/:channelId" element={<Navigate to="/login" replace />} />
+      <Route path="/curso/:courseId" element={<Navigate to="/login" replace />} />
 
       <Route
         element={
@@ -155,17 +270,30 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/vendedor/definir-senha" element={<VendedorDefinirSenhaPage />} />
+        <Route
+          path="/vendedor/definir-senha"
+          element={
+            <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/">
+              <VendedorDefinirSenhaPage />
+            </ModuleEntitlementRoute>
+          }
+        />
         <Route
           path="/vendedor/aceitar-confidencialidade"
-          element={<VendedorAcceptConfidentialityPage />}
+          element={
+            <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/">
+              <VendedorAcceptConfidentialityPage />
+            </ModuleEntitlementRoute>
+          }
         />
         <Route
           path="/vendedor"
           element={
-            <VendedorRoute>
-              <VendedorLayout />
-            </VendedorRoute>
+            <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/">
+              <VendedorRoute>
+                <VendedorLayout />
+              </VendedorRoute>
+            </ModuleEntitlementRoute>
           }
         >
           <Route index element={<VendedorHomePage />} />
@@ -173,14 +301,18 @@ export default function App() {
           <Route path="documentacao" element={<VendedorDocumentationPage />} />
           <Route
             path="saude-mental"
-            element={<Navigate to="/vendedor/relatorios?painel=saude-mental" replace />}
+            element={
+              <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/vendedor">
+                <Navigate to="/vendedor/relatorios?painel=saude-mental" replace />
+              </ModuleEntitlementRoute>
+            }
           />
           <Route path="cursos" element={<VendedorCoursesPage />} />
           <Route path="curso/:courseId" element={<CourseDetailPage />} />
         </Route>
       </Route>
 
-      <Route path="/meus-cursos" element={<Navigate to="/cursos" replace />} />
+      <Route path="/meus-cursos" element={<MeusCursosRedirect />} />
 
       <Route
         element={
@@ -190,7 +322,19 @@ export default function App() {
         }
       >
         <Route path="/perfil" element={<ProfilePage />} />
-        <Route path="/certificados" element={<CertificatesPage />} />
+        <Route
+          path="/certificados"
+          element={
+            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/perfil">
+              <CertificatesPage />
+            </ModuleEntitlementRoute>
+          }
+        />
+      </Route>
+
+      <Route path="/:tenantSlug" element={<TenantSlugSegmentOutlet />}>
+        <Route index element={<TenantSlugWelcomePage />} />
+        <Route element={<PublicLayout />}>{publicSurfaceRouteChildren}</Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

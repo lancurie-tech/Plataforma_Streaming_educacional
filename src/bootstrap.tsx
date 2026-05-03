@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import { BrandingProvider } from '@/contexts/BrandingProvider';
+import { PublicTenantProvider } from '@/contexts/PublicTenantProvider';
 import { AnalyticsConsentProvider } from '@/contexts/AnalyticsConsentContext';
+import { TenantHostGate } from '@/components/tenantHost/TenantHostGate';
 import { initAppCheck } from '@/lib/firebase/appCheck';
 import App from '@/App';
 
@@ -14,11 +16,15 @@ export function mountApp(rootEl: HTMLElement) {
     <StrictMode>
       <BrowserRouter>
         <AnalyticsConsentProvider>
-          <BrandingProvider>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </BrandingProvider>
+          <PublicTenantProvider>
+            <BrandingProvider>
+              <AuthProvider>
+                <TenantHostGate>
+                  <App />
+                </TenantHostGate>
+              </AuthProvider>
+            </BrandingProvider>
+          </PublicTenantProvider>
         </AnalyticsConsentProvider>
       </BrowserRouter>
     </StrictMode>

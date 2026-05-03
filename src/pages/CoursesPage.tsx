@@ -12,7 +12,7 @@ import { useBrand } from '@/contexts/useBrand';
 export function CoursesPage() {
   const brand = useBrand();
   const { setAssistantCourse } = useAssistantCourse();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, masterAdmin, tokenClaimsReady } = useAuth();
 
   useEffect(() => {
     setAssistantCourse(null);
@@ -64,6 +64,18 @@ export function CoursesPage() {
       cancelled = true;
     };
   }, [user, profile?.companyId, authLoading]);
+
+  if (user && !tokenClaimsReady) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-zinc-400">
+        Carregando…
+      </div>
+    );
+  }
+
+  if (masterAdmin) {
+    return <Navigate to="/master" replace />;
+  }
 
   if (profile?.role === 'admin') {
     return <Navigate to="/admin" replace />;

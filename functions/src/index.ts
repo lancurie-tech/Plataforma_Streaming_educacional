@@ -40,6 +40,7 @@ const geminiApiKeySecret = defineSecret('GOOGLE_API_KEY');
 const geminiModelParam = defineString('GEMINI_MODEL', { default: 'gemini-2.5-flash' });
 
 const RESERVED_SLUGS = new Set([
+  'master',
   'admin',
   'login',
   'registro',

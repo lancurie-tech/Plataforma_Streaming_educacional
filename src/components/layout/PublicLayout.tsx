@@ -13,6 +13,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import {
   Award,
   BookOpen,
+  Building2,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -23,6 +24,7 @@ import {
 import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
 import { useBrand } from '@/contexts/useBrand';
 import { useAuth } from '@/contexts/useAuth';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { LegalFooter } from '@/components/legal/LegalFooter';
 import { StreamingAssistantWidget } from '@/components/public/StreamingAssistantWidget';
 /** Foco do vídeo em destaque na home (para o assistente e transcrição no servidor). */
@@ -137,9 +139,16 @@ export function PublicLayout() {
   const brand = useBrand();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, profile, loading: authLoading, logout } = useAuth();
+  const { user, profile, loading: authLoading, logout, hasModule, masterAdmin } = useAuth();
+  const paths = useTenantPublicPaths();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const canStreaming = hasModule('streaming');
+  const canCursos = hasModule('cursos');
+  const entitlementsApply = !!(user && profile);
+  const aiOkStreaming =
+    !entitlementsApply || (canStreaming && hasModule('chat'));
+  const aiOkCourses = !entitlementsApply || (canCursos && hasModule('chat'));
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -154,13 +163,17 @@ export function PublicLayout() {
   async function handleLogout() {
     setAccountMenuOpen(false);
     await logout();
-    navigate('/login', { replace: true });
+    navigate(paths.login, { replace: true });
   }
+  const pfx = paths.prefix;
+  const onStreamingAiSurface =
+    pathname === paths.streaming ||
+    (pfx ? pathname.startsWith(`${pfx}/canal/`) : pathname.startsWith('/canal/'));
+  const onCourseAiSurface =
+    pathname === paths.cursos ||
+    (pfx ? pathname.startsWith(`${pfx}/curso/`) : pathname.startsWith('/curso/'));
   const showAssistant =
-    pathname === '/streaming' ||
-    pathname === '/cursos' ||
-    pathname.startsWith('/canal/') ||
-    pathname.startsWith('/curso/');
+    (onStreamingAiSurface && aiOkStreaming) || (onCourseAiSurface && aiOkCourses);
 
   return (
     <PublicAssistantProviders>
@@ -169,7 +182,7 @@ export function PublicLayout() {
         <div className="mx-auto grid h-18 max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4">
           <div aria-hidden className="pointer-events-none" />
           <Link
-            to="/"
+            to={pfx ? paths.streaming : '/'}
             className="flex justify-center"
             aria-label={`${brand.platformShortName} — entrada e boas-vindas`}
           >
@@ -194,7 +207,17 @@ export function PublicLayout() {
                     className="absolute right-0 z-50 mt-2 w-[min(19rem,calc(100vw-2rem))] rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-xl"
                     role="menu"
                   >
-                    {profile?.role === 'admin' ? (
+                    {masterAdmin ? (
+                      <Link
+                        to="/master"
+                        className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                        onClick={() => setAccountMenuOpen(false)}
+                        role="menuitem"
+                      >
+                        <Building2 size={18} aria-hidden />
+                        Console master
+                      </Link>
+                    ) : profile?.role === 'admin' ? (
                       <Link
                         to="/admin"
                         className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
@@ -205,7 +228,7 @@ export function PublicLayout() {
                         Painel admin
                       </Link>
                     ) : null}
-                    {profile?.role === 'vendedor' ? (
+                    {profile?.role === 'vendedor' && hasModule('vendedores') ? (
                       <Link
                         to="/vendedor"
                         className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
@@ -215,24 +238,28 @@ export function PublicLayout() {
                         Área de vendas
                       </Link>
                     ) : null}
+                    {canStreaming ? (
                       <Link
-                        to="/streaming"
+                        to={paths.streaming}
                         className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
                         onClick={() => setAccountMenuOpen(false)}
                         role="menuitem"
                       >
                         <Tv size={18} aria-hidden />
-                      Streaming
-                    </Link>
-                    <Link
-                      to="/cursos"
-                      className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
-                      onClick={() => setAccountMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <BookOpen size={18} aria-hidden />
-                      {profile?.role === 'student' ? 'Meus programas' : 'Programas'}
-                    </Link>
+                        Streaming
+                      </Link>
+                    ) : null}
+                    {canCursos ? (
+                      <Link
+                        to={paths.cursos}
+                        className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                        onClick={() => setAccountMenuOpen(false)}
+                        role="menuitem"
+                      >
+                        <BookOpen size={18} aria-hidden />
+                        {profile?.role === 'student' ? 'Meus programas' : 'Programas'}
+                      </Link>
+                    ) : null}
                     {profile?.role === 'student' ? (
                       <>
                         <Link
@@ -244,15 +271,17 @@ export function PublicLayout() {
                           <UserRound size={18} aria-hidden />
                           Área do aluno
                         </Link>
-                        <Link
-                          to="/certificados"
-                          className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
-                          onClick={() => setAccountMenuOpen(false)}
-                          role="menuitem"
-                        >
-                          <Award size={18} aria-hidden />
-                          Certificados e histórico
-                        </Link>
+                        {canCursos ? (
+                          <Link
+                            to="/certificados"
+                            className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                            onClick={() => setAccountMenuOpen(false)}
+                            role="menuitem"
+                          >
+                            <Award size={18} aria-hidden />
+                            Certificados e histórico
+                          </Link>
+                        ) : null}
                       </>
                     ) : null}
                     {profile?.role !== 'student' ? (
@@ -280,7 +309,7 @@ export function PublicLayout() {
               </div>
             ) : !authLoading && !user ? (
               <Link
-                to="/login"
+                to={paths.login}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-600/90 text-zinc-300 transition-colors hover:border-(--brand-primary-hover) hover:bg-zinc-800/80 hover:text-(--brand-primary-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--brand-primary-hover)"
                 aria-label="Entrar"
                 title="Entrar"
@@ -295,20 +324,24 @@ export function PublicLayout() {
           aria-label="Áreas do site"
         >
           <div className="mx-auto flex max-w-6xl justify-center gap-1 px-4 py-2">
-            <NavLink to="/streaming" end className={subNavCls}>
-              Streaming
-            </NavLink>
-            <NavLink to="/cursos" className={subNavCls}>
-              <span className="inline-flex items-center gap-1.5">
-                Education
-                <span
-                  className="rounded-full bg-(--brand-primary) px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-(--brand-primary-hover)"
-                  title="Novo"
-                >
-                  Novo
+            {canStreaming ? (
+              <NavLink to={paths.streaming} end className={subNavCls}>
+                Streaming
+              </NavLink>
+            ) : null}
+            {canCursos ? (
+              <NavLink to={paths.cursos} className={subNavCls}>
+                <span className="inline-flex items-center gap-1.5">
+                  Education
+                  <span
+                    className="rounded-full bg-(--brand-primary) px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-(--brand-primary-hover)"
+                    title="Novo"
+                  >
+                    Novo
+                  </span>
                 </span>
-              </span>
-            </NavLink>
+              </NavLink>
+            ) : null}
           </div>
         </nav>
       </header>
