@@ -84,11 +84,13 @@ export function CompanyRegisterPage() {
     },
   });
 
+  const companyHomeStreaming = !invalidSlug ? `/${slug}/streaming` : '/login';
+
   useEffect(() => {
-    if (!authLoading && user) {
-      navigate('/streaming', { replace: true });
+    if (!authLoading && user && !invalidSlug) {
+      navigate(companyHomeStreaming, { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, invalidSlug, companyHomeStreaming]);
 
   async function onSubmit(raw: FormInput) {
     if (invalidSlug) return;
@@ -117,7 +119,7 @@ export function CompanyRegisterPage() {
         },
       });
       await loginUser(data.email.trim().toLowerCase(), data.password);
-      navigate('/streaming', { replace: true });
+      navigate(`/${slug}/streaming`, { replace: true });
     } catch (e) {
       setErr(mapCallableError(e));
     } finally {

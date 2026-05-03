@@ -135,6 +135,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
     name: d.name as string,
     email: d.email as string,
     role,
+    tenantId: typeof d.tenantId === 'string' ? d.tenantId : null,
     cpf: d.cpf as string | undefined,
     companyId: (d.companyId as string | null | undefined) ?? null,
     companySlug: (d.companySlug as string | null | undefined) ?? null,

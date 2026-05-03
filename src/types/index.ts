@@ -54,6 +54,8 @@ export type UserProfile = {
   name: string;
   email: string;
   role: UserRole;
+  /** Tenant lógico para modelo multi-tenant (Fase 1+). */
+  tenantId?: string | null;
   cpf?: string;
   companyId?: string | null;
   companySlug?: string | null;
@@ -73,6 +75,72 @@ export type UserProfile = {
   vendorConfidentiality?: VendorConfidentialityAcceptance;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type TenantStatus = 'active' | 'suspended' | 'pending';
+
+export type TenantDoc = {
+  id: string;
+  displayName: string;
+  planId: string;
+  status: TenantStatus;
+  contacts?: string[];
+  /**
+   * Slug público para URL (`slug.dominioapex.com`). Índice espelhado em `tenantPublicSlugs/{slug}`.
+   * Domínio próprio do cliente (planos superiores) será configurável à parte.
+   */
+  publicSlug?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type TenantEntitlements = {
+  tenantId: string;
+  planId: string;
+  /** Contrato comercial: principalmente `streaming` | `cursos` | `chat` | `vendedores`; tokens técnicos antigos ainda aceites. */
+  enabledModuleIds: string[];
+  limits: Record<string, number>;
+  updatedAt: Date;
+};
+
+export type PlanDoc = {
+  id: string;
+  displayName: string;
+  active: boolean;
+  limits: Record<string, number>;
+  /** Alinhado ao contrato comercial (ver `docs/MODULOS_IDS.md`). */
+  includedModuleIds?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CatalogModuleStatus = 'active' | 'beta' | 'hidden';
+
+export type CatalogModuleDoc = {
+  id: string;
+  title: string;
+  description?: string;
+  /** Liga o item do catálogo ao módulo comercial (`streaming` \| `cursos` \| …). Deve igualar o id do doc para o MVP. */
+  commercialModuleId: string;
+  status: CatalogModuleStatus;
+};
+
+export type MarketplaceRequestStatus = 'pending' | 'approved' | 'rejected' | 'archived';
+
+export type MarketplaceRequestDoc = {
+  id: string;
+  tenantId: string;
+  tenantDisplayName?: string | null;
+  moduleId: string;
+  commercialModuleId: string;
+  message?: string | null;
+  status: MarketplaceRequestStatus;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  requestedByUid?: string | null;
+  requestedByEmail?: string | null;
+  handledByUid?: string | null;
+  handledAt?: Date | null;
 };
 
 export type CompanyDoc = {

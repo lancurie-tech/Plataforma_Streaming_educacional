@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/useAuth';
  * Painel do vendedor. A rota `/vendedor/definir-senha` fica fora deste wrapper.
  */
 export function VendedorRoute({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, hasModule } = useAuth();
 
   if (loading) {
     return (
@@ -17,6 +17,10 @@ export function VendedorRoute({ children }: { children: React.ReactNode }) {
 
   if (!user || profile?.role !== 'vendedor') {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!hasModule('vendedores')) {
+    return <Navigate to="/" replace />;
   }
 
   if (profile.mustChangePassword) {

@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpen, ExternalLink, FileText, Home, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { LegalFooter } from '@/components/legal/LegalFooter';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
 import { PublicAssistantProviders } from '@/components/layout/PublicLayout';
@@ -15,23 +16,30 @@ const navCls = ({ isActive }: { isActive: boolean }) =>
 
 export function VendedorLayout() {
   const brand = useBrand();
-  const { logout, user } = useAuth();
+  const paths = useTenantPublicPaths();
+  const { logout, user, hasModule } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const showCourseAssistant = pathname.startsWith('/vendedor/curso/');
+  const showCourseAssistant =
+    pathname.startsWith('/vendedor/curso/') &&
+    hasModule('cursos') &&
+    hasModule('chat');
+  const canStreaming = hasModule('streaming');
 
   async function handleLogout() {
     await logout();
-    navigate('/login', { replace: true });
+    navigate(paths.login, { replace: true });
   }
 
   const sidebarBody = (
     <>
       <nav className="flex flex-1 flex-col gap-1" aria-label="Área do vendedor">
-        <NavLink to="/streaming" className={navCls}>
-          <ExternalLink size={18} className="shrink-0" />
-          Streaming (público)
-        </NavLink>
+        {canStreaming ? (
+          <NavLink to={paths.streaming} className={navCls}>
+            <ExternalLink size={18} className="shrink-0" />
+            Streaming (público)
+          </NavLink>
+        ) : null}
         <NavLink to="/vendedor" end className={navCls} data-vendedor-tour="inicio">
           <Home size={18} className="shrink-0" />
           Início

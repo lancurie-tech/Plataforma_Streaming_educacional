@@ -12,7 +12,7 @@ const RIGHTS_PROSE =
   'space-y-6 text-sm leading-relaxed text-zinc-300 [&_h2]:mt-8 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-zinc-100 [&_h2]:first:mt-0 [&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-zinc-200 [&_li]:mt-1.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:text-zinc-100 [&_hr]:my-6 [&_hr]:border-zinc-700';
 
 export function ProfilePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, masterAdmin, tokenClaimsReady } = useAuth();
   const [rightsMd, setRightsMd] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +30,18 @@ export function ProfilePage() {
       cancelled = true;
     };
   }, []);
+
+  if (user && !tokenClaimsReady) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-zinc-400">
+        Carregando…
+      </div>
+    );
+  }
+
+  if (masterAdmin) {
+    return <Navigate to="/master" replace />;
+  }
 
   if (profile?.role === 'admin') {
     return <Navigate to="/admin" replace />;

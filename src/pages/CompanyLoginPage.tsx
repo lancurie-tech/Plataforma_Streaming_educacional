@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/useAuth';
 import { RESERVED_COMPANY_SLUGS } from '@/lib/slug';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { postLoginStudentPath } from '@/lib/postLoginRedirect';
+import { resolvePostLoginPath } from '@/lib/postLoginRedirect';
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -19,7 +19,16 @@ type FormValues = z.infer<typeof schema>;
 
 export function CompanyLoginPage() {
   const { companySlug } = useParams<{ companySlug: string }>();
-  const { login, user, profile, loading, error, clearError } = useAuth();
+  const {
+    login,
+    user,
+    profile,
+    loading,
+    error,
+    clearError,
+    tenantUrlSlug,
+    entitlementsLoading,
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
@@ -39,11 +48,21 @@ export function CompanyLoginPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
-    if (!loading && user) {
-      const from = (location.state as { from?: string } | null)?.from;
-      navigate(postLoginStudentPath(from), { replace: true });
+    if (!loading && user && profile && !entitlementsLoading) {
+      const u = user;
+      const p = profile;
+      let cancelled = false;
+      async function run() {
+        const from = (location.state as { from?: string } | null)?.from;
+        const path = await resolvePostLoginPath(u, p, from, tenantUrlSlug);
+        if (!cancelled) navigate(path, { replace: true });
+      }
+      void run();
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [user, profile, loading, navigate, location.state]);
+  }, [user, profile, loading, entitlementsLoading, tenantUrlSlug, navigate, location.state]);
 
   async function onSubmit(data: FormValues) {
     try {

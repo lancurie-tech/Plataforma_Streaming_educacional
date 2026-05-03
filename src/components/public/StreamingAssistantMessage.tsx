@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { ChevronRight, Play } from 'lucide-react';
 
 export type EntryLabelInfo = { title: string; trackTitle?: string };
@@ -94,8 +95,9 @@ function EntryCta({
   /** Ex.: fechar o painel ao seguir para o vídeo. */
   onNavigate?: () => void;
 }) {
-  /** Rota dentro de `PublicLayout` — evitar `/?entry=` (rota `/` = WelcomeGate) que desmonta o chat. */
-  const to = `/streaming?entry=${encodeURIComponent(entryId)}`;
+  const paths = useTenantPublicPaths();
+  /** Rota dentro de `PublicLayout` — evitar `/?entry=` (rota `/` redireciona para login) que desmonta o chat. */
+  const to = `${paths.streaming}?entry=${encodeURIComponent(entryId)}`;
   const title = label?.title?.trim() || 'Ver vídeo no streaming';
   const sub = label?.trackTitle?.trim();
 

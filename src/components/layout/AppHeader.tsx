@@ -9,17 +9,22 @@ import {
   Award,
   Tv,
   BookOpen,
+  Building2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { useBrand } from '@/contexts/useBrand';
 import { HeaderLogoImg } from '@/components/layout/HeaderLogoImg';
 
 export function AppHeader() {
   const brand = useBrand();
-  const { logout, profile } = useAuth();
+  const { logout, profile, hasModule, masterAdmin } = useAuth();
+  const paths = useTenantPublicPaths();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const canCursos = hasModule('cursos');
+  const canStreaming = hasModule('streaming');
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -34,7 +39,7 @@ export function AppHeader() {
   async function handleLogout() {
     setOpen(false);
     await logout();
-    navigate('/login', { replace: true });
+    navigate(paths.login, { replace: true });
   }
 
   return (
@@ -44,7 +49,7 @@ export function AppHeader() {
         <div className="w-11 shrink-0 sm:w-12" aria-hidden />
 
         <Link
-          to="/"
+          to={paths.prefix ? paths.streaming : '/'}
           className="absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 touch-manipulation"
           aria-label={`${brand.platformShortName} — página inicial e streaming`}
           title="Página inicial (streaming)"
@@ -69,7 +74,17 @@ export function AppHeader() {
               className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-xl"
               role="menu"
             >
-              {profile?.role === 'admin' ? (
+              {masterAdmin ? (
+                <Link
+                  to="/master"
+                  className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                  onClick={() => setOpen(false)}
+                  role="menuitem"
+                >
+                  <Building2 size={18} />
+                  Console master
+                </Link>
+              ) : profile?.role === 'admin' ? (
                 <Link
                   to="/admin"
                   className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
@@ -80,25 +95,29 @@ export function AppHeader() {
                   Painel admin
                 </Link>
               ) : null}
-              <Link
-                to="/streaming"
-                className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
-                onClick={() => setOpen(false)}
-                role="menuitem"
-              >
-                <Tv size={18} />
-                Streaming (início)
-              </Link>
-              <Link
-                to="/cursos"
-                className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
-                onClick={() => setOpen(false)}
-                role="menuitem"
-              >
-                <BookOpen size={18} />
-                Meus cursos
-              </Link>
-              {profile?.role !== 'admin' ? (
+              {canStreaming ? (
+                <Link
+                  to={paths.streaming}
+                  className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                  onClick={() => setOpen(false)}
+                  role="menuitem"
+                >
+                  <Tv size={18} />
+                  Streaming (início)
+                </Link>
+              ) : null}
+              {canCursos ? (
+                <Link
+                  to={paths.cursos}
+                  className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
+                  onClick={() => setOpen(false)}
+                  role="menuitem"
+                >
+                  <BookOpen size={18} />
+                  Meus cursos
+                </Link>
+              ) : null}
+              {!masterAdmin && profile?.role !== 'admin' && canCursos ? (
                 <Link
                   to="/certificados"
                   className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"

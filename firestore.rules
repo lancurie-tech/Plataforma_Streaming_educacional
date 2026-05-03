@@ -7,6 +7,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    /** Operador da plataforma (custom claim no token). Não confundir com `admin` no documento `users`. */
+    function isMasterAdmin() {
+      return signedIn() && request.auth.token.master_admin == true;
+    }
+
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
@@ -21,6 +26,33 @@ service cloud.firestore {
 
     function isVendedor() {
       return signedIn() && userData().role == 'vendedor';
+    }
+
+    /**
+     * Tenant lógico do usuário autenticado.
+     * Transição Fase 1: prioriza `tenantId`; fallback para `companyId`.
+     */
+    function actorTenantId() {
+      let d = userData();
+      return d.tenantId != null ? d.tenantId : d.companyId;
+    }
+
+    function belongsToActorTenant(tenantId) {
+      return signedIn() && actorTenantId() != null && actorTenantId() == tenantId;
+    }
+
+    /**
+     * Catálogo marketplace: subcoleção `modules` sob o doc fixo `catalog/platform`.
+     * Path: `catalog/platform/modules/{moduleId}`.
+     */
+    function marketplaceCatalogPath(moduleId) {
+      return /databases/$(database)/documents/catalog/platform/modules/$(moduleId);
+    }
+
+    function marketplaceCatalogRequestable(moduleId) {
+      return exists(marketplaceCatalogPath(moduleId))
+        && (get(marketplaceCatalogPath(moduleId)).data.status == 'active'
+          || get(marketplaceCatalogPath(moduleId)).data.status == 'beta');
     }
 
     /** Empresa está na lista do vendedor (`managedCompanyIds` deve ser um array no Firestore). */
@@ -111,6 +143,89 @@ service cloud.firestore {
         allow create, update: if isAdmin() && docId == 'archive';
         allow delete: if false;
       }
+    }
+
+    /**
+     * Índice público por subdomínio: lê anónimo; escreve só master.
+     * `enabledModuleIds` espelha o contrato para a UI pública (navegação / módulos).
+     */
+    match /tenantPublicSlugs/{slug} {
+      allow read: if true;
+      allow create, update, delete: if isMasterAdmin();
+    }
+
+    /**
+     * Base multi-tenant (Fase 1):
+     * - `tenants/{tenantId}`: metadados do cliente.
+     * - `tenants/{tenantId}/entitlements/current`: módulos e limites efetivos.
+     * - `plans/{planId}`: catálogo de planos.
+     */
+    match /tenants/{tenantId} {
+      allow read: if isMasterAdmin() || belongsToActorTenant(tenantId);
+      allow create, update, delete: if isMasterAdmin();
+
+      match /entitlements/{docId} {
+        allow read: if isMasterAdmin() || belongsToActorTenant(tenantId);
+        allow create, update, delete: if isMasterAdmin();
+      }
+
+      /** Identidade visual pública (merge sobre `siteContent/branding` no cliente). */
+      match /public/{docId} {
+        allow read: if true;
+        allow create, update, delete: if isMasterAdmin()
+          || (isAdmin() && belongsToActorTenant(tenantId));
+      }
+    }
+
+    match /plans/{planId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isMasterAdmin();
+    }
+
+    match /catalog/{catalogDoc}/modules/{moduleId} {
+      allow read: if isMasterAdmin()
+        || (isAdmin() && catalogDoc == 'platform');
+      allow create, update, delete: if isMasterAdmin() && catalogDoc == 'platform';
+    }
+
+    /**
+     * Pedidos de ativação de módulo (Fase 4): admin do tenant abre ticket; master aprova.
+     */
+    match /marketplaceRequests/{requestId} {
+      allow read: if isMasterAdmin()
+        || (isAdmin()
+          && resource.data.keys().hasAll(['tenantId'])
+          && belongsToActorTenant(resource.data.tenantId));
+      allow create: if isAdmin()
+        && belongsToActorTenant(request.resource.data.tenantId)
+        && request.resource.data.keys().hasAll(['tenantId', 'moduleId', 'commercialModuleId', 'status'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.tenantId == actorTenantId()
+        && request.resource.data.moduleId == request.resource.data.commercialModuleId
+        && marketplaceCatalogRequestable(request.resource.data.moduleId)
+        && get(marketplaceCatalogPath(request.resource.data.moduleId)).data.commercialModuleId
+          == request.resource.data.commercialModuleId;
+      allow update: if isMasterAdmin();
+      allow delete: if false;
+    }
+
+    /**
+     * Coleção piloto para validar isolamento lógico por `tenantId`.
+     * Requer campo `tenantId` no documento.
+     */
+    match /tenantPilotData/{docId} {
+      allow read: if isMasterAdmin()
+        || isAdmin()
+        || (resource.data.keys().hasAll(['tenantId'])
+            && belongsToActorTenant(resource.data.tenantId));
+      allow create, update: if isMasterAdmin()
+        || isAdmin()
+        || (request.resource.data.keys().hasAll(['tenantId'])
+            && belongsToActorTenant(request.resource.data.tenantId));
+      allow delete: if isMasterAdmin()
+        || isAdmin()
+        || (resource.data.keys().hasAll(['tenantId'])
+            && belongsToActorTenant(resource.data.tenantId));
     }
 
     match /users/{userId} {

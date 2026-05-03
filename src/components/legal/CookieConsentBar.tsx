@@ -12,7 +12,7 @@ export function CookieConsentBar() {
   const { pathname } = useLocation();
   const { consent, grant, deny } = useAnalyticsConsent();
 
-  if (pathname.startsWith('/admin')) return null;
+  if (pathname.startsWith('/admin') || pathname.startsWith('/master')) return null;
   if (consent !== null) return null;
 
   return (

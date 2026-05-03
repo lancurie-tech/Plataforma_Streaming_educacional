@@ -7,7 +7,7 @@ import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { postLoginStudentPath } from '@/lib/postLoginRedirect';
+import { resolvePostLoginPath } from '@/lib/postLoginRedirect';
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -17,7 +17,16 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function LoginPage() {
-  const { login, user, profile, loading, error, clearError } = useAuth();
+  const {
+    login,
+    user,
+    profile,
+    loading,
+    error,
+    clearError,
+    tenantUrlSlug,
+    entitlementsLoading,
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
@@ -29,23 +38,20 @@ export function LoginPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
-    if (!loading && user && profile) {
-      if (profile.role === 'admin') {
-        navigate('/admin', { replace: true });
-        return;
+    if (!loading && user && profile && !entitlementsLoading) {
+      let cancelled = false;
+      async function run() {
+        if (!user || !profile) return;
+        const from = (location.state as { from?: string } | null)?.from;
+        const path = await resolvePostLoginPath(user, profile, from, tenantUrlSlug);
+        if (!cancelled) navigate(path, { replace: true });
       }
-      if (profile.role === 'vendedor') {
-        if (profile.mustChangePassword) {
-          navigate('/vendedor/definir-senha', { replace: true });
-          return;
-        }
-        navigate('/vendedor', { replace: true });
-        return;
-      }
-      const from = (location.state as { from?: string } | null)?.from;
-      navigate(postLoginStudentPath(from), { replace: true });
+      void run();
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [user, profile, loading, navigate, location.state]);
+  }, [user, profile, loading, entitlementsLoading, tenantUrlSlug, navigate, location.state]);
 
   async function onSubmit(data: FormValues) {
     try {

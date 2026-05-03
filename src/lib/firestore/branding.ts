@@ -5,6 +5,23 @@ export const BRANDING_DOC_ID = 'branding';
 
 const DOC_REF = doc(db, 'siteContent', BRANDING_DOC_ID);
 
+/** Identidade pública do tenant (site em `/slug/…`); sobrepõe `siteContent/branding`. */
+export function tenantPublicBrandingRef(tenantId: string) {
+  return doc(db, 'tenants', tenantId, 'public', BRANDING_DOC_ID);
+}
+
+export function mergeBrandingFirestoreLayers(
+  global: BrandingFirestoreDoc | null,
+  tenant: BrandingFirestoreDoc | null,
+): BrandingFirestoreDoc | null {
+  if (!global && !tenant) return null;
+  return { ...(global ?? {}), ...(tenant ?? {}) } as BrandingFirestoreDoc;
+}
+
+function adminBrandingRef(tenantId?: string | null) {
+  return tenantId ? tenantPublicBrandingRef(tenantId) : DOC_REF;
+}
+
 export type BrandingFirestoreDoc = {
   platformDisplayName?: string;
   platformShortName?: string;
@@ -76,8 +93,26 @@ export function subscribeBranding(onNext: (data: BrandingFirestoreDoc | null) =>
   });
 }
 
-export async function loadBrandingForAdmin(): Promise<BrandingFirestoreDoc | null> {
-  const snap = await getDoc(DOC_REF);
+export function subscribeTenantPublicBranding(
+  tenantId: string | null,
+  onNext: (data: BrandingFirestoreDoc | null) => void,
+): () => void {
+  if (!tenantId) {
+    onNext(null);
+    return () => {};
+  }
+  const r = tenantPublicBrandingRef(tenantId);
+  return onSnapshot(r, (snap) => {
+    if (!snap.exists()) {
+      onNext(null);
+      return;
+    }
+    onNext(parseBrandingDoc(snap.data() as Record<string, unknown>));
+  });
+}
+
+export async function loadBrandingForAdmin(tenantId?: string | null): Promise<BrandingFirestoreDoc | null> {
+  const snap = await getDoc(adminBrandingRef(tenantId));
   if (!snap.exists()) return null;
   return parseBrandingDoc(snap.data() as Record<string, unknown>);
 }
@@ -87,9 +122,9 @@ function fieldOrDelete(val: string): string | ReturnType<typeof deleteField> {
   return t ? t : deleteField();
 }
 
-export async function saveBrandingTexts(draft: BrandingFormDraft): Promise<void> {
+export async function saveBrandingTexts(draft: BrandingFormDraft, tenantId?: string | null): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       platformDisplayName: fieldOrDelete(draft.platformDisplayName),
       platformShortName: fieldOrDelete(draft.platformShortName),
@@ -101,9 +136,13 @@ export async function saveBrandingTexts(draft: BrandingFormDraft): Promise<void>
   );
 }
 
-export async function saveBrandingLogoFields(logoUrl: string, logoStoragePath: string): Promise<void> {
+export async function saveBrandingLogoFields(
+  logoUrl: string,
+  logoStoragePath: string,
+  tenantId?: string | null,
+): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       logoUrl,
       logoStoragePath,
@@ -113,9 +152,9 @@ export async function saveBrandingLogoFields(logoUrl: string, logoStoragePath: s
   );
 }
 
-export async function clearBrandingLogoFields(): Promise<void> {
+export async function clearBrandingLogoFields(tenantId?: string | null): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       logoUrl: deleteField(),
       logoStoragePath: deleteField(),
@@ -128,9 +167,10 @@ export async function clearBrandingLogoFields(): Promise<void> {
 export async function saveBrandingFaviconFields(
   faviconUrl: string,
   faviconStoragePath: string,
+  tenantId?: string | null,
 ): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       faviconUrl,
       faviconStoragePath,
@@ -140,9 +180,9 @@ export async function saveBrandingFaviconFields(
   );
 }
 
-export async function clearBrandingFaviconFields(): Promise<void> {
+export async function clearBrandingFaviconFields(tenantId?: string | null): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       faviconUrl: deleteField(),
       faviconStoragePath: deleteField(),
@@ -152,9 +192,9 @@ export async function clearBrandingFaviconFields(): Promise<void> {
   );
 }
 
-export async function saveBrandingPalette(draft: BrandingPaletteDraft): Promise<void> {
+export async function saveBrandingPalette(draft: BrandingPaletteDraft, tenantId?: string | null): Promise<void> {
   await setDoc(
-    DOC_REF,
+    adminBrandingRef(tenantId),
     {
       palettePrimary: fieldOrDelete(draft.primary),
       palettePrimaryHover: fieldOrDelete(draft.primaryHover),

@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Radio } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';
 import { useAssistantCourse } from '@/components/layout/PublicLayout';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import {
   CourseCatalogDetail,
   CourseCarouselCard,
@@ -48,6 +49,7 @@ function channelVideosToIntroItems(channel: CatalogChannel): CourseIntroVideo[] 
 }
 
 export function ChannelPublicPage() {
+  const paths = useTenantPublicPaths();
   const { channelId } = useParams<{ channelId: string }>();
   const id = channelId?.trim() ?? '';
   const [searchParams, setSearchParams] = useSearchParams();
@@ -182,7 +184,7 @@ export function ChannelPublicPage() {
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-10 text-center">
         <p className="text-zinc-300">Endereço de canal inválido.</p>
         <Link
-          to="/streaming"
+          to={paths.streaming}
           className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:underline"
         >
           Voltar ao Streaming
@@ -212,7 +214,7 @@ export function ChannelPublicPage() {
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-10 text-center">
         <p className="text-zinc-300">Canal não encontrado ou não publicado.</p>
         <Link
-          to="/streaming"
+          to={paths.streaming}
           className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:underline"
         >
           <ArrowLeft size={16} />
@@ -229,7 +231,7 @@ export function ChannelPublicPage() {
     <div className="space-y-14 pb-10">
       <div className="flex justify-center sm:justify-start">
         <Link
-          to="/streaming"
+          to={paths.streaming}
           className="inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-emerald-300"
         >
           <ArrowLeft size={16} />

@@ -12,9 +12,10 @@ function isExternalHref(href: string): boolean {
   return /^https?:\/\//i.test(href.trim());
 }
 
-function normalizeInternalHref(href: string): string {
+function normalizeInternalHref(href: string, streamingHomePath: string): string {
   const t = href.trim();
-  if (!t || t === '#') return '/streaming';
+  if (!t || t === '#') return streamingHomePath;
+  if (t === '/streaming') return streamingHomePath;
   if (t.startsWith('/')) return t;
   return `/${t}`;
 }
@@ -25,13 +26,15 @@ type BannerTileProps = {
   featured: boolean;
   /** Carregar imagem com prioridade (slot central). */
   eagerImage: boolean;
+  /** Rota da home de streaming (ex. `/alpha/streaming`). */
+  streamingHomePath: string;
 };
 
-function BannerTile({ banner, featured, eagerImage }: BannerTileProps) {
+function BannerTile({ banner, featured, eagerImage, streamingHomePath }: BannerTileProps) {
   const desktop = banner.imageUrl;
   const mobile = banner.imageUrlMobile?.trim();
   const label = banner.title.trim() || 'Destaque';
-  const href = banner.linkUrl.trim() || '/streaming';
+  const href = banner.linkUrl.trim() || streamingHomePath;
   const external = isExternalHref(href);
 
   const inner = (
@@ -79,7 +82,7 @@ function BannerTile({ banner, featured, eagerImage }: BannerTileProps) {
   }
 
   return (
-    <Link to={normalizeInternalHref(href)} className={wrapCls} aria-label={label}>
+    <Link to={normalizeInternalHref(href, streamingHomePath)} className={wrapCls} aria-label={label}>
       {inner}
     </Link>
   );
@@ -111,7 +114,13 @@ function slotHeightClass(offset: (typeof SLOT_OFFSETS)[number]): string {
   return 'h-[min(18vw,6.75rem)] sm:h-22 md:h-26';
 }
 
-function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[] }) {
+function StreamingPromoBannersCarousel({
+  banners,
+  streamingHomePath,
+}: {
+  banners: StreamingBanner[];
+  streamingHomePath: string;
+}) {
   const n = banners.length;
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -170,7 +179,7 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
       >
         <div className="mx-auto max-w-2xl">
           <div className={clsx(slotHeightClass(0), 'overflow-hidden rounded-xl')}>
-            <BannerTile banner={b} featured eagerImage />
+            <BannerTile banner={b} featured eagerImage streamingHomePath={streamingHomePath} />
           </div>
         </div>
       </section>
@@ -196,7 +205,12 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
           const featured = offset === 0;
           return (
             <div key={`slot-${offset}`} className={slotWrapperClass(offset)}>
-              <BannerTile banner={b} featured={featured} eagerImage={featured} />
+              <BannerTile
+                banner={b}
+                featured={featured}
+                eagerImage={featured}
+                streamingHomePath={streamingHomePath}
+              />
             </div>
           );
         })}
@@ -247,8 +261,21 @@ function StreamingPromoBannersCarousel({ banners }: { banners: StreamingBanner[]
 }
 
 /** `key` na faixa interna reinicia o índice do carrossel quando a lista de banners muda (sem setState em effect). */
-export function StreamingPromoBanners({ banners }: { banners: StreamingBanner[] }) {
+export function StreamingPromoBanners({
+  banners,
+  streamingHomePath,
+}: {
+  banners: StreamingBanner[];
+  /** Home de streaming deste tenant (obrigatório para links relativos nos banners). */
+  streamingHomePath: string;
+}) {
   if (banners.length === 0) return null;
   const bannerIdsKey = banners.map((b) => b.id).join('|');
-  return <StreamingPromoBannersCarousel key={bannerIdsKey} banners={banners} />;
+  return (
+    <StreamingPromoBannersCarousel
+      key={bannerIdsKey}
+      banners={banners}
+      streamingHomePath={streamingHomePath}
+    />
+  );
 }
