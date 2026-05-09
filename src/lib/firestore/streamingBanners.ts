@@ -1,6 +1,7 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { StreamingBanner } from '@/types';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 export function parseStreamingBannerDoc(id: string, d: Record<string, unknown>): StreamingBanner {
   const imageUrl = typeof d.imageUrl === 'string' ? d.imageUrl.trim() : '';
@@ -19,7 +20,12 @@ export function parseStreamingBannerDoc(id: string, d: Record<string, unknown>):
 
 /** Banners visíveis na home Streaming (visitante). */
 export async function listPublishedStreamingBanners(): Promise<StreamingBanner[]> {
-  const q = query(collection(db, 'streamingBanners'), where('published', '==', true));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const q = query(
+    collection(db, tenantContentPath(tenantId, 'streamingBanners')),
+    where('published', '==', true)
+  );
   const snap = await getDocs(q);
   const list = snap.docs
     .map((doc) => parseStreamingBannerDoc(doc.id, doc.data() as Record<string, unknown>))

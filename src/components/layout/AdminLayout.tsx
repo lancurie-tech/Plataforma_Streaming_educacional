@@ -52,74 +52,74 @@ export function AdminLayout() {
           </NavLink>
         ) : null}
         {canCursos ? (
-          <NavLink to="/admin" end className={navCls}>
+          <NavLink to={paths.admin} end className={navCls}>
             <LayoutGrid size={18} className="shrink-0" />
             Visão geral
           </NavLink>
         ) : null}
         {canCursos ? (
-          <NavLink to="/admin/dashboard" className={navCls}>
+          <NavLink to={`${paths.admin}/dashboard`} className={navCls}>
             <LayoutDashboard size={18} className="shrink-0" />
             Dashboard
           </NavLink>
         ) : null}
         {canCursos ? (
-          <NavLink to="/admin/empresas" className={navCls}>
+          <NavLink to={`${paths.admin}/empresas`} className={navCls}>
             <Building2 size={18} className="shrink-0" />
             Empresas
           </NavLink>
         ) : null}
         {canVendedores ? (
-          <NavLink to="/admin/vendedores" className={navCls}>
+          <NavLink to={`${paths.admin}/vendedores`} className={navCls}>
             <Users size={18} className="shrink-0" />
             Vendedores
           </NavLink>
         ) : null}
         {canCursos ? (
-          <NavLink to="/admin/cursos" className={navCls}>
+          <NavLink to={`${paths.admin}/cursos`} className={navCls}>
             <BookOpen size={18} className="shrink-0" />
             Cursos
           </NavLink>
         ) : null}
         {canStreaming ? (
-          <NavLink to="/admin/streaming" className={navCls}>
+          <NavLink to={`${paths.admin}/streaming`} className={navCls}>
             <Tv size={18} className="shrink-0" />
             Home streaming
           </NavLink>
         ) : null}
         {canStreaming ? (
-          <NavLink to="/admin/canais" className={navCls}>
+          <NavLink to={`${paths.admin}/canais`} className={navCls}>
             <Radio size={18} className="shrink-0" />
             Canais
           </NavLink>
         ) : null}
         {canStreaming ? (
-          <NavLink to="/admin/streaming-banners" className={navCls}>
+          <NavLink to={`${paths.admin}/streaming-banners`} className={navCls}>
             <Images size={18} className="shrink-0" />
             Banners streaming
           </NavLink>
         ) : null}
         {tenantForMarketplace ? (
-          <NavLink to="/admin/marketplace" className={navCls}>
+          <NavLink to={`${paths.admin}/marketplace`} className={navCls}>
             <ShoppingBag size={18} className="shrink-0" />
             Marketplace
           </NavLink>
         ) : null}
-        <NavLink to="/admin/identidade-visual" className={navCls}>
+        <NavLink to={`${paths.admin}/identidade-visual`} className={navCls}>
           <Palette size={18} className="shrink-0" />
           Identidade visual
         </NavLink>
-        <NavLink to="/admin/conteudo-site" className={navCls}>
+        <NavLink to={`${paths.admin}/conteudo-site`} className={navCls}>
           <FileText size={18} className="shrink-0" />
           Conteúdo do site
         </NavLink>
         {canStreaming ? (
-          <NavLink to="/admin/streaming-analytics" className={navCls}>
+          <NavLink to={`${paths.admin}/streaming-analytics`} className={navCls}>
             <Eye size={18} className="shrink-0" />
             Audiência streaming
           </NavLink>
         ) : null}
-        <NavLink to="/admin/conta" className={navCls}>
+        <NavLink to={`${paths.admin}/conta`} className={navCls}>
           <UserRound size={18} className="shrink-0" />
           Conta e senha
         </NavLink>

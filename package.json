@@ -18,7 +18,8 @@
     "seed:analytics-demo": "node scripts/seed-analytics-demo.mjs",
     "seed:fase1-tenants": "node scripts/seed-fase1-tenants.mjs",
     "seed:marketplace-catalog": "node scripts/seed-marketplace-catalog.mjs",
-    "master:set-claim": "node scripts/set-master-claim.mjs"
+    "master:set-claim": "node scripts/set-master-claim.mjs",
+    "purge:legacy-global-content": "node scripts/purge-legacy-global-content.mjs"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",

@@ -78,6 +78,135 @@ function GuestLayout() {
 }
 
 export default function App() {
+  const adminChildren = (
+    <>
+      <Route
+        index
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminDashboard />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="empresas"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminCompanies />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="empresas/:companyId"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminCompanyDetail />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="cursos"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminCourses />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="cursos/novo"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminCourseEditor />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="cursos/:courseId/edit"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminCourseEditor />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="dashboard"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <AdminAnalytics />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="metricas"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <Navigate to="/admin/dashboard" replace />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route path="conta" element={<AdminAccountPage />} />
+      <Route path="marketplace" element={<AdminMarketplacePage />} />
+      <Route
+        path="streaming"
+        element={
+          <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+            <AdminStreamingPage />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="canais"
+        element={
+          <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+            <AdminChannelsPage />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="canais/:channelId/edit"
+        element={
+          <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+            <AdminChannelEditor />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="streaming-banners"
+        element={
+          <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+            <AdminStreamingBannersPage />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="streaming-analytics"
+        element={
+          <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
+            <AdminStreamingAnalyticsPage />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route
+        path="vendedores"
+        element={
+          <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/admin/conta">
+            <AdminVendedores />
+          </ModuleEntitlementRoute>
+        }
+      />
+      <Route path="identidade-visual" element={<AdminIdentidadeVisualPage />} />
+      <Route path="conteudo-site" element={<AdminSiteContentPage />} />
+      <Route
+        path="saude-mental"
+        element={
+          <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
+            <Navigate to="/admin/dashboard?painel=saude-mental" replace />
+          </ModuleEntitlementRoute>
+        }
+      />
+    </>
+  );
+
   return (
     <>
       <ScrollToTop />
@@ -112,130 +241,17 @@ export default function App() {
           </AdminRoute>
         }
       >
-        <Route
-          index
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminDashboard />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="empresas"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminCompanies />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="empresas/:companyId"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminCompanyDetail />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="cursos"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminCourses />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="cursos/novo"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminCourseEditor />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="cursos/:courseId/edit"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminCourseEditor />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="dashboard"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <AdminAnalytics />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="metricas"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <Navigate to="/admin/dashboard" replace />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route path="conta" element={<AdminAccountPage />} />
-        <Route path="marketplace" element={<AdminMarketplacePage />} />
-        <Route
-          path="streaming"
-          element={
-            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
-              <AdminStreamingPage />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="canais"
-          element={
-            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
-              <AdminChannelsPage />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="canais/:channelId/edit"
-          element={
-            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
-              <AdminChannelEditor />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="streaming-banners"
-          element={
-            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
-              <AdminStreamingBannersPage />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="streaming-analytics"
-          element={
-            <ModuleEntitlementRoute moduleId="streaming" fallbackTo="/admin/conta">
-              <AdminStreamingAnalyticsPage />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route
-          path="vendedores"
-          element={
-            <ModuleEntitlementRoute moduleId="vendedores" fallbackTo="/admin/conta">
-              <AdminVendedores />
-            </ModuleEntitlementRoute>
-          }
-        />
-        <Route path="identidade-visual" element={<AdminIdentidadeVisualPage />} />
-        <Route path="conteudo-site" element={<AdminSiteContentPage />} />
-        <Route
-          path="saude-mental"
-          element={
-            <ModuleEntitlementRoute moduleId="cursos" fallbackTo="/admin/conta">
-              <Navigate to="/admin/dashboard?painel=saude-mental" replace />
-            </ModuleEntitlementRoute>
-          }
-        />
+        {adminChildren}
+      </Route>
+      <Route
+        path="/:tenantSlug/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        {adminChildren}
       </Route>
 
       {/** Apex sem slug: só área master — visitantes vão para login (conteúdo público em `/:slug/...`). */}

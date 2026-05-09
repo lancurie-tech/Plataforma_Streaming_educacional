@@ -21,6 +21,7 @@ import type {
   QuestionDef,
   UserModuleSubmission,
 } from '@/types';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 function parseIntroVimeoItem(raw: unknown): CourseIntroVideo | null {
   if (typeof raw === 'string') {
@@ -138,24 +139,33 @@ export async function isUserEnrolledInCourse(uid: string, courseId: string): Pro
 }
 
 export async function getCourse(courseId: string): Promise<CourseSummary | null> {
-  const snap = await getDoc(doc(db, 'courses', courseId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return null;
+  const snap = await getDoc(doc(db, tenantContentPath(tenantId, 'courses'), courseId));
   if (!snap.exists()) return null;
   return parseCourseSummary(snap.id, snap.data() as Record<string, unknown>);
 }
 
 /** Cursos com `catalogPublished: true` (leitura anônima permitida pelas regras). */
 export async function listPublishedCatalogCourses(): Promise<CourseSummary[]> {
-  const q = query(collection(db, 'courses'), where('catalogPublished', '==', true));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const q = query(
+    collection(db, tenantContentPath(tenantId, 'courses')),
+    where('catalogPublished', '==', true)
+  );
   const snap = await getDocs(q);
   return snap.docs.map((d) => parseCourseSummary(d.id, d.data() as Record<string, unknown>));
 }
 
 /** Cursos do catálogo público associados a um canal (`channelId` no documento do curso). */
 export async function listPublishedCoursesForChannel(channelId: string): Promise<CourseSummary[]> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
   const cid = channelId.trim();
   if (!cid) return [];
   const q = query(
-    collection(db, 'courses'),
+    collection(db, tenantContentPath(tenantId, 'courses')),
     where('catalogPublished', '==', true),
     where('channelId', '==', cid),
   );
@@ -166,8 +176,10 @@ export async function listPublishedCoursesForChannel(channelId: string): Promise
 }
 
 export async function listModules(courseId: string): Promise<ModuleContent[]> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
   const q = query(
-    collection(db, 'courses', courseId, 'modules'),
+    collection(db, tenantContentPath(tenantId, 'courses'), courseId, 'modules'),
     orderBy('order', 'asc')
   );
   const snap = await getDocs(q);

@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { CatalogChannel, ChannelPageVideo } from '@/types';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 function parsePageVideos(raw: unknown): ChannelPageVideo[] {
   if (!Array.isArray(raw)) return [];
@@ -54,7 +55,9 @@ export function parseChannelDoc(id: string, d: Record<string, unknown>): Catalog
 
 /** Canais visíveis na home Streaming (visitante). */
 export async function listPublishedChannels(): Promise<CatalogChannel[]> {
-  const q = query(collection(db, 'channels'), where('published', '==', true));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const q = query(collection(db, tenantContentPath(tenantId, 'channels')), where('published', '==', true));
   const snap = await getDocs(q);
   return snap.docs
     .map((docSnap) => parseChannelDoc(docSnap.id, docSnap.data() as Record<string, unknown>))
@@ -63,7 +66,9 @@ export async function listPublishedChannels(): Promise<CatalogChannel[]> {
 
 /** Leitura pública de um canal publicado (página `/canal/:id`). */
 export async function getPublishedChannelById(channelId: string): Promise<CatalogChannel | null> {
-  const snap = await getDoc(doc(db, 'channels', channelId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return null;
+  const snap = await getDoc(doc(db, tenantContentPath(tenantId, 'channels'), channelId));
   if (!snap.exists()) return null;
   const c = parseChannelDoc(snap.id, snap.data() as Record<string, unknown>);
   if (!c.published) return null;
