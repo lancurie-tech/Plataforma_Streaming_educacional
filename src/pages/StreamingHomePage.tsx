@@ -24,6 +24,7 @@ import { useAssistantCourse, useStreamingAssistantFocus } from '@/components/lay
 import { useAuth } from '@/contexts/useAuth';
 import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import { useAnalyticsConsent } from '@/contexts/AnalyticsConsentContext';
+import { resolveActiveTenantId } from '@/lib/firestore/tenantContentScope';
 
 type Row = { track: StreamingTrack; entries: StreamingEntry[] };
 
@@ -486,10 +487,15 @@ export function StreamingHomePage() {
     } catch {
       /* modo privado / storage indisponível */
     }
-    void logStreamingViewCallable({
-      trackId: focus.trackId,
-      entryId: focus.entryId,
-    }).catch(() => {});
+    void (async () => {
+      const tenantId = await resolveActiveTenantId();
+      if (!tenantId) return;
+      void logStreamingViewCallable({
+        tenantId,
+        trackId: focus.trackId,
+        entryId: focus.entryId,
+      }).catch(() => {});
+    })();
   }, [focus, user, analyticsAllowed]);
 
   const handleVideoEnded = useCallback(

@@ -55,6 +55,7 @@ import { MasterTenantsPage } from '@/pages/master/MasterTenantsPage';
 import { MasterTenantNewPage } from '@/pages/master/MasterTenantNewPage';
 import { MasterTenantDetailPage } from '@/pages/master/MasterTenantDetailPage';
 import { MasterMarketplaceInboxPage } from '@/pages/master/MasterMarketplaceInboxPage';
+import { MasterConsumptionPage } from '@/pages/master/MasterConsumptionPage';
 import { AdminMarketplacePage } from '@/pages/admin/AdminMarketplacePage';
 
 function MeusCursosRedirect() {
@@ -232,6 +233,7 @@ export default function App() {
         <Route path="tenants/novo" element={<MasterTenantNewPage />} />
         <Route path="tenants/:tenantId" element={<MasterTenantDetailPage />} />
         <Route path="marketplace" element={<MasterMarketplaceInboxPage />} />
+        <Route path="consumo" element={<MasterConsumptionPage />} />
       </Route>
       <Route
         path="/admin"

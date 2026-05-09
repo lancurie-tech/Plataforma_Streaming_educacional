@@ -16,6 +16,7 @@ import {
   type EntryLabelInfo,
 } from '@/components/public/StreamingAssistantMessage';
 import { defaultResolvedBranding } from '@/lib/brand';
+import { resolveActiveTenantId } from '@/lib/firestore/tenantContentScope';
 
 type Msg = { role: 'user' | 'model'; content: string };
 
@@ -140,7 +141,13 @@ export function StreamingAssistantWidget() {
     setMessages(nextMsgs);
     setLoading(true);
     try {
+      const tenantId = await resolveActiveTenantId();
+      if (!tenantId) {
+        setError('Não foi possível identificar o cliente (slug no URL). Abra o site pelo link da sua organização.');
+        return;
+      }
       const { data } = await streamingAssistantChatCallable({
+        tenantId,
         messages: nextMsgs,
         ...focusPayload,
         ...coursePayload,

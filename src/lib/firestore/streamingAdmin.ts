@@ -10,6 +10,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 import type { StreamingEntry, StreamingTrack } from '@/types';
 import {
   getStreamingTrack,
@@ -27,7 +28,9 @@ export async function loadStreamingAdminTree(): Promise<StreamingTrackWithEntrie
 }
 
 export async function createStreamingTrack(title: string): Promise<string> {
-  const col = collection(db, 'streamingTracks');
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado. Abra o admin pelo URL do cliente (/slug/admin).');
+  const col = collection(db, tenantContentPath(tenantId, 'streamingTracks'));
   const ref = doc(col);
   const snap = await getDocs(query(col, orderBy('order', 'asc')));
   const maxOrder = snap.docs.reduce((m, d) => {
@@ -50,11 +53,17 @@ export async function updateStreamingTrack(
   const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
   if (typeof data.title === 'string') payload.title = data.title.trim() || 'Sem título';
   if (typeof data.order === 'number') payload.order = data.order;
-  await setDoc(doc(db, 'streamingTracks', trackId), payload, { merge: true });
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
+  await setDoc(doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId), payload, { merge: true });
 }
 
 export async function deleteStreamingTrack(trackId: string): Promise<void> {
-  const entriesSnap = await getDocs(collection(db, 'streamingTracks', trackId, 'entries'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
+  const entriesSnap = await getDocs(
+    collection(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries')
+  );
   let batch = writeBatch(db);
   let n = 0;
   for (const e of entriesSnap.docs) {
@@ -67,14 +76,16 @@ export async function deleteStreamingTrack(trackId: string): Promise<void> {
     }
   }
   if (n > 0) await batch.commit();
-  await deleteDoc(doc(db, 'streamingTracks', trackId));
+  await deleteDoc(doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId));
 }
 
 export async function setStreamingTrackOrder(orderedTrackIds: string[]): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
   const batch = writeBatch(db);
   orderedTrackIds.forEach((id, index) => {
     batch.set(
-      doc(db, 'streamingTracks', id),
+      doc(db, tenantContentPath(tenantId, 'streamingTracks'), id),
       { order: index, updatedAt: serverTimestamp() },
       { merge: true }
     );
@@ -88,7 +99,9 @@ export async function createStreamingEntry(
 ): Promise<string> {
   const t = await getStreamingTrack(trackId);
   if (!t) throw new Error('Trilha não encontrada.');
-  const entriesCol = collection(db, 'streamingTracks', trackId, 'entries');
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
+  const entriesCol = collection(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries');
   const ref = doc(entriesCol);
   const existing = await listStreamingEntries(trackId);
   const maxOrder = existing.reduce((m, e) => Math.max(m, e.order), -1);
@@ -127,19 +140,31 @@ export async function updateStreamingEntry(
     payload.description = input.description === null || input.description === '' ? null : input.description;
   }
   if (typeof input.order === 'number') payload.order = input.order;
-  await setDoc(doc(db, 'streamingTracks', trackId, 'entries', entryId), payload, { merge: true });
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
+  await setDoc(
+    doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries', entryId),
+    payload,
+    { merge: true }
+  );
 }
 
 export async function deleteStreamingEntry(trackId: string, entryId: string): Promise<void> {
-  await deleteDoc(doc(db, 'streamingTracks', trackId, 'entries', entryId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
+  await deleteDoc(
+    doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries', entryId)
+  );
 }
 
 /** Reordena entradas de uma trilha (IDs na ordem desejada). */
 export async function setStreamingEntryOrder(trackId: string, orderedEntryIds: string[]): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não identificado.');
   const batch = writeBatch(db);
   orderedEntryIds.forEach((id, index) => {
     batch.set(
-      doc(db, 'streamingTracks', trackId, 'entries', id),
+      doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries', id),
       { order: index, updatedAt: serverTimestamp() },
       { merge: true }
     );

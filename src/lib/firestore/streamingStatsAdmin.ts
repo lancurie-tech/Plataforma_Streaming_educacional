@@ -1,5 +1,6 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 export type StreamingEntryStatRow = {
   id: string;
@@ -22,7 +23,9 @@ function num(v: unknown): number {
 
 /** Lê agregados gravados pela Cloud Function `logStreamingView` (só admin nas regras). */
 export async function listStreamingEntryStats(): Promise<StreamingEntryStatRow[]> {
-  const snap = await getDocs(collection(db, 'streamingEntryStats'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const snap = await getDocs(collection(db, tenantContentPath(tenantId, 'streamingEntryStats')));
   const rows: StreamingEntryStatRow[] = snap.docs.map((d) => {
     const x = d.data();
     return {
@@ -38,7 +41,9 @@ export async function listStreamingEntryStats(): Promise<StreamingEntryStatRow[]
 }
 
 export async function listStreamingTrackStats(): Promise<StreamingTrackStatRow[]> {
-  const snap = await getDocs(collection(db, 'streamingTrackStats'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const snap = await getDocs(collection(db, tenantContentPath(tenantId, 'streamingTrackStats')));
   const rows: StreamingTrackStatRow[] = snap.docs.map((d) => {
     const x = d.data();
     return {

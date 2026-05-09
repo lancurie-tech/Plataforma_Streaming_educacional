@@ -7,6 +7,8 @@
  * - courses/* + courses/{id}/modules/*
  * - answerKeys/*
  * - siteContent/publicPages
+ * - streamingTracks/* + entries (legado global)
+ * - streamingEntryStats/* , streamingTrackStats/* (legado global)
  *
  * Uso:
  *   $env:GOOGLE_APPLICATION_CREDENTIALS="C:\caminho\serviceAccountKey.json"
@@ -53,6 +55,22 @@ async function deleteCollection(path) {
   return snap.size;
 }
 
+async function purgeStreamingTracks() {
+  const tracks = await db.collection('streamingTracks').get();
+  let deletedTracks = 0;
+  let deletedEntries = 0;
+  for (const t of tracks.docs) {
+    const ents = await t.ref.collection('entries').get();
+    if (!ents.empty) {
+      await deleteByRefs(ents.docs.map((d) => d.ref));
+      deletedEntries += ents.size;
+    }
+    await t.ref.delete();
+    deletedTracks += 1;
+  }
+  return { deletedTracks, deletedEntries };
+}
+
 async function purgeCourses() {
   const courses = await db.collection('courses').get();
   let deletedCourseDocs = 0;
@@ -77,6 +95,15 @@ async function run() {
 
   const deletedBanners = await deleteCollection('streamingBanners');
   console.log(`streamingBanners removidos: ${deletedBanners}`);
+
+  const { deletedTracks, deletedEntries } = await purgeStreamingTracks();
+  console.log(`streamingTracks removidos: ${deletedTracks}`);
+  console.log(`streamingTracks/*/entries removidos: ${deletedEntries}`);
+
+  const delEntryStats = await deleteCollection('streamingEntryStats');
+  console.log(`streamingEntryStats removidos: ${delEntryStats}`);
+  const delTrackStats = await deleteCollection('streamingTrackStats');
+  console.log(`streamingTrackStats removidos: ${delTrackStats}`);
 
   const { deletedCourseDocs, deletedModuleDocs } = await purgeCourses();
   console.log(`courses removidos: ${deletedCourseDocs}`);
