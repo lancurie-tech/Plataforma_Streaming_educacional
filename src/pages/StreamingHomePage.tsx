@@ -16,8 +16,9 @@ import { listPublishedStreamingBanners } from '@/lib/firestore/streamingBanners'
 import { listStreamingTracksWithEntries } from '@/lib/firestore/streamingHome';
 import { StreamingPromoBanners } from '@/components/public/StreamingPromoBanners';
 import { VimeoPosterThumb } from '@/components/public/VimeoPosterThumb';
+import { YoutubeIframePlayer } from '@/components/public/YoutubeIframePlayer';
 import { attachVimeoOrientationFullscreen } from '@/lib/vimeoOrientationFullscreen';
-import { buildVimeoPlayerEmbedSrc, withVimeoPlayerOptions } from '@/lib/vimeo';
+import { buildVimeoHeroIframeSrc, resolveStreamingVideo } from '@/lib/streamingEmbed';
 import type { CatalogChannel, StreamingBanner, StreamingEntry, StreamingTrack } from '@/types';
 import { logStreamingViewCallable } from '@/lib/firebase/callables';
 import { useAssistantCourse, useStreamingAssistantFocus } from '@/components/layout/PublicLayout';
@@ -74,7 +75,7 @@ function StreamingChannelsStrip({
 }
 
 function validEntries(entries: StreamingEntry[]): StreamingEntry[] {
-  return entries.filter((e) => buildVimeoPlayerEmbedSrc(e.vimeoUrl) !== null);
+  return entries.filter((e) => resolveStreamingVideo(e.vimeoUrl) !== null);
 }
 
 const scrollerHideScrollbar =
@@ -93,7 +94,7 @@ function VimeoHeroPlayer({
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const onEndedRef = useRef(onEnded);
-  const src = withVimeoPlayerOptions(embedSrc, { autoplay });
+  const src = buildVimeoHeroIframeSrc(embedSrc, autoplay);
 
   useEffect(() => {
     onEndedRef.current = onEnded;
@@ -562,7 +563,7 @@ export function StreamingHomePage() {
         const isFocusedTrack = focus?.trackId === track.id;
         const activeEntry =
           isFocusedTrack && focus ? entries.find((e) => e.id === focus.entryId) : null;
-        const heroSrc = activeEntry ? buildVimeoPlayerEmbedSrc(activeEntry.vimeoUrl) : null;
+        const heroVideo = activeEntry ? resolveStreamingVideo(activeEntry.vimeoUrl) : null;
         const rest = activeEntry ? entries.filter((e) => e.id !== activeEntry.id) : entries;
 
         return (
@@ -604,7 +605,7 @@ export function StreamingHomePage() {
               ) : null}
             </div>
 
-            {isFocusedTrack && activeEntry && heroSrc ? (
+            {isFocusedTrack && activeEntry && heroVideo ? (
               <div className="flex min-h-0 flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
                 <div
                   key={activeEntry.id}
@@ -613,12 +614,21 @@ export function StreamingHomePage() {
                   <div className="mx-auto w-full max-w-5xl lg:mx-0">
                     <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/50 ring-1 ring-white/5">
                       <div className="relative aspect-video w-full">
-                        <VimeoHeroPlayer
-                          embedSrc={heroSrc}
-                          title={activeEntry.title}
-                          autoplay={heroAutoplay}
-                          onEnded={() => handleVideoEnded(track.id, entries, activeEntry.id)}
-                        />
+                        {heroVideo.provider === 'vimeo' && heroVideo.vimeoIframeSrc ? (
+                          <VimeoHeroPlayer
+                            embedSrc={heroVideo.vimeoIframeSrc}
+                            title={activeEntry.title}
+                            autoplay={heroAutoplay}
+                            onEnded={() => handleVideoEnded(track.id, entries, activeEntry.id)}
+                          />
+                        ) : heroVideo.provider === 'youtube' && heroVideo.youtubeVideoId ? (
+                          <YoutubeIframePlayer
+                            videoId={heroVideo.youtubeVideoId}
+                            title={activeEntry.title}
+                            autoplay={heroAutoplay}
+                            onEnded={() => handleVideoEnded(track.id, entries, activeEntry.id)}
+                          />
+                        ) : null}
                       </div>
                     </div>
                   </div>

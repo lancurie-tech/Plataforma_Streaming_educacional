@@ -128,7 +128,7 @@ function StreamingEntryCoverCard({
         <p className="text-sm font-medium text-zinc-300">Capa do vídeo (cards na home streaming)</p>
         <p className="mt-1 text-xs text-zinc-500">
           Opcional. PNG, JPG ou WebP no Storage do projeto; a URL pública fica salva neste vídeo. Se não houver capa,
-          usa-se o thumbnail do Vimeo.
+          usa-se o thumbnail do Vimeo ou do YouTube (via CDN).
         </p>
       </div>
       {coverUrl.trim() ? (
@@ -299,7 +299,7 @@ export function AdminStreamingPage() {
         </h1>
         <p className="mt-2 text-sm text-zinc-500">
           Trilhas aparecem na página inicial pública (<code className="text-zinc-400">/</code>).
-          Só entradas com URL Vimeo válida são exibidas aos visitantes.
+          Só entradas com URL Vimeo ou YouTube válida são exibidas aos visitantes.
         </p>
       </div>
 
@@ -515,8 +515,8 @@ function TrackCard({
               onChange={(e) => setNewTitle(e.target.value)}
             />
             <Input
-              label="URL Vimeo"
-              placeholder="https://vimeo.com/…"
+              label="URL do vídeo (Vimeo ou YouTube)"
+              placeholder="https://vimeo.com/… ou https://youtube.com/watch?v=…"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
             />
@@ -600,7 +600,12 @@ function EntryRow({
       <div className="flex flex-wrap gap-2">
         <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
           <Input label="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Input label="URL Vimeo" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <Input
+            label="URL do vídeo (Vimeo ou YouTube)"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+          />
         </div>
         <div className="flex gap-1">
           <Button

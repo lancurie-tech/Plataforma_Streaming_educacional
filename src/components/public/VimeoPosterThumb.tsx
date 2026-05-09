@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import { fetchVimeoThumbnailUrl } from '@/lib/vimeo';
+import { parseYoutubeVideoId, youtubeThumbnailUrl } from '@/lib/streamingEmbed';
 
 type Props = {
   vimeoUrl: string;
-  /** Se definida, usada como capa estática; se a imagem falhar, usa o thumbnail do Vimeo. */
+  /** Se definida, usada como capa estática; senão usa thumbnail Vimeo (oEmbed) ou YouTube (CDN). */
   posterUrl?: string;
   /** Ex.: `rounded-t-xl` nos cartões com cantos superiores arredondados */
   className?: string;
@@ -13,7 +14,7 @@ type Props = {
 };
 
 /**
- * Capa estática (oEmbed) + overlay de hover, sem iframe do Vimeo — evita controles nativos em listagens.
+ * Capa estática + overlay de hover, sem iframe nas listagens (Vimeo via oEmbed; YouTube via img.youtube.com).
  */
 export function VimeoPosterThumb(props: Props) {
   const custom = props.posterUrl?.trim() ?? '';
@@ -30,11 +31,18 @@ function VimeoPosterThumbInner({ vimeoUrl, posterUrl, className, fillContainer }
 
   useEffect(() => {
     if (custom && !customFailed) return;
-    if (!vimeoUrl.trim()) return;
+    const raw = vimeoUrl.trim();
+    if (!raw) return;
+
+    const yid = parseYoutubeVideoId(raw);
+    if (yid) {
+      setVimeoThumb(youtubeThumbnailUrl(yid));
+      return;
+    }
 
     let cancelled = false;
     void (async () => {
-      const url = await fetchVimeoThumbnailUrl(vimeoUrl);
+      const url = await fetchVimeoThumbnailUrl(raw);
       if (!cancelled && url) setVimeoThumb(url);
     })();
 
