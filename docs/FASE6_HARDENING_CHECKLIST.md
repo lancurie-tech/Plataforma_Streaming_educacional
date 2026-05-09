@@ -12,7 +12,7 @@ Lista curta para **revisão periódica** após fechar o MVP do plano modular (`d
 ## Cloud Functions
 
 - [ ] Callables sensíveis validam **papel** (admin vs master) e argumentos (IDs, limites).
-- [ ] Segredos (`GOOGLE_API_KEY`, `RESEND_API_KEY`, …) em Secret Manager ou env seguro — nunca no repositório.
+- [ ] Segredos (`GOOGLE_API_KEY`, …) em Secret Manager ou env seguro — nunca no repositório.
 - [ ] Domínios em **Firebase Authentication → Authorized domains** incluem o `appOrigin` usado em `generatePasswordResetLink` (convite master).
 
 ## Cliente (SPA)
@@ -23,7 +23,7 @@ Lista curta para **revisão periódica** após fechar o MVP do plano modular (`d
 
 ## Observabilidade (evolução)
 
-- [ ] Logs estruturados nas Functions para convites, erros Resend e limites (`resource-exhausted`).
+- [ ] Logs estruturados nas Functions para convites ao admin do tenant e limites (`resource-exhausted`).
 - [ ] Alertas de quota Firebase / erros 5xx nas callables.
 
 ## Experiência operador / cliente

@@ -44,4 +44,4 @@ npm run master:set-claim -- operador@suaempresa.com
 
 - Cloud Functions dedicadas para criar tenant + convite (em vez de escritas diretas opcionais).
 - Auditoria de alterações (quem mudou o quê).
-- `docs/RUNBOOK_NOVO_TENANT.md` — onboarding (tenant, slug público, convite do primeiro admin com `masterInviteTenantAdmin` + Resend opcional, empresa ↔ limites); claim `master_admin` na secção **Conceder acesso master** deste ficheiro.
+- `docs/RUNBOOK_NOVO_TENANT.md` — onboarding (tenant, slug público, primeiro admin via `masterInviteTenantAdmin` + PDF manual, empresa ↔ limites); claim `master_admin` ou `role: master` na secção **Conceder acesso master** deste ficheiro.

@@ -28,9 +28,9 @@ Checklist operacional para **onboarding** de um cliente B2B no modelo multi-tena
 
 ## 4. Primeiro administrador do cliente
 
-1. No **`/master/tenants/{tenantId}`**, secção **«Primeiro administrador do cliente»**: preencher nome, e-mail e **«Criar conta e enviar convite»**. A callable **`masterInviteTenantAdmin`** cria Auth + `users/{uid}` com `role: admin` e `tenantId`, define **custom claim** `tenantId` no token, gera link de **definir senha** e, se existir **`RESEND_API_KEY`** (e opcionalmente **`RESEND_FROM_EMAIL`**) no ambiente das Cloud Functions, envia e-mail com o URL público `/{publicSlug}/` (ou `/{tenantId}/` se não houver slug) e o link de senha.
-2. **Firebase Console → Authentication → Authorized domains**: deve incluir o host usado na app (o mesmo que `window.location.origin` quando o master clica no convite), senão `generatePasswordResetLink` falha.
-3. Sem Resend: o convite ainda **cria a conta**; o cliente pode usar **«Esqueci a senha»** no login com o mesmo e-mail.
+1. No **`/master/tenants/{tenantId}`**, secção **«Primeiro administrador do cliente»**: preencher nome, e-mail e **«Criar conta e descarregar PDF»**. A callable **`masterInviteTenantAdmin`** cria Auth + `users/{uid}` com `role: admin` e `tenantId`, define **custom claim** `tenantId` no token, gera link de **definir senha** e devolve dados ao browser; a app **gera um PDF** (instruções, URLs, módulos em `entitlements`) para o master enviar **manualmente** ao cliente.
+2. **Firebase Console → Authentication → Authorized domains**: deve incluir o host usado na app (o mesmo que `window.location.origin` quando o master usa esta página), senão `generatePasswordResetLink` falha.
+3. **«Esqueci a senha»** no login funciona com o mesmo e-mail se o link do PDF expirar ou falhar.
 4. Fluxo legado: continua possível criar manualmente o doc **`users/{uid}`** + Auth (ex.: operações antigas com `companyId`).
 5. O admin acede a **`/admin`** no mesmo host da SPA após autenticação.
 
@@ -45,7 +45,7 @@ Checklist operacional para **onboarding** de um cliente B2B no modelo multi-tena
 
 - Resolução de tenant no browser: `PublicTenantProvider`, `src/lib/tenantHost.ts` (path / host).
 - Enforcement de limite no cadastro: **`registerWithCompany`** em `functions/src/index.ts`.
-- Convite master: **`masterInviteTenantAdmin`** em `functions/src/index.ts`; e-mail em `functions/src/resendMail.ts`.
+- Convite master: **`masterInviteTenantAdmin`** em `functions/src/index.ts`; PDF no cliente em **`src/lib/pdf/tenantAdminInvitePdf.ts`**.
 - Tipos e parse de empresa: `CompanyDoc.tenantId`, `parseCompanyData` em `src/lib/firestore/admin.ts`.
 
 ---

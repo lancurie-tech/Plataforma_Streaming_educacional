@@ -18,6 +18,7 @@ import {
 } from '@/lib/tenantHost/normalizePublicSlug';
 import { Button } from '@/components/ui/Button';
 import { masterInviteTenantAdminCallable, mapCallableError } from '@/lib/firebase/callables';
+import { downloadTenantAdminInvitePdf } from '@/lib/pdf/tenantAdminInvitePdf';
 import type { PlanDoc, TenantDoc, TenantStatus } from '@/types';
 
 const COMMERCIAL_SET = new Set<string>(COMMERCIAL_MODULE_IDS);
@@ -205,13 +206,20 @@ export function MasterTenantDetailPage() {
         adminName: inviteName.trim(),
         appOrigin: window.location.origin,
       });
-      const sent = res.data.emailSent;
-      setInviteFeedback({
-        kind: 'ok',
-        text: sent
-          ? 'Convite enviado por e-mail com o link do site do cliente e definição de senha.'
-          : 'Administrador criado. O e-mail automático não foi enviado (configure RESEND_API_KEY e RESEND_FROM_EMAIL nas Cloud Functions). O utilizador pode usar «Esqueci a senha» na página de login com o mesmo e-mail.',
-      });
+      try {
+        downloadTenantAdminInvitePdf(res.data);
+        setInviteFeedback({
+          kind: 'ok',
+          text:
+            'Administrador criado. O PDF com instruções, links e módulos foi descarregado — envie-o manualmente ao cliente.',
+        });
+      } catch {
+        setInviteFeedback({
+          kind: 'ok',
+          text:
+            'Administrador criado, mas falhou gerar o PDF no navegador. Os dados já foram gravados; pode repetir para um novo e-mail ou pedir ao cliente «Esqueci a senha» em /login.',
+        });
+      }
       setInviteEmail('');
       setInviteName('');
     } catch (err) {
@@ -252,9 +260,10 @@ export function MasterTenantDetailPage() {
         <h2 className="text-base font-semibold text-violet-100">Primeiro administrador do cliente</h2>
         <p className="mt-1 text-xs text-violet-200/80">
           Cria a conta com perfil <code className="text-violet-200/90">admin</code> e{' '}
-          <code className="text-violet-200/90">tenantId</code> neste tenant. Envia e-mail (Resend) com o URL
-          público <span className="font-mono">/{publicSlug.trim() || tenantId}/</span> e link para definir senha,
-          desde que <code className="text-violet-200/90">RESEND_API_KEY</code> esteja configurada nas Functions.
+          <code className="text-violet-200/90">tenantId</code> neste tenant e{' '}
+          <strong className="text-violet-100">descarrega um PDF</strong> com o URL público{' '}
+          <span className="font-mono">/{publicSlug.trim() || tenantId}/</span>, links de login e definição de senha,
+          passos para o cliente e lista dos módulos ativos nos entitlements.
         </p>
         <form onSubmit={handleInviteAdmin} className="mt-4 space-y-3">
           <div>
@@ -283,7 +292,7 @@ export function MasterTenantDetailPage() {
             />
           </div>
           <Button type="submit" isLoading={inviteBusy} variant="outline" className="border-violet-500/40 text-violet-100">
-            Criar conta e enviar convite
+            Criar conta e descarregar PDF
           </Button>
           {inviteFeedback ? (
             <p

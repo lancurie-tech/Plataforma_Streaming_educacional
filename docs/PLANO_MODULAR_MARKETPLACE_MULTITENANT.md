@@ -366,7 +366,7 @@ Resumo do que **já existe** na app (além do descrito nas fases 1–4 nos docs 
 
 ### Auth, perfil e módulos na UI
 
-- **Claim `master_admin`** + rotas **`/master`** (tenants, detalhe, novo, marketplace inbox). No detalhe do tenant: **convite do primeiro administrador** (`masterInviteTenantAdmin`) com URL pública do slug e link de definição de senha; e-mail via **Resend** se `RESEND_API_KEY` estiver definida nas Functions.
+- **Claim `master_admin`** ou **`role: master`** + rotas **`/master`** (tenants, detalhe, novo, marketplace inbox). No detalhe do tenant: **primeiro administrador** (`masterInviteTenantAdmin`) cria conta e gera **PDF** no browser com URLs, passos e módulos para envio manual ao cliente.
 - **Admin do tenant** em **`/admin`** com guards por módulo (`ModuleEntitlementRoute`, etc.).
 - **`tenantUrlSlug`** no contexto de auth (a partir de `getTenant` → `publicSlug` ou `tenantId`) para links e pós-login no **apex**.
 - **`hasModule`**: se o URL tiver tenant resolvido com **`publicSnapshot`**, os módulos exibidos seguem **sempre** `enabledModuleIds` desse índice público — **inclui utilizador autenticado e master** a pré-visualizar o site do cliente (evita “ver tudo” por entitlements do perfil do master).
@@ -401,10 +401,9 @@ Resumo do que **já existe** na app (além do descrito nas fases 1–4 nos docs 
 
 ## 13. Próximo passo recomendado
 
-1. **Validar em staging/produção**: `firebase deploy --only functions` (inclui `masterInviteTenantAdmin`), rules/indexes se necessário; testar convite com e sem Resend.
-2. **Configurar Resend** em produção (`RESEND_API_KEY`, `RESEND_FROM_EMAIL` no ambiente da Cloud Function) e domínios autorizados no Firebase Auth.
-3. **Seguir** `docs/RUNBOOK_NOVO_TENANT.md` + `docs/FASE6_HARDENING_CHECKLIST.md` em cada release relevante.
+1. **Validar em staging/produção**: `firebase deploy --only functions` (inclui `masterInviteTenantAdmin`), rules/indexes se necessário; testar PDF do primeiro administrador e domínios autorizados no Firebase Auth.
+2. **Seguir** `docs/RUNBOOK_NOVO_TENANT.md` + `docs/FASE6_HARDENING_CHECKLIST.md` em cada release relevante.
 
 ---
 
-*Última atualização: MVP do plano fechado com convite master + Resend opcional; secções 12–13 e referências §11 atualizadas.*
+*Última atualização: convite ao primeiro admin via PDF manual (`tenantAdminInvitePdf.ts`); secções 12–13 sincronizadas.*
