@@ -462,7 +462,7 @@ export function AdminCompanyDetail() {
     if (!company) return;
     setTenantIdDraft(company.tenantId ?? '');
     setTenantIdMsg(null);
-  }, [company?.id, company?.tenantId]);
+}, [company]);
 
   useEffect(() => {
     void load();

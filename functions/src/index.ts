@@ -12,7 +12,6 @@ import {
   handleStreamingAssistantChat,
   type StreamingAssistantRequestData,
 } from './streamingOps.js';
-import { sendResendEmail } from './resendMail.js';
 
 initializeApp();
 const db = getFirestore();
@@ -131,15 +130,7 @@ async function assertIsMasterOperator(request: {
   throw new HttpsError('permission-denied', 'Apenas operadores master.');
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-/** Origem da app SPA (ex.: https://projeto.web.app). Usada no e-mail e no link de redefinição de senha. */
+/** Origem da app SPA (ex.: https://projeto.web.app). Usada no link de redefinição de senha e URLs no PDF. */
 function parseAllowedAppOrigin(raw: string): URL {
   const trimmed = raw.trim().replace(/\/+$/, '');
   if (!trimmed) {
@@ -459,7 +450,7 @@ function randomInitialPassword(): string {
 
 /**
  * Master: cria o primeiro utilizador `admin` do tenant, define claim `tenantId` no Auth,
- * opcionalmente envia e-mail (Resend) com URL pública do cliente e link para definir senha.
+ * devolve dados para o cliente gerar um PDF com URLs e passos (envio manual ao cliente).
  */
 export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
   await assertIsMasterOperator(request);
@@ -498,7 +489,14 @@ export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
   const pathSegment = slugRaw || tenantId;
   const siteUrl = new URL(`/${pathSegment}/`, appOriginUrl).href;
   const adminUrl = new URL('/admin', appOriginUrl).href;
+  const loginUrl = new URL('/login', appOriginUrl).href;
+  const forgotPasswordUrl = new URL('/esqueci-senha', appOriginUrl).href;
   const continueUrl = new URL('/redefinir-senha', appOriginUrl).href;
+
+  const entSnap = await db.doc(`tenants/${tenantId}/entitlements/current`).get();
+  const enabledModuleIds = Array.isArray(entSnap.data()?.enabledModuleIds)
+    ? (entSnap.data()!.enabledModuleIds as unknown[]).filter((x): x is string => typeof x === 'string')
+    : [];
 
   let userRecord;
   try {
@@ -544,39 +542,21 @@ export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
     );
   }
 
-  const resendKey = process.env.RESEND_API_KEY?.trim();
-  const resendFrom =
-    process.env.RESEND_FROM_EMAIL?.trim() || 'Plataforma <onboarding@resend.dev>';
-
-  let emailSent = false;
-  if (resendKey) {
-    const safeOrg = escapeHtml(displayName);
-    const safeName = escapeHtml(adminName);
-    const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
-<p>Olá, ${safeName}.</p>
-<p>A organização <strong>${safeOrg}</strong> foi configurada na plataforma.</p>
-<p><strong>Primeiro acesso ao site do cliente:</strong><br><a href="${siteUrl}">${escapeHtml(siteUrl)}</a></p>
-<p>Depois de definir a senha (botão abaixo), pode gerir conteúdos em:<br><a href="${adminUrl}">${escapeHtml(adminUrl)}</a></p>
-<p><a href="${resetLink}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#059669;color:#fff;text-decoration:none;border-radius:8px">Definir senha</a></p>
-<p style="font-size:12px;color:#555">Se o botão não funcionar, copie este link para o navegador:<br>${escapeHtml(resetLink)}</p>
-</body></html>`;
-
-    try {
-      const subjectSafe = displayName.replace(/[\r\n]+/g, ' ').slice(0, 200);
-      await sendResendEmail({
-        apiKey: resendKey,
-        from: resendFrom,
-        to: email,
-        subject: `Acesso à plataforma — ${subjectSafe}`,
-        html,
-      });
-      emailSent = true;
-    } catch (err) {
-      console.error('masterInviteTenantAdmin: Resend falhou', err);
-    }
-  }
-
-  return { ok: true, uid, emailSent };
+  return {
+    ok: true as const,
+    uid,
+    tenantId,
+    organizationDisplayName: displayName,
+    publicSlug: pathSegment,
+    invitedName: adminName,
+    invitedEmail: email,
+    clientPortalUrl: siteUrl,
+    loginUrl,
+    forgotPasswordUrl,
+    adminPanelUrl: adminUrl,
+    definePasswordLink: resetLink,
+    enabledModuleIds,
+  };
 });
 
 /**
