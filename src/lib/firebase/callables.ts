@@ -99,7 +99,7 @@ export const vendedorAcceptConfidentialityCallable = httpsCallable<{ version: st
 );
 
 export const logStreamingViewCallable = httpsCallable<
-  { trackId: string; entryId: string },
+  { trackId: string; entryId: string; tenantId: string },
   { ok: boolean }
 >(fns, 'logStreamingView');
 
@@ -129,6 +129,8 @@ export const deleteMyAccountCallable = httpsCallable<Record<string, never>, { ok
 export const streamingAssistantChatCallable = httpsCallable<
   {
     messages: Array<{ role: 'user' | 'model'; content: string }>;
+    /** ID do tenant (mesmo do Firestore `tenants/{tenantId}`); validado no servidor. */
+    tenantId: string;
     /** Vídeo em destaque na home (opcional). */
     focusEntryId?: string;
     focusTrackId?: string;

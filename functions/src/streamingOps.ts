@@ -141,8 +141,42 @@ type CatalogEntry = {
   vimeoVideoId: string | null;
 };
 
-export async function loadStreamingCatalog(db: Firestore): Promise<CatalogEntry[]> {
-  const tracksSnap = await db.collection('streamingTracks').orderBy('order', 'asc').get();
+function tenantStreamingTracksCollection(db: Firestore, tenantId: string) {
+  return db.collection(`tenants/${tenantId}/streamingTracks`);
+}
+
+/** Valida `tenantId` enviado pelo cliente contra o perfil (master pode qualquer tenant). */
+export async function resolveTrustedTenantIdForStreaming(
+  db: Firestore,
+  uid: string,
+  token: Record<string, unknown> | undefined,
+  requestedTenantId: string | undefined
+): Promise<string> {
+  const trimmed = requestedTenantId?.trim();
+  if (!trimmed) {
+    throw new HttpsError(
+      'invalid-argument',
+      'tenantId é obrigatório. Atualize a aplicação ou confirme que está num URL com slug do cliente.'
+    );
+  }
+  const userSnap = await db.doc(`users/${uid}`).get();
+  const role = userSnap.data()?.role as string | undefined;
+  const isMaster = token?.master_admin === true || role === 'master';
+  if (isMaster) return trimmed;
+
+  const d = userSnap.data() ?? {};
+  const actor =
+    (typeof d.tenantId === 'string' && d.tenantId.trim()) ||
+    (typeof d.companyId === 'string' && d.companyId.trim()) ||
+    '';
+  if (!actor || actor !== trimmed) {
+    throw new HttpsError('permission-denied', 'tenantId não corresponde ao seu perfil.');
+  }
+  return trimmed;
+}
+
+export async function loadStreamingCatalog(db: Firestore, tenantId: string): Promise<CatalogEntry[]> {
+  const tracksSnap = await tenantStreamingTracksCollection(db, tenantId).orderBy('order', 'asc').get();
   const out: CatalogEntry[] = [];
   for (const t of tracksSnap.docs) {
     const trackTitle = typeof t.data().title === 'string' ? t.data().title : 'Sem título';
@@ -172,9 +206,10 @@ const TRANSCRIPT_MAX = 14_000;
 async function getOrFetchTranscript(
   db: Firestore,
   entry: CatalogEntry,
-  vimeoToken: string | undefined
+  vimeoToken: string | undefined,
+  transcriptCacheDocId: string
 ): Promise<string> {
-  const cacheRef = db.doc(`streamingTranscriptCache/${entry.entryId}`);
+  const cacheRef = db.doc(`streamingTranscriptCache/${transcriptCacheDocId}`);
   const cached = await cacheRef.get();
   if (cached.exists) {
     const d = cached.data() as { fullText?: string; vimeoVideoId?: string };
@@ -214,12 +249,18 @@ const CATALOG_SUMMARY_SNIPPET = 300;
  */
 export async function buildCatalogContextForGemini(
   db: Firestore,
-  vimeoToken: string | undefined
+  vimeoToken: string | undefined,
+  tenantId: string
 ): Promise<string> {
-  const catalog = await loadStreamingCatalog(db);
+  const catalog = await loadStreamingCatalog(db, tenantId);
   const chunks = await Promise.all(
     catalog.map(async (e) => {
-      const transcript = await getOrFetchTranscript(db, e, vimeoToken);
+      const transcript = await getOrFetchTranscript(
+        db,
+        e,
+        vimeoToken,
+        `${tenantId}__${e.entryId}`
+      );
       const snippet = transcript
         ? transcript.slice(0, CATALOG_SUMMARY_SNIPPET).replace(/\s+\S*$/, '') + '…'
         : '(sem transcrição disponível)';
@@ -399,7 +440,7 @@ export async function buildCourseVideoFocusContextForGemini(
     vimeoUrl,
     vimeoVideoId: vid,
   };
-  const transcript = await getOrFetchTranscript(db, entry, vimeoToken);
+  const transcript = await getOrFetchTranscript(db, entry, vimeoToken, cacheKey);
   const body = transcript.slice(0, TRANSCRIPT_MAX).trim();
 
   let textBlock: string;
@@ -427,13 +468,14 @@ async function buildFocusStreamingContextForGemini(
   db: Firestore,
   focusTrackId: string | undefined,
   focusEntryId: string | undefined,
-  vimeoToken: string | undefined
+  vimeoToken: string | undefined,
+  tenantId: string
 ): Promise<string> {
   const tid = focusTrackId?.trim();
   const eid = focusEntryId?.trim();
   if (!tid || !eid) return '';
-  const trackSnap = await db.doc(`streamingTracks/${tid}`).get();
-  const entrySnap = await db.doc(`streamingTracks/${tid}/entries/${eid}`).get();
+  const trackSnap = await db.doc(`tenants/${tenantId}/streamingTracks/${tid}`).get();
+  const entrySnap = await db.doc(`tenants/${tenantId}/streamingTracks/${tid}/entries/${eid}`).get();
   if (!trackSnap.exists || !entrySnap.exists) return '';
   const trackTitle =
     typeof trackSnap.data()?.title === 'string' ? trackSnap.data()!.title : 'Sem título';
@@ -451,7 +493,7 @@ async function buildFocusStreamingContextForGemini(
     vimeoUrl,
     vimeoVideoId,
   };
-  const transcript = await getOrFetchTranscript(db, entry, vimeoToken);
+  const transcript = await getOrFetchTranscript(db, entry, vimeoToken, `${tenantId}__${eid}`);
   const body = transcript.slice(0, 12_000).trim();
   let textBlock: string;
   if (!body) {
@@ -535,6 +577,7 @@ export async function assertAssistantDailyQuota(
 
 export async function incrementStreamingViewStats(
   db: Firestore,
+  tenantId: string,
   trackId: string,
   entryId: string,
   trackTitle: string,
@@ -542,8 +585,8 @@ export async function incrementStreamingViewStats(
   vimeoVideoId: string | null
 ): Promise<void> {
   const batch = db.batch();
-  const eRef = db.doc(`streamingEntryStats/${entryId}`);
-  const tRef = db.doc(`streamingTrackStats/${trackId}`);
+  const eRef = db.doc(`tenants/${tenantId}/streamingEntryStats/${entryId}`);
+  const tRef = db.doc(`tenants/${tenantId}/streamingTrackStats/${trackId}`);
   batch.set(
     eRef,
     {
@@ -570,18 +613,22 @@ export async function incrementStreamingViewStats(
 
 export async function handleLogStreamingView(
   db: Firestore,
-  data: { trackId?: string; entryId?: string }
+  data: { trackId?: string; entryId?: string; tenantId?: string }
 ): Promise<{ ok: boolean }> {
+  const tenantId = data.tenantId?.trim();
+  if (!tenantId) {
+    throw new HttpsError('invalid-argument', 'tenantId é obrigatório.');
+  }
   const trackId = data.trackId?.trim();
   const entryId = data.entryId?.trim();
   if (!trackId || !entryId) {
     throw new HttpsError('invalid-argument', 'trackId e entryId são obrigatórios.');
   }
-  const trackSnap = await db.doc(`streamingTracks/${trackId}`).get();
+  const trackSnap = await db.doc(`tenants/${tenantId}/streamingTracks/${trackId}`).get();
   if (!trackSnap.exists) {
     throw new HttpsError('not-found', 'Trilha inválida.');
   }
-  const entrySnap = await db.doc(`streamingTracks/${trackId}/entries/${entryId}`).get();
+  const entrySnap = await db.doc(`tenants/${tenantId}/streamingTracks/${trackId}/entries/${entryId}`).get();
   if (!entrySnap.exists) {
     throw new HttpsError('not-found', 'Vídeo inválido.');
   }
@@ -591,7 +638,7 @@ export async function handleLogStreamingView(
   const entryTitle = typeof ed.title === 'string' ? ed.title : 'Sem título';
   const vimeoUrl = typeof ed.vimeoUrl === 'string' ? ed.vimeoUrl : '';
   const vimeoVideoId = parseVimeoVideoIdFromUrl(vimeoUrl);
-  await incrementStreamingViewStats(db, trackId, entryId, trackTitle, entryTitle, vimeoVideoId);
+  await incrementStreamingViewStats(db, tenantId, trackId, entryId, trackTitle, entryTitle, vimeoVideoId);
   return { ok: true };
 }
 
@@ -637,6 +684,8 @@ function isRetryableGeminiError(msg: string): boolean {
 
 export type StreamingAssistantRequestData = {
   messages?: Array<{ role?: string; content?: string }>;
+  /** Tenant do URL — obrigatório; validado contra o perfil em `index.ts`. */
+  tenantId?: string;
   /** Vídeo em destaque na home streaming — reforça transcrição para perguntas sobre o que está a ver. */
   focusEntryId?: string;
   focusTrackId?: string;
@@ -650,7 +699,9 @@ export type StreamingAssistantRequestData = {
 export async function handleStreamingAssistantChat(
   db: Firestore,
   data: StreamingAssistantRequestData,
-  creds?: StreamingAssistantCredentials
+  creds: StreamingAssistantCredentials | undefined,
+  /** Tenant já validado contra `users/{uid}` / master (ver `resolveTrustedTenantIdForStreaming`). */
+  tenantId: string
 ): Promise<{ reply: string }> {
   const apiKey =
     creds?.googleApiKey?.trim() ||
@@ -695,13 +746,14 @@ export async function handleStreamingAssistantChat(
   let coursesBlock: string;
   let focusBlock: string;
   try {
-    catalogBlock = await buildCatalogContextForGemini(db, vimeoToken);
+    catalogBlock = await buildCatalogContextForGemini(db, vimeoToken, tenantId);
     coursesBlock = await buildPublishedCoursesContextForGemini(db);
     focusBlock = await buildFocusStreamingContextForGemini(
       db,
       data.focusTrackId,
       data.focusEntryId,
-      vimeoToken
+      vimeoToken,
+      tenantId
     );
   } catch (e) {
     console.error(e);

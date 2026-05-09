@@ -7,6 +7,7 @@ import {
   query,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 import type { StreamingEntry, StreamingTrack } from '@/types';
 
 function parseTrack(id: string, d: Record<string, unknown>): StreamingTrack {
@@ -31,8 +32,10 @@ function parseEntry(id: string, d: Record<string, unknown>): StreamingEntry {
 }
 
 export async function listStreamingEntries(trackId: string): Promise<StreamingEntry[]> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
   const q = query(
-    collection(db, 'streamingTracks', trackId, 'entries'),
+    collection(db, tenantContentPath(tenantId, 'streamingTracks'), trackId, 'entries'),
     orderBy('order', 'asc')
   );
   const snap = await getDocs(q);
@@ -43,7 +46,12 @@ export async function listStreamingEntries(trackId: string): Promise<StreamingEn
 export async function listStreamingTracksWithEntries(): Promise<
   { track: StreamingTrack; entries: StreamingEntry[] }[]
 > {
-  const tq = query(collection(db, 'streamingTracks'), orderBy('order', 'asc'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const tq = query(
+    collection(db, tenantContentPath(tenantId, 'streamingTracks')),
+    orderBy('order', 'asc')
+  );
   const tsnap = await getDocs(tq);
   const tracks = tsnap.docs.map((d) => parseTrack(d.id, d.data() as Record<string, unknown>));
   return Promise.all(
@@ -52,7 +60,9 @@ export async function listStreamingTracksWithEntries(): Promise<
 }
 
 export async function getStreamingTrack(trackId: string): Promise<StreamingTrack | null> {
-  const snap = await getDoc(doc(db, 'streamingTracks', trackId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return null;
+  const snap = await getDoc(doc(db, tenantContentPath(tenantId, 'streamingTracks'), trackId));
   if (!snap.exists()) return null;
   return parseTrack(snap.id, snap.data() as Record<string, unknown>);
 }

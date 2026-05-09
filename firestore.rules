@@ -126,7 +126,8 @@ service cloud.firestore {
     }
 
     match /companies/{companyId} {
-      allow read: if isAdmin()
+      allow read: if isMasterAdmin()
+        || isAdmin()
         || (signedIn() && userData().companyId == companyId)
         || sellerManagesCompany(companyId);
       allow create, update, delete: if isAdmin();
@@ -219,6 +220,29 @@ service cloud.firestore {
             || (isAdmin() && belongsToActorTenant(tenantId));
         }
       }
+
+      /** Trilhas da home streaming (Vimeo), uma árvore por tenant. */
+      match /streamingTracks/{trackId} {
+        allow read: if true;
+        allow create, update, delete: if isMasterAdmin()
+          || (isAdmin() && belongsToActorTenant(tenantId));
+
+        match /entries/{entryId} {
+          allow read: if true;
+          allow create, update, delete: if isMasterAdmin()
+            || (isAdmin() && belongsToActorTenant(tenantId));
+        }
+      }
+
+      /** Agregados de visualização da home streaming (escrita só Cloud Functions). */
+      match /streamingEntryStats/{entryId} {
+        allow read: if isMasterAdmin() || (isAdmin() && belongsToActorTenant(tenantId));
+        allow write: if false;
+      }
+      match /streamingTrackStats/{trackId} {
+        allow read: if isMasterAdmin() || (isAdmin() && belongsToActorTenant(tenantId));
+        allow write: if false;
+      }
     }
 
     match /plans/{planId} {
@@ -273,7 +297,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || vendedorCanReadStudentUserDoc();
+      allow read: if isMasterAdmin()
+        || isOwner(userId)
+        || isAdmin()
+        || vendedorCanReadStudentUserDoc();
       allow create: if false;
       allow update: if isOwner(userId)
         && request.resource.data.role == resource.data.role
@@ -360,24 +387,27 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    /** Home streaming: trilhas e vídeos Vimeo (leitura pública; escrita só admin). */
+    /**
+     * Legado global (pré-tenantização): manter só leitura para migração;
+     * escrita apenas master (limpeza). Novos dados: tenants/{tenantId}/streamingTracks.
+     */
     match /streamingTracks/{trackId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isMasterAdmin();
 
       match /entries/{entryId} {
         allow read: if true;
-        allow write: if isAdmin();
+        allow write: if isMasterAdmin();
       }
     }
 
-    /** Agregados de visualização da home streaming (escrita só via Cloud Functions). */
+    /** Legado: métricas globais; preferir tenants/{tenantId}/streaming*Stats. */
     match /streamingEntryStats/{entryId} {
-      allow read: if isAdmin();
+      allow read: if isMasterAdmin();
       allow write: if false;
     }
     match /streamingTrackStats/{trackId} {
-      allow read: if isAdmin();
+      allow read: if isMasterAdmin();
       allow write: if false;
     }
     /** Cache de transcrições Vimeo para o assistente (só servidor). */

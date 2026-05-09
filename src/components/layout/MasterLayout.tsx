@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Building2, LogOut, Plus, ShoppingBag } from 'lucide-react';
+import { Activity, Building2, LogOut, Plus, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
 
@@ -33,6 +33,10 @@ export function MasterLayout() {
         <NavLink to="/master/marketplace" className={navCls}>
           <ShoppingBag size={18} className="shrink-0" />
           Marketplace (pedidos)
+        </NavLink>
+        <NavLink to="/master/consumo" className={navCls}>
+          <Activity size={18} className="shrink-0" />
+          Consumo
         </NavLink>
       </nav>
       <button

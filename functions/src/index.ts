@@ -10,6 +10,7 @@ import {
   assertAssistantDailyQuota,
   handleLogStreamingView,
   handleStreamingAssistantChat,
+  resolveTrustedTenantIdForStreaming,
   type StreamingAssistantRequestData,
 } from './streamingOps.js';
 
@@ -849,7 +850,15 @@ export const logStreamingView = onCall(callableHttp, async (request) => {
       'Inicie sessão para que a visualização conte nas estatísticas.'
     );
   }
-  return handleLogStreamingView(db, (request.data ?? {}) as { trackId?: string; entryId?: string });
+  const uid = request.auth.uid;
+  const raw = (request.data ?? {}) as { trackId?: string; entryId?: string; tenantId?: string };
+  const tenantId = await resolveTrustedTenantIdForStreaming(
+    db,
+    uid,
+    request.auth.token as Record<string, unknown>,
+    raw.tenantId
+  );
+  return handleLogStreamingView(db, { ...raw, tenantId });
 });
 
 /** Chat assistente (Gemini): login obrigatório + quota diária; contexto streaming + cursos + vídeo em foco. */
@@ -863,13 +872,24 @@ export const streamingAssistantChat = onCall(
       );
     }
     const raw = (request.data ?? {}) as StreamingAssistantRequestData;
+    const tenantId = await resolveTrustedTenantIdForStreaming(
+      db,
+      request.auth.uid,
+      request.auth.token as Record<string, unknown>,
+      raw.tenantId
+    );
     await assertAssistantDailyQuota(db, request.auth.uid, raw.courseId);
-    return handleStreamingAssistantChat(db, raw, {
-      googleApiKey: geminiApiKeySecret.value(),
-      modelName: geminiModelParam.value(),
-      /** Vimeo é opcional: sem token, o assistente usa fallback sem bloquear deploy. */
-      vimeoToken: process.env.VIMEO_ACCESS_TOKEN?.trim(),
-    });
+    return handleStreamingAssistantChat(
+      db,
+      raw,
+      {
+        googleApiKey: geminiApiKeySecret.value(),
+        modelName: geminiModelParam.value(),
+        /** Vimeo é opcional: sem token, o assistente usa fallback sem bloquear deploy. */
+        vimeoToken: process.env.VIMEO_ACCESS_TOKEN?.trim(),
+      },
+      tenantId
+    );
   }
 );
 
