@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listTenants } from '@/lib/firestore/tenancy';
-import type { TenantDoc } from '@/types';
+import type { TenantDoc, TenantStatus } from '@/types';
+
+function estadoPt(s: TenantStatus): string {
+  if (s === 'active') return 'Ativo';
+  if (s === 'suspended') return 'Suspenso';
+  return 'Pendente';
+}
 
 export function MasterTenantsPage() {
   const [rows, setRows] = useState<TenantDoc[]>([]);
@@ -66,7 +72,7 @@ export function MasterTenantsPage() {
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-zinc-400">{r.id}</td>
                   <td className="px-4 py-3 text-zinc-300">{r.planId}</td>
-                  <td className="px-4 py-3 text-zinc-300">{r.status}</td>
+                  <td className="px-4 py-3 text-zinc-300">{estadoPt(r.status)}</td>
                 </tr>
               ))}
             </tbody>

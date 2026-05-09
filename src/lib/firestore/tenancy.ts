@@ -6,6 +6,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -88,6 +89,14 @@ export async function getTenantEntitlements(
     limits: (x.limits as Record<string, number>) ?? {},
     updatedAt: (x.updatedAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
   };
+}
+
+/** Atualiza só `status` e `updatedAt` (ex.: desativar rápido no master sem validar o restante formulário). */
+export async function patchTenantStatus(tenantId: string, status: TenantDoc['status']): Promise<void> {
+  await updateDoc(doc(db, 'tenants', tenantId), {
+    status,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function upsertTenant(

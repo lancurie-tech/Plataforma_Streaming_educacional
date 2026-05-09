@@ -33,8 +33,19 @@ export function buildVimeoPlayerEmbedSrc(raw: string): string | null {
   }
 
   const path = url.pathname;
-  const unlisted = path.match(/^\/(\d{6,})\/([a-f0-9]+)\/?$/i);
+  /** Links copiados da área "Gerir vídeos" (dashboard), ex.: /manage/videos/123456789 */
+  const manage = path.match(/^\/manage\/videos\/(\d{6,})\/?$/i);
   const qpH = url.searchParams.get('h');
+
+  if (manage) {
+    const id = manage[1];
+    if (qpH) {
+      return `https://player.vimeo.com/video/${id}?h=${encodeURIComponent(qpH)}`;
+    }
+    return `https://player.vimeo.com/video/${id}`;
+  }
+
+  const unlisted = path.match(/^\/(\d{6,})\/([a-f0-9]+)\/?$/i);
 
   if (unlisted) {
     const id = unlisted[1];

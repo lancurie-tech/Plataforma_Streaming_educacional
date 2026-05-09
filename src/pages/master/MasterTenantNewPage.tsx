@@ -223,9 +223,9 @@ export function MasterTenantNewPage() {
             onChange={(e) => setStatus(e.target.value as TenantStatus)}
             className="mt-1.5 w-full rounded-xl border border-zinc-700 bg-zinc-900/80 px-3 py-2.5 text-sm text-zinc-100"
           >
-            <option value="active">active</option>
-            <option value="suspended">suspended</option>
-            <option value="pending">pending</option>
+            <option value="active">Ativo</option>
+            <option value="suspended">Suspenso (desativado)</option>
+            <option value="pending">Pendente</option>
           </select>
         </div>
         <fieldset className="space-y-2">
