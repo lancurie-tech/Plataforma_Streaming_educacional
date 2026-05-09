@@ -22,7 +22,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (location.pathname.startsWith('/vendedor') && profile?.role !== 'vendedor') {
     const dest =
-      masterAdmin ? '/master' : profile?.role === 'admin' ? '/admin' : '/cursos';
+      masterAdmin || profile?.role === 'master'
+        ? '/master'
+        : profile?.role === 'admin'
+          ? '/admin'
+          : '/cursos';
     return <Navigate to={dest} replace />;
   }
 

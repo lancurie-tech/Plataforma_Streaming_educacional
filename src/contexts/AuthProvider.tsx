@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react';
@@ -58,7 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { publicSnapshot, resolvedSlug } = usePublicTenantHost();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [masterAdmin, setMasterAdmin] = useState(false);
+  /** Claim `master_admin` no JWT (não inclui `role: master` — combina-se abaixo). */
+  const [tokenMasterClaim, setTokenMasterClaim] = useState(false);
   const [tokenClaimsReady, setTokenClaimsReady] = useState(true);
   const [entitlements, setEntitlements] = useState<AuthContextValue['entitlements']>(null);
   const [tenantUrlSlug, setTenantUrlSlug] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) {
-      setMasterAdmin(false);
+      setTokenMasterClaim(false);
       setTokenClaimsReady(true);
       return;
     }
@@ -77,10 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void user
       .getIdTokenResult(true)
       .then((tk) => {
-        if (!cancelled) setMasterAdmin(tk.claims.master_admin === true);
+        if (!cancelled) setTokenMasterClaim(tk.claims.master_admin === true);
       })
       .catch(() => {
-        if (!cancelled) setMasterAdmin(false);
+        if (!cancelled) setTokenMasterClaim(false);
       })
       .finally(() => {
         if (!cancelled) setTokenClaimsReady(true);
@@ -89,6 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [user]);
+
+  const masterAdmin = useMemo(
+    () => tokenMasterClaim || profile?.role === 'master',
+    [tokenMasterClaim, profile?.role]
+  );
 
   useEffect(() => {
     const unsub = onAuthChange(async (u) => {

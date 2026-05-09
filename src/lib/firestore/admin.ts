@@ -12,6 +12,7 @@ import {
   query,
   where,
   getCountFromServer,
+  updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -28,11 +29,15 @@ function parseCompanyData(d: { id: string; data: () => Record<string, unknown> |
   const allowedEmailDomains = Array.isArray(x.allowedEmailDomains)
     ? (x.allowedEmailDomains as string[]).filter((s) => typeof s === 'string')
     : undefined;
+  const tenantIdRaw = x.tenantId;
+  const tenantId =
+    typeof tenantIdRaw === 'string' && tenantIdRaw.trim() ? tenantIdRaw.trim() : undefined;
   return {
     id: d.id,
     name: (x.name as string) ?? '',
     slug: (x.slug as string) ?? '',
     active: x.active !== false,
+    tenantId,
     roles: Array.isArray(x.roles) ? (x.roles as CompanyDoc['roles']) : undefined,
     departments: Array.isArray(x.departments) ? (x.departments as CompanyDoc['departments']) : undefined,
     allowedEmailDomains: allowedEmailDomains?.length ? allowedEmailDomains : undefined,
@@ -52,6 +57,20 @@ export async function setCompanyActive(companyId: string, active: boolean): Prom
     { active, updatedAt: serverTimestamp() },
     { merge: true }
   );
+}
+
+/**
+ * Liga a empresa ao doc `tenants/{tenantId}` usado para limites de plano no cadastro por link
+ * (`registerWithCompany`). Se vazio, remove o campo (volta ao fallback `companyId`).
+ */
+export async function setCompanyTenantId(companyId: string, tenantId: string): Promise<void> {
+  const ref = doc(db, 'companies', companyId);
+  const trimmed = tenantId.trim();
+  if (trimmed) {
+    await updateDoc(ref, { tenantId: trimmed, updatedAt: serverTimestamp() });
+  } else {
+    await updateDoc(ref, { tenantId: deleteField(), updatedAt: serverTimestamp() });
+  }
 }
 
 export async function listCoursesCatalog(): Promise<CourseSummary[]> {

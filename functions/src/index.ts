@@ -12,6 +12,7 @@ import {
   handleStreamingAssistantChat,
   type StreamingAssistantRequestData,
 } from './streamingOps.js';
+import { sendResendEmail } from './resendMail.js';
 
 initializeApp();
 const db = getFirestore();
@@ -112,6 +113,51 @@ async function assertIsAdmin(uid: string): Promise<void> {
   if (!snap.exists || snap.data()?.role !== 'admin') {
     throw new HttpsError('permission-denied', 'Apenas administradores.');
   }
+}
+
+async function assertIsMasterOperator(request: {
+  auth?: { uid?: string; token?: Record<string, unknown> } | null;
+}): Promise<void> {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Faça login.');
+  }
+  if (request.auth.token?.master_admin === true) {
+    return;
+  }
+  const snap = await db.doc(`users/${request.auth.uid}`).get();
+  if (snap.data()?.role === 'master') {
+    return;
+  }
+  throw new HttpsError('permission-denied', 'Apenas operadores master.');
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Origem da app SPA (ex.: https://projeto.web.app). Usada no e-mail e no link de redefinição de senha. */
+function parseAllowedAppOrigin(raw: string): URL {
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  if (!trimmed) {
+    throw new HttpsError('invalid-argument', 'Indique a origem da aplicação (appOrigin), ex.: https://seu-dominio.web.app');
+  }
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new HttpsError('invalid-argument', 'appOrigin inválido. Use URL absoluta (https://…).');
+  }
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) {
+    throw new HttpsError('invalid-argument', 'appOrigin deve ser https:// (ou http://localhost para desenvolvimento).');
+  }
+  if (url.pathname !== '/' && url.pathname !== '') {
+    throw new HttpsError('invalid-argument', 'appOrigin deve ser só o esquema + host (sem path).');
+  }
+  return url;
 }
 
 async function deleteUserData(uid: string): Promise<void> {
@@ -257,6 +303,30 @@ export const registerWithCompany = onCall(callableHttp, async (request) => {
   const companyRoleId = v2Match.roleId;
   const companyDepartmentId = v2Match.departmentId;
 
+  const tenantKeyForLimits =
+    typeof c.tenantId === 'string' && c.tenantId.trim() !== '' ? c.tenantId.trim() : companyId;
+  const entSnap = await db.doc(`tenants/${tenantKeyForLimits}/entitlements/current`).get();
+  if (entSnap.exists) {
+    const limits = entSnap.data()?.limits as Record<string, unknown> | undefined;
+    const rawMax = limits?.maxActiveUsers;
+    const maxActive =
+      typeof rawMax === 'number'
+        ? rawMax
+        : typeof rawMax === 'string'
+          ? Number(rawMax)
+          : Number.NaN;
+    if (Number.isFinite(maxActive) && maxActive > 0) {
+      const agg = await db.collection('users').where('companyId', '==', companyId).count().get();
+      const current = agg.data().count;
+      if (current >= maxActive) {
+        throw new HttpsError(
+          'resource-exhausted',
+          `Limite de utilizadores ativos desta organização foi atingido (${maxActive}). Contacte o administrador ou a equipa comercial.`
+        );
+      }
+    }
+  }
+
   const dupCpf = await db
     .collection('users')
     .where('companyId', '==', companyId)
@@ -376,6 +446,137 @@ export const adminCreateCompany = onCall(callableHttp, async (request) => {
 
   const registrationPath = `/${slug}/cadastro`;
   return { companyId: ref.id, slug, registrationPath };
+});
+
+function randomInitialPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let s = '';
+  for (let i = 0; i < 22; i++) {
+    s += chars[crypto.randomInt(chars.length)]!;
+  }
+  return s;
+}
+
+/**
+ * Master: cria o primeiro utilizador `admin` do tenant, define claim `tenantId` no Auth,
+ * opcionalmente envia e-mail (Resend) com URL pública do cliente e link para definir senha.
+ */
+export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
+  await assertIsMasterOperator(request);
+
+  const data = request.data as {
+    tenantId?: string;
+    email?: string;
+    adminName?: string;
+    appOrigin?: string;
+  };
+  const tenantId = (data.tenantId ?? '').trim();
+  const email = (data.email ?? '').trim().toLowerCase();
+  const adminName = (data.adminName ?? '').trim();
+  const appOriginUrl = parseAllowedAppOrigin(data.appOrigin ?? '');
+
+  if (!tenantId) {
+    throw new HttpsError('invalid-argument', 'tenantId é obrigatório.');
+  }
+  if (!email || !email.includes('@')) {
+    throw new HttpsError('invalid-argument', 'E-mail do administrador inválido.');
+  }
+  if (!adminName) {
+    throw new HttpsError('invalid-argument', 'Indique o nome do administrador.');
+  }
+
+  const tenantSnap = await db.doc(`tenants/${tenantId}`).get();
+  if (!tenantSnap.exists) {
+    throw new HttpsError('not-found', 'Tenant não encontrado.');
+  }
+  const tenantData = tenantSnap.data()!;
+  const displayName = (tenantData.displayName as string) || tenantId;
+  const slugRaw =
+    typeof tenantData.publicSlug === 'string' && tenantData.publicSlug.trim()
+      ? tenantData.publicSlug.trim().toLowerCase()
+      : '';
+  const pathSegment = slugRaw || tenantId;
+  const siteUrl = new URL(`/${pathSegment}/`, appOriginUrl).href;
+  const adminUrl = new URL('/admin', appOriginUrl).href;
+  const continueUrl = new URL('/redefinir-senha', appOriginUrl).href;
+
+  let userRecord;
+  try {
+    userRecord = await authAdmin.createUser({
+      email,
+      password: randomInitialPassword(),
+      displayName: adminName,
+      emailVerified: false,
+    });
+  } catch (e: unknown) {
+    const code = (e as { code?: string }).code;
+    if (code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'Este e-mail já está registado no Authentication.');
+    }
+    throw new HttpsError('internal', 'Não foi possível criar o utilizador.');
+  }
+
+  const uid = userRecord.uid;
+
+  try {
+    await db.doc(`users/${uid}`).set({
+      name: adminName,
+      email,
+      role: 'admin',
+      tenantId,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    await authAdmin.setCustomUserClaims(uid, { tenantId });
+  } catch {
+    await authAdmin.deleteUser(uid).catch(() => {});
+    throw new HttpsError('internal', 'Falha ao gravar o perfil do administrador.');
+  }
+
+  let resetLink: string;
+  try {
+    resetLink = await authAdmin.generatePasswordResetLink(email, { url: continueUrl });
+  } catch {
+    await deleteUserData(uid);
+    throw new HttpsError(
+      'failed-precondition',
+      'Utilizador criado mas não foi possível gerar o link de senha. Confirme em Firebase Console → Authentication → Authorized domains que o domínio de appOrigin está autorizado.'
+    );
+  }
+
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  const resendFrom =
+    process.env.RESEND_FROM_EMAIL?.trim() || 'Plataforma <onboarding@resend.dev>';
+
+  let emailSent = false;
+  if (resendKey) {
+    const safeOrg = escapeHtml(displayName);
+    const safeName = escapeHtml(adminName);
+    const html = `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111">
+<p>Olá, ${safeName}.</p>
+<p>A organização <strong>${safeOrg}</strong> foi configurada na plataforma.</p>
+<p><strong>Primeiro acesso ao site do cliente:</strong><br><a href="${siteUrl}">${escapeHtml(siteUrl)}</a></p>
+<p>Depois de definir a senha (botão abaixo), pode gerir conteúdos em:<br><a href="${adminUrl}">${escapeHtml(adminUrl)}</a></p>
+<p><a href="${resetLink}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#059669;color:#fff;text-decoration:none;border-radius:8px">Definir senha</a></p>
+<p style="font-size:12px;color:#555">Se o botão não funcionar, copie este link para o navegador:<br>${escapeHtml(resetLink)}</p>
+</body></html>`;
+
+    try {
+      const subjectSafe = displayName.replace(/[\r\n]+/g, ' ').slice(0, 200);
+      await sendResendEmail({
+        apiKey: resendKey,
+        from: resendFrom,
+        to: email,
+        subject: `Acesso à plataforma — ${subjectSafe}`,
+        html,
+      });
+      emailSent = true;
+    } catch (err) {
+      console.error('masterInviteTenantAdmin: Resend falhou', err);
+    }
+  }
+
+  return { ok: true, uid, emailSent };
 });
 
 /**
