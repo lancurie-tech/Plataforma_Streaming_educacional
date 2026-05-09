@@ -15,13 +15,17 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || profile?.role !== 'admin') {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  /** Operador master não usa o painel do cliente — mesmo com `role: admin` no perfil. */
-  if (masterAdmin) {
+  /** Operador master (claim ou `role: master`) não usa o painel do cliente. */
+  if (masterAdmin || profile?.role === 'master') {
     return <Navigate to="/master" replace />;
+  }
+
+  if (profile?.role !== 'admin') {
+    return <Navigate to="/login" replace />;
   }
 
   const actorTenant = resolveTenantIdFromProfile(profile);

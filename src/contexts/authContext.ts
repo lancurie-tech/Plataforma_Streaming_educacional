@@ -10,7 +10,7 @@ export type AuthContextValue = {
    * Usado no apex para links `/${slug}/streaming` quando o URL ainda não traz o prefixo.
    */
   tenantUrlSlug: string | null;
-  /** Custom claim `master_admin` no token Firebase (operador da plataforma). */
+  /** Operador do console master: claim `master_admin` no token ou `role: master` no perfil Firestore. */
   masterAdmin: boolean;
   /** `false` brevemente após login até termos lido o token (para guards). */
   tokenClaimsReady: boolean;

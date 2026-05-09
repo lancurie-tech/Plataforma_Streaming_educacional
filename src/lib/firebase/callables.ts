@@ -33,6 +33,12 @@ export const adminCreateCompanyCallable = httpsCallable<
   { companyId: string; slug: string; registrationPath: string }
 >(fns, 'adminCreateCompany');
 
+/** Master: convite do primeiro administrador do tenant (e-mail opcional via Resend nas Functions). */
+export const masterInviteTenantAdminCallable = httpsCallable<
+  { tenantId: string; email: string; adminName: string; appOrigin: string },
+  { ok: true; uid: string; emailSent: boolean }
+>(fns, 'masterInviteTenantAdmin');
+
 export const adminDeleteCompanyCallable = httpsCallable<{ companyId: string }, { ok: boolean }>(
   fns,
   'adminDeleteCompany'

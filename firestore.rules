@@ -7,9 +7,14 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    /** Operador da plataforma (custom claim no token). Não confundir com `admin` no documento `users`. */
+    /**
+     * Operador da plataforma: custom claim `master_admin` no token **ou** `users/{uid}.role == 'master'`.
+     * Não confundir com `role == 'admin'` (admin do cliente).
+     */
     function isMasterAdmin() {
-      return signedIn() && request.auth.token.master_admin == true;
+      return signedIn()
+        && (request.auth.token.master_admin == true
+            || userData().role == 'master');
     }
 
     function isOwner(uid) {

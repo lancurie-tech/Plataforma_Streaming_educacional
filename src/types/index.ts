@@ -1,6 +1,6 @@
 import type { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'admin' | 'student' | 'vendedor';
+export type UserRole = 'admin' | 'student' | 'vendedor' | 'master';
 
 /** Quem pode ver o item no curso — mantido para compatibilidade com dados antigos. */
 export type ContentAudience = 'all';
@@ -148,6 +148,11 @@ export type CompanyDoc = {
   name: string;
   slug: string;
   active: boolean;
+  /**
+   * Opcional: `tenantId` do doc `tenants/{id}` quando difere do id da empresa.
+   * Usado p.ex. para aplicar `tenants/{tenantId}/entitlements` (limites) no cadastro por link.
+   */
+  tenantId?: string | null;
   /** Níveis / funções configurados para esta empresa. */
   roles?: CompanyRoleDef[];
   /** Áreas / setores configurados para esta empresa. */

@@ -17,6 +17,7 @@ import {
   normalizeTenantPublicSlug,
 } from '@/lib/tenantHost/normalizePublicSlug';
 import { Button } from '@/components/ui/Button';
+import { masterInviteTenantAdminCallable, mapCallableError } from '@/lib/firebase/callables';
 import type { PlanDoc, TenantDoc, TenantStatus } from '@/types';
 
 const COMMERCIAL_SET = new Set<string>(COMMERCIAL_MODULE_IDS);
@@ -54,6 +55,11 @@ export function MasterTenantDetailPage() {
   const [publicSlug, setPublicSlug] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteFeedback, setInviteFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -187,6 +193,34 @@ export function MasterTenantDetailPage() {
     }
   }
 
+  async function handleInviteAdmin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tenantId) return;
+    setInviteBusy(true);
+    setInviteFeedback(null);
+    try {
+      const res = await masterInviteTenantAdminCallable({
+        tenantId,
+        email: inviteEmail.trim().toLowerCase(),
+        adminName: inviteName.trim(),
+        appOrigin: window.location.origin,
+      });
+      const sent = res.data.emailSent;
+      setInviteFeedback({
+        kind: 'ok',
+        text: sent
+          ? 'Convite enviado por e-mail com o link do site do cliente e definição de senha.'
+          : 'Administrador criado. O e-mail automático não foi enviado (configure RESEND_API_KEY e RESEND_FROM_EMAIL nas Cloud Functions). O utilizador pode usar «Esqueci a senha» na página de login com o mesmo e-mail.',
+      });
+      setInviteEmail('');
+      setInviteName('');
+    } catch (err) {
+      setInviteFeedback({ kind: 'err', text: mapCallableError(err) });
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
   if (!tenantId || !loaded) {
     return <p className="text-zinc-500">A carregar…</p>;
   }
@@ -213,6 +247,55 @@ export function MasterTenantDetailPage() {
         {displayName}{' '}
         <span className="font-mono text-lg font-normal text-zinc-500">({tenantId})</span>
       </h1>
+
+      <section className="mt-8 max-w-2xl rounded-2xl border border-violet-500/30 bg-violet-500/5 p-5">
+        <h2 className="text-base font-semibold text-violet-100">Primeiro administrador do cliente</h2>
+        <p className="mt-1 text-xs text-violet-200/80">
+          Cria a conta com perfil <code className="text-violet-200/90">admin</code> e{' '}
+          <code className="text-violet-200/90">tenantId</code> neste tenant. Envia e-mail (Resend) com o URL
+          público <span className="font-mono">/{publicSlug.trim() || tenantId}/</span> e link para definir senha,
+          desde que <code className="text-violet-200/90">RESEND_API_KEY</code> esteja configurada nas Functions.
+        </p>
+        <form onSubmit={handleInviteAdmin} className="mt-4 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-zinc-400" htmlFor="inv-name">
+              Nome do administrador
+            </label>
+            <input
+              id="inv-name"
+              value={inviteName}
+              onChange={(ev) => setInviteName(ev.target.value)}
+              className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950/80 px-3 py-2 text-sm text-zinc-100"
+              autoComplete="name"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-zinc-400" htmlFor="inv-email">
+              E-mail
+            </label>
+            <input
+              id="inv-email"
+              type="email"
+              value={inviteEmail}
+              onChange={(ev) => setInviteEmail(ev.target.value)}
+              className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950/80 px-3 py-2 text-sm text-zinc-100"
+              autoComplete="email"
+            />
+          </div>
+          <Button type="submit" isLoading={inviteBusy} variant="outline" className="border-violet-500/40 text-violet-100">
+            Criar conta e enviar convite
+          </Button>
+          {inviteFeedback ? (
+            <p
+              className={
+                inviteFeedback.kind === 'ok' ? 'text-sm text-emerald-400' : 'text-sm text-amber-400'
+              }
+            >
+              {inviteFeedback.text}
+            </p>
+          ) : null}
+        </form>
+      </section>
 
       <form onSubmit={handleSave} className="mt-8 max-w-2xl space-y-6">
         <div>

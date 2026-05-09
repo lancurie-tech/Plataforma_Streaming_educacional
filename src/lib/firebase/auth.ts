@@ -86,7 +86,11 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return null;
   const d = snap.data();
-  const role = (d.role as UserRole | undefined) ?? 'student';
+  const rawRole = typeof d.role === 'string' ? d.role.trim() : '';
+  const role: UserRole =
+    rawRole === 'admin' || rawRole === 'student' || rawRole === 'vendedor' || rawRole === 'master'
+      ? rawRole
+      : 'student';
   const managedRaw = d.managedCompanyIds;
   const managedCompanyIds =
     role === 'vendedor'

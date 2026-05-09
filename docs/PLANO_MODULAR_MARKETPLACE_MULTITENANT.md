@@ -164,10 +164,12 @@ Quando um módulo novo é desenvolvido e entra no catálogo, **todos os tenants*
 
 | Caminho | Conteúdo |
 |---------|----------|
-| `tenants/{tenantId}` | `displayName`, `planId`, `status`, `createdAt`, contatos. |
-| `tenants/{tenantId}/settings` ou subdoc | Branding, preferências. |
-| `tenants/{tenantId}/entitlements` | `enabledModuleIds[]`, `limits{}`, `updatedAt`. |
-| `catalog/modules/{moduleId}` | Nome, descrição, `status`, `minAppVersion`, `dependencies[]`, texto comercial (preço “a partir de” para UI). |
+| `tenants/{tenantId}` | `displayName`, `planId`, `status`, `publicSlug`, `createdAt`, contatos. |
+| `tenants/{tenantId}/public/branding` | Identidade visual **pública** do tenant (merge no cliente sobre `siteContent/branding`); escrita: master ou admin do tenant (Rules). |
+| `tenants/{tenantId}/settings` ou subdoc | *(opcional / futuro)* preferências não públicas. |
+| `tenantPublicSlugs/{slug}` | Índice público: `tenantId`, `displayName`, `enabledModuleIds`, `status` — leitura anónima; escrita master; usado para URL `/slug/…` e para `hasModule` na superfície pública. |
+| `tenants/{tenantId}/entitlements/current` | `enabledModuleIds[]`, `limits{}`, `planId`, `updatedAt` (entitlements efetivos). |
+| `catalog/platform/modules/{moduleId}` | Catálogo de oferta (ver `docs/FASE4_MARKETPLACE.md`): metadados, `commercialModuleId`, `status`. |
 | `plans/{planId}` | Limites default por plano (`maxUsers`, `maxStorageGb`, …). |
 | `requests/modulePurchase` ou `tenants/{tenantId}/requests/*` | Solicitações do marketplace (tenant, módulo, data, status `pending/approved/rejected`). |
 
@@ -340,10 +342,69 @@ Atualizar quando novos guias existirem:
 - `docs/MODULOS_IDS.md` — contrato comercial (`streaming` / `cursos` / `chat` / `vendedores`) e mapeamento interno.
 - `docs/PLANOS_LIMITES_RASCUNHO.md` — dimensões de limites por plano (Fase 0).
 - `docs/FASE1_MULTI_TENANT_MINIMO.md` — schema e validação inicial de isolamento por tenant.
+- `docs/FASE2_MODULARIZACAO_INCREMENTAL.md` — modularização incremental.
 - `docs/FASE3_CONSOLE_MASTER.md` — claim `master_admin`, Rules e UI `/master`.
 - `docs/FASE4_MARKETPLACE.md` — catálogo `catalog/platform/modules`, `marketplaceRequests`, UI `/admin/marketplace` e `/master/marketplace`.
-- *(adicionar)* `docs/RUNBOOK_NOVO_TENANT.md` — após Fase 3–5.
+- `docs/RUNBOOK_NOVO_TENANT.md` — checklist operacional (slug público, índice, branding, primeiro admin, convite por e-mail, empresa ↔ tenant para limites).
+- `docs/FASE6_HARDENING_CHECKLIST.md` — revisão de segurança e operação (Fase 6).
 
 ---
 
-*Última atualização: exemplo de planos (Essencial / Profissional / Corporativo), limites fictícios e composição de preço (sustentação + teto de infra + valor da plataforma); demais inalterado (multi-tenant, marketplace por solicitação, console master).*
+## 12. Estado de implementação no repositório (sincronizado com o código)
+
+**MVP do plano (fases 1–4 + fechos 5–6 documentados):** multi-tenant, master, marketplace por solicitação, limites mínimos no cadastro, convite do primeiro admin com e-mail opcional, checklist de hardening. **Fora do MVP** continuam a evolução comercial (mais limites, billing automático, observabilidade avançada).
+
+Resumo do que **já existe** na app (além do descrito nas fases 1–4 nos docs `FASE*.md`):
+
+### Multi-tenant e URL
+
+- **Um projeto Firebase**; dados por `tenantId` + Rules conforme `firestore.rules`.
+- **`tenantPublicSlugs/{slug}`**: espelho do slug público (módulos visíveis no site, `displayName`, `status`); sincronizado a partir do console **master** ao criar/editar tenant (`publicSlug`).
+- **Resolução de tenant**: `PublicTenantProvider` — prioridade **subdomínio** (se `VITE_PUBLIC_APP_APEX_DOMAIN`) e depois **path** (`/slug`, `/slug/streaming`, `/slug/login`, `/slug/cadastro`, …) via `parsePathTenantForPublicHost`.
+- **Apex sem slug** (`/`): redireciona para **`/login`** (entrada operador / utilizador sem contexto de cliente).
+- **Sem superfície de plataforma no apex** para streaming/cursos: rotas `/streaming`, `/cursos`, `/canal/*`, `/curso/*` no apex redirecionam para login; conteúdo modular público vive em **`/{slug}/…`**.
+
+### Auth, perfil e módulos na UI
+
+- **Claim `master_admin`** + rotas **`/master`** (tenants, detalhe, novo, marketplace inbox). No detalhe do tenant: **convite do primeiro administrador** (`masterInviteTenantAdmin`) com URL pública do slug e link de definição de senha; e-mail via **Resend** se `RESEND_API_KEY` estiver definida nas Functions.
+- **Admin do tenant** em **`/admin`** com guards por módulo (`ModuleEntitlementRoute`, etc.).
+- **`tenantUrlSlug`** no contexto de auth (a partir de `getTenant` → `publicSlug` ou `tenantId`) para links e pós-login no **apex**.
+- **`hasModule`**: se o URL tiver tenant resolvido com **`publicSnapshot`**, os módulos exibidos seguem **sempre** `enabledModuleIds` desse índice público — **inclui utilizador autenticado e master** a pré-visualizar o site do cliente (evita “ver tudo” por entitlements do perfil do master).
+
+### Branding
+
+- **Global**: `siteContent/branding` (inalterado como base).
+- **Por tenant (site público)**: `tenants/{tenantId}/public/branding` — merge em runtime no `BrandingProvider` sobre o global.
+- **Admin → Identidade visual**: com `tenantId`/`companyId` no perfil, grava/lê o doc do **tenant**; caso contrário, continua o branding **global** (ex.: operação sem org).
+
+### Marketplace (MVP)
+
+- Estrutura alinhada a `docs/FASE4_MARKETPLACE.md` (`marketplaceRequests`, catálogo, UI `/admin/marketplace` e `/master/marketplace`) — manter validação E2E e deploy de **rules/indexes** como checklist de release.
+
+### Fase 5 — Limites (MVP fechado no âmbito do plano)
+
+- Enforcement de **`limits.maxActiveUsers`** no cadastro self-service por empresa (`registerWithCompany`), com **`companies.tenantId`** opcional e UI em **`/admin/empresas/:id`** (Tenant para limites de plano).
+- **Extensões recomendadas fora deste fecho:** storage, convites de utilizadores, quotas visíveis no painel — ver `docs/PLANOS_LIMITES_RASCUNHO.md`.
+
+### Fase 6 — Hardening (MVP documental)
+
+- Checklist operacional em **`docs/FASE6_HARDENING_CHECKLIST.md`** (Rules, Functions, domínios Auth, observabilidade).
+
+### Evoluções pós-MVP (produto e código mais “enterprise”)
+
+- **Rules + JWT**: alinhar `belongsToActorTenant` a **custom claim** `tenantId` onde ainda só se usa `users/{uid}` (o convite master já grava claim no novo admin).
+- **Auditoria** de alterações master (quem mudou plano/módulos).
+- **Billing** automático (Stripe, etc.) e notificações in-app no marketplace.
+- **Métricas** por tenant (uso, custo interno).
+
+---
+
+## 13. Próximo passo recomendado
+
+1. **Validar em staging/produção**: `firebase deploy --only functions` (inclui `masterInviteTenantAdmin`), rules/indexes se necessário; testar convite com e sem Resend.
+2. **Configurar Resend** em produção (`RESEND_API_KEY`, `RESEND_FROM_EMAIL` no ambiente da Cloud Function) e domínios autorizados no Firebase Auth.
+3. **Seguir** `docs/RUNBOOK_NOVO_TENANT.md` + `docs/FASE6_HARDENING_CHECKLIST.md` em cada release relevante.
+
+---
+
+*Última atualização: MVP do plano fechado com convite master + Resend opcional; secções 12–13 e referências §11 atualizadas.*

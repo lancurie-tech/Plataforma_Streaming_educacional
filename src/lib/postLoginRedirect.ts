@@ -21,7 +21,7 @@ export function postLoginStudentPath(from: unknown, tenantUrlSlug: string | null
 }
 
 /**
- * Destino após login na página `/login`: master (claim) → `/master`; resto conforme papel no perfil.
+ * Destino após login na página `/login`: operador master (claim `master_admin` ou `role: master`) → `/master`; resto conforme papel no perfil.
  */
 export async function resolvePostLoginPath(
   user: User,
@@ -29,6 +29,9 @@ export async function resolvePostLoginPath(
   from: unknown,
   tenantUrlSlug: string | null,
 ): Promise<string> {
+  if (profile.role === 'master') {
+    return '/master';
+  }
   try {
     const tk = await user.getIdTokenResult(true);
     if (tk.claims.master_admin === true) {

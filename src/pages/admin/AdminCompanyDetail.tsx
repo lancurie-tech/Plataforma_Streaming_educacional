@@ -11,6 +11,7 @@ import {
   setCompanyActive,
   setCompanyCourseAssignment,
   setCompanyModuleSchedule,
+  setCompanyTenantId,
   type CompanyRegistrationArchive,
   type SetCompanyCourseAssignmentMode,
 } from '@/lib/firestore/admin';
@@ -411,6 +412,9 @@ export function AdminCompanyDetail() {
   const [configMsg, setConfigMsg] = useState<string | null>(null);
   const [emailDomains, setEmailDomains] = useState<string[]>([]);
   const [newDomain, setNewDomain] = useState('');
+  const [tenantIdDraft, setTenantIdDraft] = useState('');
+  const [tenantIdBusy, setTenantIdBusy] = useState(false);
+  const [tenantIdMsg, setTenantIdMsg] = useState<string | null>(null);
 
   /** Evita que `load()` sobrescreva níveis/áreas/domínios ainda não salvos ao adicionar curso etc. */
   const configFormDirtyRef = useRef(false);
@@ -455,6 +459,12 @@ export function AdminCompanyDetail() {
   }, [companyId]);
 
   useEffect(() => {
+    if (!company) return;
+    setTenantIdDraft(company.tenantId ?? '');
+    setTenantIdMsg(null);
+  }, [company?.id, company?.tenantId]);
+
+  useEffect(() => {
     void load();
   }, [load]);
 
@@ -470,6 +480,27 @@ export function AdminCompanyDetail() {
     configFormDirtyRef.current = true;
     setEmailDomains((prev) => [...prev, d]);
     setNewDomain('');
+  }
+
+  async function saveTenantIdLink() {
+    if (!companyId) return;
+    setTenantIdBusy(true);
+    setTenantIdMsg(null);
+    try {
+      await setCompanyTenantId(companyId, tenantIdDraft);
+      setTenantIdMsg('Ligação ao tenant guardada.');
+      await load();
+    } catch (e) {
+      setTenantIdMsg(
+        e instanceof FirebaseError
+          ? e.code === 'permission-denied'
+            ? 'Sem permissão para alterar esta empresa.'
+            : e.message || e.code
+          : 'Não foi possível guardar.'
+      );
+    } finally {
+      setTenantIdBusy(false);
+    }
   }
 
   async function saveConfig() {
@@ -731,6 +762,42 @@ export function AdminCompanyDetail() {
             Adicionar
           </Button>
         </div>
+      </section>
+
+      {/* ---- Tenant de faturamento (limites no cadastro) ---- */}
+      <section className="rounded-2xl border border-zinc-700/40 bg-zinc-900/40 p-5">
+        <h2 className="text-base font-semibold text-zinc-100">Tenant para limites de plano</h2>
+        <p className="mt-1 text-xs text-zinc-400">
+          Opcional: ID do documento em <span className="font-mono text-zinc-300">tenants/{'{id}'}</span> quando
+          difere do ID desta empresa. Usado na callable de cadastro por link para ler{' '}
+          <span className="font-mono text-zinc-300">entitlements/current</span> (ex.:{' '}
+          <span className="font-mono text-zinc-300">limits.maxActiveUsers</span>). Vazio = usa o ID da empresa.
+        </p>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1 block text-xs text-zinc-500" htmlFor="company-tenant-id">
+              tenantId
+            </label>
+            <input
+              id="company-tenant-id"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-emerald-500"
+              placeholder={companyId}
+              value={tenantIdDraft}
+              onChange={(e) => setTenantIdDraft(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <Button type="button" variant="outline" isLoading={tenantIdBusy} onClick={() => void saveTenantIdLink()}>
+            Guardar ligação
+          </Button>
+        </div>
+        {tenantIdMsg ? (
+          <p
+            className={`mt-2 text-sm ${tenantIdMsg.toLowerCase().includes('guardada') ? 'text-emerald-400' : 'text-red-400'}`}
+          >
+            {tenantIdMsg}
+          </p>
+        ) : null}
       </section>
 
       {/* ---- Gerar / atualizar chaves ---- */}
