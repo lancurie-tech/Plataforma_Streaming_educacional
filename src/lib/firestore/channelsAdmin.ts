@@ -12,20 +12,29 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { CatalogChannel, ChannelPageVideo } from '@/types';
 import { parseChannelDoc } from '@/lib/firestore/channels';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 export async function listAllChannelsAdmin(): Promise<CatalogChannel[]> {
-  const snap = await getDocs(query(collection(db, 'channels'), orderBy('order', 'asc')));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const snap = await getDocs(
+    query(collection(db, tenantContentPath(tenantId, 'channels')), orderBy('order', 'asc'))
+  );
   return snap.docs.map((d) => parseChannelDoc(d.id, d.data() as Record<string, unknown>));
 }
 
 export async function getChannelAdmin(channelId: string): Promise<CatalogChannel | null> {
-  const snap = await getDoc(doc(db, 'channels', channelId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return null;
+  const snap = await getDoc(doc(db, tenantContentPath(tenantId, 'channels'), channelId));
   if (!snap.exists()) return null;
   return parseChannelDoc(snap.id, snap.data() as Record<string, unknown>);
 }
 
 export async function createChannelDraft(): Promise<string> {
-  const col = collection(db, 'channels');
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para criar canal.');
+  const col = collection(db, tenantContentPath(tenantId, 'channels'));
   const ref = doc(col);
   const snap = await getDocs(col);
   const maxOrder = snap.docs.reduce((m, d) => {
@@ -55,6 +64,8 @@ export type ChannelSaveInput = {
 };
 
 export async function saveChannelAdmin(channelId: string, input: ChannelSaveInput): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para salvar canal.');
   const title = input.title.trim();
   if (!title) throw new Error('Informe o nome do canal.');
   const cover = input.coverImageUrl.trim();
@@ -72,7 +83,7 @@ export async function saveChannelAdmin(channelId: string, input: ChannelSaveInpu
     .sort((a, b) => a.order - b.order);
 
   await setDoc(
-    doc(db, 'channels', channelId),
+    doc(db, tenantContentPath(tenantId, 'channels'), channelId),
     {
       title,
       order: input.order,
@@ -87,5 +98,7 @@ export async function saveChannelAdmin(channelId: string, input: ChannelSaveInpu
 }
 
 export async function deleteChannelAdmin(channelId: string): Promise<void> {
-  await deleteDoc(doc(db, 'channels', channelId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para apagar canal.');
+  await deleteDoc(doc(db, tenantContentPath(tenantId, 'channels'), channelId));
 }

@@ -42,7 +42,8 @@ export async function resolvePostLoginPath(
   }
 
   if (profile.role === 'admin') {
-    return '/admin';
+    const base = publicPathPrefixFromSlug(tenantUrlSlug);
+    return base ? `${base}/admin` : '/admin';
   }
   if (profile.role === 'vendedor') {
     if (profile.mustChangePassword) {

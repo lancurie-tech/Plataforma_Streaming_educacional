@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/useAuth';
 import { usePublicTenantHost } from '@/contexts/usePublicTenantHost';
 import { resolveTenantIdFromProfile } from '@/lib/firestore/tenancy';
@@ -6,6 +6,7 @@ import { resolveTenantIdFromProfile } from '@/lib/firestore/tenancy';
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, masterAdmin, tokenClaimsReady } = useAuth();
   const { publicSnapshot, resolvedSlug } = usePublicTenantHost();
+  const location = useLocation();
 
   if (loading || (user && !tokenClaimsReady)) {
     return (
@@ -29,6 +30,22 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   const actorTenant = resolveTenantIdFromProfile(profile);
+  const shouldCanonicalizeToSlugAdmin =
+    !!resolvedSlug &&
+    !!publicSnapshot &&
+    !!actorTenant &&
+    actorTenant === publicSnapshot.tenantId &&
+    location.pathname.startsWith('/admin');
+
+  if (shouldCanonicalizeToSlugAdmin) {
+    return (
+      <Navigate
+        to={`/${resolvedSlug}${location.pathname}${location.search}${location.hash}`}
+        replace
+      />
+    );
+  }
+
   if (resolvedSlug && publicSnapshot && actorTenant && actorTenant !== publicSnapshot.tenantId) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-950 px-4 text-center">

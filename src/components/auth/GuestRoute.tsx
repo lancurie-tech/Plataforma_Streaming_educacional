@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/useAuth';
 import { resolveTenantId } from '@/lib/auth/resolveTenantId';
+import { useTenantPublicPaths } from '@/contexts/useTenantPublicPaths';
 import {
   publicPathPrefixFromSlug,
   readTenantSlugForPostLogin,
@@ -16,6 +17,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     entitlementsLoading,
     tenantUrlSlug,
   } = useAuth();
+  const paths = useTenantPublicPaths();
 
   if (loading || (user && !tokenClaimsReady)) {
     return (
@@ -30,7 +32,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
       return <Navigate to="/master" replace />;
     }
     if (profile?.role === 'admin') {
-      return <Navigate to="/admin" replace />;
+      return <Navigate to={paths.admin} replace />;
     }
     if (profile?.role === 'vendedor') {
       return (

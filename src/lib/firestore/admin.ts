@@ -23,6 +23,7 @@ import type {
   CourseSummary,
 } from '@/types';
 import { isAssignmentActive } from '@/lib/firestore/assignmentAccess';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 function parseCompanyData(d: { id: string; data: () => Record<string, unknown> | undefined }): CompanyDoc {
   const x = d.data()!;
@@ -74,7 +75,9 @@ export async function setCompanyTenantId(companyId: string, tenantId: string): P
 }
 
 export async function listCoursesCatalog(): Promise<CourseSummary[]> {
-  const snap = await getDocs(collection(db, 'courses'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const snap = await getDocs(collection(db, tenantContentPath(tenantId, 'courses')));
   return snap.docs.map((d) => {
     const x = d.data();
     return {

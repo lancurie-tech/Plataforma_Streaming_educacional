@@ -20,6 +20,7 @@ import type {
   QuestionDef,
 } from '@/types';
 import { getCourse, listModules } from '@/lib/firestore/courses';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 export type DraftQuestion = QuestionDef & { correctOptionIndex?: number };
 
@@ -301,13 +302,17 @@ export async function saveCourseDraft(
   courseId: string | null,
   draft: CourseDraft
 ): Promise<SaveCourseResult> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para salvar curso.');
   const title = draft.title.trim();
   if (!title) throw new Error('Informe o título do curso.');
 
-  const courseRef = courseId ? doc(db, 'courses', courseId) : doc(collection(db, 'courses'));
+  const courseRef = courseId
+    ? doc(db, tenantContentPath(tenantId, 'courses'), courseId)
+    : doc(collection(db, tenantContentPath(tenantId, 'courses')));
   const finalId = courseRef.id;
 
-  const modulesCol = collection(db, 'courses', finalId, 'modules');
+  const modulesCol = collection(db, tenantContentPath(tenantId, 'courses'), finalId, 'modules');
   const existingSnap = await getDocs(modulesCol);
   const existingIds = new Set(existingSnap.docs.map((d) => d.id));
 
@@ -349,7 +354,9 @@ export async function saveCourseDraft(
 
   for (const mid of existingIds) {
     if (!draftIds.has(mid)) {
-      mutators.push((b) => b.delete(doc(db, 'courses', finalId, 'modules', mid)));
+      mutators.push((b) =>
+        b.delete(doc(db, tenantContentPath(tenantId, 'courses'), finalId, 'modules', mid))
+      );
       mutators.push((b) => b.delete(doc(db, 'answerKeys', `${finalId}__${mid}`)));
     }
   }
@@ -366,7 +373,11 @@ export async function saveCourseDraft(
 
     const payload = serializeModule({ ...mod, order: modOrder });
     mutators.push((b) =>
-      b.set(doc(db, 'courses', finalId, 'modules', moduleRefId), payload, { merge: false })
+      b.set(
+        doc(db, tenantContentPath(tenantId, 'courses'), finalId, 'modules', moduleRefId),
+        payload,
+        { merge: false }
+      )
     );
 
     const correct = collectCorrectByQuestionId(mod);
@@ -479,6 +490,8 @@ export function newEmptyMaterial(): ModuleMaterialLink {
  * Remove o curso, módulos, gabaritos, vínculos em empresas e matrículas/respostas dos alunos.
  */
 export async function deleteCourseCompletely(courseId: string): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para apagar curso.');
   const companyIds = await listCompanyIdsWithCourse(courseId);
   await Promise.all(companyIds.map((cid) => removeCourseFromCompany(cid, courseId)));
 
@@ -496,11 +509,11 @@ export async function deleteCourseCompletely(courseId: string): Promise<void> {
     await deleteDoc(enrollRef);
   }
 
-  const modsSnap = await getDocs(collection(db, 'courses', courseId, 'modules'));
+  const modsSnap = await getDocs(collection(db, tenantContentPath(tenantId, 'courses'), courseId, 'modules'));
   for (const m of modsSnap.docs) {
     await deleteDoc(doc(db, 'answerKeys', `${courseId}__${m.id}`));
     await deleteDoc(m.ref);
   }
 
-  await deleteDoc(doc(db, 'courses', courseId));
+  await deleteDoc(doc(db, tenantContentPath(tenantId, 'courses'), courseId));
 }

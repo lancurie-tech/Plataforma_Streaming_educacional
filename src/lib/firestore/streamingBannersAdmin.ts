@@ -9,16 +9,21 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { StreamingBanner } from '@/types';
 import { parseStreamingBannerDoc } from '@/lib/firestore/streamingBanners';
+import { resolveActiveTenantId, tenantContentPath } from '@/lib/firestore/tenantContentScope';
 
 export async function listAllStreamingBannersAdmin(): Promise<StreamingBanner[]> {
-  const snap = await getDocs(collection(db, 'streamingBanners'));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) return [];
+  const snap = await getDocs(collection(db, tenantContentPath(tenantId, 'streamingBanners')));
   return snap.docs
     .map((d) => parseStreamingBannerDoc(d.id, d.data() as Record<string, unknown>))
     .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 }
 
 export async function createStreamingBannerDraft(): Promise<string> {
-  const col = collection(db, 'streamingBanners');
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para criar banner.');
+  const col = collection(db, tenantContentPath(tenantId, 'streamingBanners'));
   const ref = doc(col);
   const snap = await getDocs(col);
   const maxOrder = snap.docs.reduce((m, d) => {
@@ -50,6 +55,8 @@ export async function saveStreamingBannerAdmin(
   bannerId: string,
   input: StreamingBannerSaveInput,
 ): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para salvar banner.');
   const title = input.title.trim();
   if (!title) throw new Error('Informe o título do banner (acessibilidade).');
   const linkUrl = input.linkUrl.trim();
@@ -60,7 +67,7 @@ export async function saveStreamingBannerAdmin(
   }
   const mobile = input.imageUrlMobile.trim();
   await setDoc(
-    doc(db, 'streamingBanners', bannerId),
+    doc(db, tenantContentPath(tenantId, 'streamingBanners'), bannerId),
     {
       title,
       imageUrl,
@@ -75,15 +82,19 @@ export async function saveStreamingBannerAdmin(
 }
 
 export async function deleteStreamingBannerAdmin(bannerId: string): Promise<void> {
-  await deleteDoc(doc(db, 'streamingBanners', bannerId));
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para apagar banner.');
+  await deleteDoc(doc(db, tenantContentPath(tenantId, 'streamingBanners'), bannerId));
 }
 
 /** Reordena pela lista completa já ordenada (índices 0..n-1 → order 0..n-1). */
 export async function reorderStreamingBannersAdmin(orderedIds: string[]): Promise<void> {
+  const tenantId = await resolveActiveTenantId();
+  if (!tenantId) throw new Error('Tenant não resolvido para reordenar banners.');
   await Promise.all(
     orderedIds.map((id, index) =>
       setDoc(
-        doc(db, 'streamingBanners', id),
+        doc(db, tenantContentPath(tenantId, 'streamingBanners'), id),
         {
           order: index,
           updatedAt: serverTimestamp(),

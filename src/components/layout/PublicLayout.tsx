@@ -219,7 +219,7 @@ export function PublicLayout() {
                       </Link>
                     ) : profile?.role === 'admin' ? (
                       <Link
-                        to="/admin"
+                        to={paths.admin}
                         className="flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800"
                         onClick={() => setAccountMenuOpen(false)}
                         role="menuitem"

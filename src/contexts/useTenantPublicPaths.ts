@@ -13,6 +13,7 @@ export function useTenantPublicPaths() {
   return useMemo(
     () => ({
       prefix: p,
+      admin: p ? `${p}/admin` : '/admin',
       streaming: p ? `${p}/streaming` : '/login',
       cursos: p ? `${p}/cursos` : '/login',
       sobre: p ? `${p}/sobre` : '/sobre',
