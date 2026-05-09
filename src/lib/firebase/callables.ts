@@ -33,6 +33,12 @@ export const adminCreateCompanyCallable = httpsCallable<
   { companyId: string; slug: string; registrationPath: string }
 >(fns, 'adminCreateCompany');
 
+/** Master: apaga `tenants/{tenantId}` e subcoleções (confirmação = ID exato). */
+export const masterDeleteTenantCallable = httpsCallable<
+  { tenantId: string; confirmation: string },
+  { ok: true }
+>(fns, 'masterDeleteTenant');
+
 /** Master: cria primeiro administrador do tenant e devolve dados para PDF manual ao cliente. */
 export const masterInviteTenantAdminCallable = httpsCallable<
   { tenantId: string; email: string; adminName: string; appOrigin: string },

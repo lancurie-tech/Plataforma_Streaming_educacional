@@ -250,7 +250,7 @@ export type StreamingTrack = {
   order: number;
 };
 
-/** Vídeo/podcast Vimeo dentro de uma trilha. */
+/** Vídeo numa trilha da home streaming — URL Vimeo ou YouTube (campo histórico `vimeoUrl`). */
 export type StreamingEntry = {
   id: string;
   title: string;

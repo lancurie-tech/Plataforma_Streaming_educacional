@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { COMMERCIAL_MODULE_IDS } from '@/lib/modules/commercialEntitlements';
 import {
   assertPublicSlugAvailableForTenant,
@@ -9,6 +9,7 @@ import {
   getTenant,
   getTenantEntitlements,
   listPlans,
+  patchTenantStatus,
   upsertTenant,
   upsertTenantEntitlements,
 } from '@/lib/firestore/tenancy';
@@ -17,7 +18,11 @@ import {
   normalizeTenantPublicSlug,
 } from '@/lib/tenantHost/normalizePublicSlug';
 import { Button } from '@/components/ui/Button';
-import { masterInviteTenantAdminCallable, mapCallableError } from '@/lib/firebase/callables';
+import {
+  masterDeleteTenantCallable,
+  masterInviteTenantAdminCallable,
+  mapCallableError,
+} from '@/lib/firebase/callables';
 import { downloadTenantAdminInvitePdf } from '@/lib/pdf/tenantAdminInvitePdf';
 import type { PlanDoc, TenantDoc, TenantStatus } from '@/types';
 
@@ -43,7 +48,14 @@ function emptyMods(): ModState {
   };
 }
 
+function tenantStatusLabel(s: TenantStatus): string {
+  if (s === 'active') return 'Ativo';
+  if (s === 'suspended') return 'Suspenso (desativado)';
+  return 'Pendente';
+}
+
 export function MasterTenantDetailPage() {
+  const navigate = useNavigate();
   const { tenantId = '' } = useParams<{ tenantId: string }>();
   const [tenant, setTenant] = useState<TenantDoc | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -61,6 +73,10 @@ export function MasterTenantDetailPage() {
   const [inviteName, setInviteName] = useState('');
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteFeedback, setInviteFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteFeedback, setDeleteFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -229,6 +245,62 @@ export function MasterTenantDetailPage() {
     }
   }
 
+  async function handleQuickStatus(next: TenantStatus) {
+    if (!tenant || !tenantId) return;
+    setSaving(true);
+    setFeedback(null);
+    try {
+      await patchTenantStatus(tenantId, next);
+      const ent = await getTenantEntitlements(tenantId);
+      await syncTenantPublicSlugDoc({
+        tenantId,
+        previousSlug: tenant.publicSlug ?? null,
+        nextSlug: tenant.publicSlug ?? null,
+        displayName: tenant.displayName,
+        enabledModuleIds: ent?.enabledModuleIds ?? [],
+        status: next,
+      });
+      setStatus(next);
+      const refreshed = await getTenant(tenantId);
+      if (refreshed) setTenant(refreshed);
+      setFeedback({
+        kind: 'ok',
+        text:
+          next === 'suspended'
+            ? 'Organização desativada: o site público deste slug deixa de estar acessível.'
+            : next === 'active'
+              ? 'Organização reativada.'
+              : 'Estado atualizado.',
+      });
+    } catch (e) {
+      setFeedback({
+        kind: 'err',
+        text: isPermissionDenied(e)
+          ? 'Permissão negada. Confirme conta master e deploy das regras.'
+          : 'Não foi possível atualizar o estado.',
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteTenant() {
+    if (!tenantId) return;
+    setDeleteBusy(true);
+    setDeleteFeedback(null);
+    try {
+      await masterDeleteTenantCallable({
+        tenantId,
+        confirmation: deleteConfirmText.trim(),
+      });
+      navigate('/master');
+    } catch (err) {
+      setDeleteFeedback({ kind: 'err', text: mapCallableError(err) });
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
   if (!tenantId || !loaded) {
     return <p className="text-zinc-500">A carregar…</p>;
   }
@@ -255,6 +327,35 @@ export function MasterTenantDetailPage() {
         {displayName}{' '}
         <span className="font-mono text-lg font-normal text-zinc-500">({tenantId})</span>
       </h1>
+      <p className="mt-2 text-sm text-zinc-400">
+        Estado atual:{' '}
+        <span className="font-medium text-zinc-200">{tenantStatusLabel(tenant.status)}</span>
+      </p>
+
+      <div className="mt-6 flex max-w-2xl flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={saving || tenant.status === 'suspended'}
+          onClick={() => void handleQuickStatus('suspended')}
+          className="border-amber-600/50 text-amber-200 hover:bg-amber-950/40"
+        >
+          Desativar organização
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={saving || tenant.status === 'active'}
+          onClick={() => void handleQuickStatus('active')}
+          className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-950/30"
+        >
+          Reativar organização
+        </Button>
+      </div>
+      <p className="mt-2 max-w-2xl text-xs text-zinc-500">
+        «Desativar» mantém dados no Firestore, mas bloqueia o site público deste slug. «Reativar» volta a
+        permitir o acesso. Para remover tudo permanentemente, use a zona de exclusão abaixo.
+      </p>
 
       <section className="mt-8 max-w-2xl rounded-2xl border border-violet-500/30 bg-violet-500/5 p-5">
         <h2 className="text-base font-semibold text-violet-100">Primeiro administrador do cliente</h2>
@@ -367,9 +468,9 @@ export function MasterTenantDetailPage() {
             onChange={(e) => setStatus(e.target.value as TenantStatus)}
             className="mt-1.5 w-full rounded-xl border border-zinc-700 bg-zinc-900/80 px-3 py-2.5 text-sm text-zinc-100"
           >
-            <option value="active">active</option>
-            <option value="suspended">suspended</option>
-            <option value="pending">pending</option>
+            <option value="active">Ativo</option>
+            <option value="suspended">Suspenso (desativado)</option>
+            <option value="pending">Pendente</option>
           </select>
         </div>
         <fieldset className="space-y-2">
@@ -418,6 +519,50 @@ export function MasterTenantDetailPage() {
           Guardar alterações
         </Button>
       </form>
+
+      <section className="mt-12 max-w-2xl rounded-2xl border border-red-500/35 bg-red-500/5 p-5">
+        <h2 className="text-base font-semibold text-red-100">Excluir organização</h2>
+        <p className="mt-2 text-sm text-red-200/85">
+          Remove permanentemente o documento <code className="text-red-100/90">tenants/{tenantId}</code>
+          e <strong className="text-red-100">todas</strong> as subcoleções (cursos, canais, trilhas,
+          entitlements, etc.), apaga o slug público associado e limpa o campo{' '}
+          <code className="text-red-100/90">tenantId</code> nas empresas ligadas.{' '}
+          <strong className="text-red-100">Não</strong> apaga utilizadores Firebase nem documentos em{' '}
+          <code className="text-red-100/90">users/</code>.
+        </p>
+        <div className="mt-4">
+          <label className="block text-xs font-medium text-red-200/80" htmlFor="del-confirm">
+            Escreva o ID do tenant para confirmar
+          </label>
+          <input
+            id="del-confirm"
+            value={deleteConfirmText}
+            onChange={(ev) => setDeleteConfirmText(ev.target.value)}
+            className="mt-1 w-full rounded-xl border border-red-900/60 bg-zinc-950/80 px-3 py-2 font-mono text-sm text-zinc-100"
+            placeholder={tenantId}
+            autoComplete="off"
+          />
+        </div>
+        {deleteFeedback ? (
+          <p
+            className={
+              deleteFeedback.kind === 'ok' ? 'mt-3 text-sm text-emerald-400' : 'mt-3 text-sm text-red-300'
+            }
+          >
+            {deleteFeedback.text}
+          </p>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-4 border-red-600/60 text-red-200 hover:bg-red-950/40"
+          isLoading={deleteBusy}
+          disabled={deleteConfirmText.trim() !== tenantId || deleteBusy}
+          onClick={() => void handleDeleteTenant()}
+        >
+          Excluir permanentemente
+        </Button>
+      </section>
     </div>
   );
 }

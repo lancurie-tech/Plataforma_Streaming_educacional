@@ -75,6 +75,37 @@ export function parseVimeoVideoIdFromUrl(raw: string): string | null {
   return null;
 }
 
+/** Espelha `parseYoutubeVideoId` na app (Vimeo não deve coincidir com formato YouTube). */
+export function parseYoutubeVideoIdFromUrl(raw: string): string | null {
+  const s = raw.trim();
+  if (!s) return null;
+  const strict = /^[a-zA-Z0-9_-]{11}$/;
+  if (strict.test(s)) return s;
+
+  let url: URL;
+  try {
+    url = new URL(s);
+  } catch {
+    return null;
+  }
+
+  const host = url.hostname.replace(/^www\./i, '').replace(/^m\./i, '');
+  if (host === 'youtu.be') {
+    const id = url.pathname.replace(/^\//, '').split('/')[0];
+    return id && strict.test(id) ? id : null;
+  }
+  if (host.endsWith('youtube.com')) {
+    const path = url.pathname;
+    const shorts = path.match(/^\/shorts\/([a-zA-Z0-9_-]{11})\/?$/);
+    if (shorts?.[1]) return shorts[1];
+    const embed = path.match(/^\/embed\/([a-zA-Z0-9_-]{11})\/?$/);
+    if (embed?.[1]) return embed[1];
+    const v = url.searchParams.get('v');
+    if (v && strict.test(v)) return v;
+  }
+  return null;
+}
+
 function stripWebVtt(raw: string): string {
   const lines = raw.split(/\r?\n/);
   const out: string[] = [];
@@ -137,8 +168,10 @@ type CatalogEntry = {
   trackTitle: string;
   title: string;
   description: string;
+  /** Campo Firestore histórico: guarda URL Vimeo ou YouTube. */
   vimeoUrl: string;
   vimeoVideoId: string | null;
+  youtubeVideoId: string | null;
 };
 
 function tenantStreamingTracksCollection(db: Firestore, tenantId: string) {
@@ -186,7 +219,8 @@ export async function loadStreamingCatalog(db: Firestore, tenantId: string): Pro
       const vimeoUrl = typeof d.vimeoUrl === 'string' ? d.vimeoUrl : '';
       const title = typeof d.title === 'string' ? d.title : 'Sem título';
       const description = typeof d.description === 'string' ? d.description : '';
-      const vimeoVideoId = parseVimeoVideoIdFromUrl(vimeoUrl);
+      const youtubeVideoId = parseYoutubeVideoIdFromUrl(vimeoUrl);
+      const vimeoVideoId = youtubeVideoId ? null : parseVimeoVideoIdFromUrl(vimeoUrl);
       out.push({
         entryId: e.id,
         trackId: t.id,
@@ -195,6 +229,7 @@ export async function loadStreamingCatalog(db: Firestore, tenantId: string): Pro
         description,
         vimeoUrl,
         vimeoVideoId,
+        youtubeVideoId,
       });
     }
   }
@@ -212,28 +247,49 @@ async function getOrFetchTranscript(
   const cacheRef = db.doc(`streamingTranscriptCache/${transcriptCacheDocId}`);
   const cached = await cacheRef.get();
   if (cached.exists) {
-    const d = cached.data() as { fullText?: string; vimeoVideoId?: string };
+    const d = cached.data() as { fullText?: string; vimeoVideoId?: string; youtubeVideoId?: string };
     const text = typeof d.fullText === 'string' ? d.fullText : '';
-    if (text.length > 80 && d.vimeoVideoId === (entry.vimeoVideoId ?? '')) {
-      return text.slice(0, TRANSCRIPT_MAX);
+    if (text.length > 80) {
+      if (entry.youtubeVideoId) {
+        if (d.youtubeVideoId === entry.youtubeVideoId) return text.slice(0, TRANSCRIPT_MAX);
+      } else if (d.vimeoVideoId === (entry.vimeoVideoId ?? '')) {
+        return text.slice(0, TRANSCRIPT_MAX);
+      }
     }
   }
+
   let fullText = '';
-  if (entry.vimeoVideoId) {
+  let source: string;
+
+  if (entry.youtubeVideoId) {
+    source = 'youtube_description';
+    fullText = entry.description.trim()
+      ? `(YouTube — sem API de transcrição; texto da descrição no cadastro: ${entry.description.trim()})`
+      : '(YouTube — sem API de transcrição automática e sem descrição longa no cadastro; sugere assistir ao vídeo no site.)';
+  } else if (entry.vimeoVideoId) {
     fullText = await fetchVimeoTranscriptPlain(entry.vimeoVideoId, vimeoToken);
+    source = fullText.trim() ? 'vimeo_api' : 'fallback';
+    if (!fullText.trim() && entry.description) {
+      fullText = `(Sem legenda indexada; descrição do vídeo: ${entry.description})`;
+      source = 'fallback';
+    }
+  } else {
+    source = 'fallback';
+    if (entry.description.trim()) {
+      fullText = `(Sem texto indexado; descrição: ${entry.description.trim()})`;
+    }
   }
-  if (!fullText.trim() && entry.description) {
-    fullText = `(Sem legenda indexada; descrição do vídeo: ${entry.description})`;
-  }
+
   const trimmed = fullText.slice(0, TRANSCRIPT_MAX);
   await cacheRef.set(
     {
       vimeoVideoId: entry.vimeoVideoId ?? '',
+      youtubeVideoId: entry.youtubeVideoId ?? '',
       entryTitle: entry.title,
       trackTitle: entry.trackTitle,
       fullText: trimmed,
       updatedAt: FieldValue.serverTimestamp(),
-      source: fullText.trim() ? 'vimeo_api' : 'fallback',
+      source,
     },
     { merge: true }
   );
@@ -439,6 +495,7 @@ export async function buildCourseVideoFocusContextForGemini(
     description: (focus.body ?? '').trim(),
     vimeoUrl,
     vimeoVideoId: vid,
+    youtubeVideoId: null,
   };
   const transcript = await getOrFetchTranscript(db, entry, vimeoToken, cacheKey);
   const body = transcript.slice(0, TRANSCRIPT_MAX).trim();
@@ -483,7 +540,8 @@ async function buildFocusStreamingContextForGemini(
   const title = typeof ed.title === 'string' ? ed.title : 'Sem título';
   const description = typeof ed.description === 'string' ? ed.description : '';
   const vimeoUrl = typeof ed.vimeoUrl === 'string' ? ed.vimeoUrl : '';
-  const vimeoVideoId = parseVimeoVideoIdFromUrl(vimeoUrl);
+  const youtubeVideoId = parseYoutubeVideoIdFromUrl(vimeoUrl);
+  const vimeoVideoId = youtubeVideoId ? null : parseVimeoVideoIdFromUrl(vimeoUrl);
   const entry: CatalogEntry = {
     entryId: eid,
     trackId: tid,
@@ -492,6 +550,7 @@ async function buildFocusStreamingContextForGemini(
     description,
     vimeoUrl,
     vimeoVideoId,
+    youtubeVideoId,
   };
   const transcript = await getOrFetchTranscript(db, entry, vimeoToken, `${tenantId}__${eid}`);
   const body = transcript.slice(0, 12_000).trim();
@@ -500,6 +559,8 @@ async function buildFocusStreamingContextForGemini(
     textBlock =
       '(Sem texto indexado: não há legenda obtida via API do Vimeo nem descrição no cadastro deste vídeo. ' +
       'Não inventes falas; sugere assistir ao vídeo no site.)';
+  } else if (body.includes('YouTube — sem API')) {
+    textBlock = `Texto disponível (descrição do cadastro para vídeo YouTube; não há transcrição automática):\n${body}`;
   } else if (body.includes('Sem legenda indexada')) {
     textBlock =
       `Texto disponível para consulta (descrição do cadastro; a transcrição completa do áudio pode não estar indexada):\n${body}`;
@@ -637,8 +698,17 @@ export async function handleLogStreamingView(
   const ed = entrySnap.data()!;
   const entryTitle = typeof ed.title === 'string' ? ed.title : 'Sem título';
   const vimeoUrl = typeof ed.vimeoUrl === 'string' ? ed.vimeoUrl : '';
-  const vimeoVideoId = parseVimeoVideoIdFromUrl(vimeoUrl);
-  await incrementStreamingViewStats(db, tenantId, trackId, entryId, trackTitle, entryTitle, vimeoVideoId);
+  const ytId = parseYoutubeVideoIdFromUrl(vimeoUrl);
+  const statsVideoKey = ytId ?? parseVimeoVideoIdFromUrl(vimeoUrl);
+  await incrementStreamingViewStats(
+    db,
+    tenantId,
+    trackId,
+    entryId,
+    trackTitle,
+    entryTitle,
+    statsVideoKey
+  );
   return { ok: true };
 }
 

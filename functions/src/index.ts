@@ -6,6 +6,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { LEGAL_VERSIONS } from './legalVersions.js';
+import { deleteTenantDocumentTree } from './deleteTenantSubtree.js';
 import {
   assertAssistantDailyQuota,
   handleLogStreamingView,
@@ -558,6 +559,60 @@ export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
     definePasswordLink: resetLink,
     enabledModuleIds,
   };
+});
+
+/**
+ * Master: remove o documento `tenants/{tenantId}` e todas as subcoleções; apaga o índice
+ * `tenantPublicSlugs/{slug}` se existir; remove `tenantId` das empresas ligadas.
+ */
+export const masterDeleteTenant = onCall(callableHttp, async (request) => {
+  await assertIsMasterOperator(request);
+
+  const data = request.data as { tenantId?: string; confirmation?: string };
+  const tenantId = (data.tenantId ?? '').trim();
+  const confirmation = (data.confirmation ?? '').trim();
+
+  if (!tenantId) {
+    throw new HttpsError('invalid-argument', 'tenantId é obrigatório.');
+  }
+  if (confirmation !== tenantId) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Para confirmar a exclusão, escreva o ID do tenant exatamente como aparece no topo da página.'
+    );
+  }
+
+  const tenantRef = db.doc(`tenants/${tenantId}`);
+  const tenantSnap = await tenantRef.get();
+  if (!tenantSnap.exists) {
+    throw new HttpsError('not-found', 'Tenant não encontrado.');
+  }
+
+  const slugRaw =
+    typeof tenantSnap.data()?.publicSlug === 'string' && tenantSnap.data()!.publicSlug.trim()
+      ? tenantSnap.data()!.publicSlug.trim().toLowerCase()
+      : '';
+
+  const companiesSnap = await db.collection('companies').where('tenantId', '==', tenantId).get();
+  let batch = db.batch();
+  let ops = 0;
+  for (const d of companiesSnap.docs) {
+    batch.update(d.ref, { tenantId: FieldValue.delete(), updatedAt: FieldValue.serverTimestamp() });
+    ops += 1;
+    if (ops >= 400) {
+      await batch.commit();
+      batch = db.batch();
+      ops = 0;
+    }
+  }
+  if (ops > 0) await batch.commit();
+
+  if (slugRaw) {
+    await db.doc(`tenantPublicSlugs/${slugRaw}`).delete().catch(() => {});
+  }
+
+  await deleteTenantDocumentTree(db, tenantId);
+  return { ok: true as const };
 });
 
 /**
