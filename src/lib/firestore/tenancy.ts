@@ -9,6 +9,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
+import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { PlanDoc, TenantDoc, TenantEntitlements } from '@/types';
 
@@ -26,6 +27,19 @@ function parseTenantDoc(
       typeof x.publicSlug === 'string' && x.publicSlug.trim()
         ? x.publicSlug.trim().toLowerCase()
         : undefined,
+    firstAdministratorName:
+      typeof x.firstAdministratorName === 'string' && x.firstAdministratorName.trim()
+        ? x.firstAdministratorName.trim()
+        : undefined,
+    firstAdministratorEmail:
+      typeof x.firstAdministratorEmail === 'string' && x.firstAdministratorEmail.trim()
+        ? x.firstAdministratorEmail.trim().toLowerCase()
+        : undefined,
+    firstAdministratorUid:
+      typeof x.firstAdministratorUid === 'string' && x.firstAdministratorUid.trim()
+        ? x.firstAdministratorUid.trim()
+        : undefined,
+    firstAdministratorInvitedAt: (x.firstAdministratorInvitedAt as { toDate?: () => Date })?.toDate?.(),
     createdAt: (x.createdAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
     updatedAt: (x.updatedAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
   };
@@ -33,6 +47,14 @@ function parseTenantDoc(
 
 function parsePlanDoc(d: { id: string; data: () => Record<string, unknown> | undefined }): PlanDoc {
   const x = d.data() ?? {};
+  const priceRaw = x.monthlyPriceEUR;
+  let monthlyPriceEUR: number | null | undefined = undefined;
+  if (priceRaw === null) monthlyPriceEUR = null;
+  else if (typeof priceRaw === 'number' && Number.isFinite(priceRaw)) monthlyPriceEUR = priceRaw;
+  const noteRaw = x.billingNote;
+  let billingNote: string | null | undefined = undefined;
+  if (noteRaw === null) billingNote = null;
+  else if (typeof noteRaw === 'string' && noteRaw.trim()) billingNote = noteRaw.trim();
   return {
     id: d.id,
     displayName: (x.displayName as string) ?? d.id,
@@ -41,6 +63,8 @@ function parsePlanDoc(d: { id: string; data: () => Record<string, unknown> | und
     includedModuleIds: Array.isArray(x.includedModuleIds)
       ? (x.includedModuleIds as string[])
       : undefined,
+    monthlyPriceEUR,
+    billingNote,
     createdAt: (x.createdAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
     updatedAt: (x.updatedAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
   };
@@ -99,6 +123,59 @@ export async function patchTenantStatus(tenantId: string, status: TenantDoc['sta
   });
 }
 
+/** Resumo de um admin cliente (`role === 'admin'`) associado ao tenant (consola Master). */
+export type TenantScopedAdminSummary = {
+  uid: string;
+  name: string;
+  email: string;
+  createdMs: number;
+};
+
+function ingestAdminUserDocsIntoMap(
+  rows: Map<string, TenantScopedAdminSummary>,
+  docs: QueryDocumentSnapshot<DocumentData>[],
+): void {
+  for (const userDoc of docs) {
+    const x = userDoc.data();
+    if (x.role !== 'admin') continue;
+    const email = typeof x.email === 'string' ? x.email.trim().toLowerCase() : '';
+    if (!email) continue;
+    const name = typeof x.name === 'string' && x.name.trim() ? x.name.trim() : email;
+    const createdAtField = x.createdAt as { toDate?: () => Date } | undefined;
+    const createdMs = createdAtField?.toDate?.()?.getTime() ?? Number.MAX_SAFE_INTEGER;
+    rows.set(userDoc.id, { uid: userDoc.id, name, email, createdMs });
+  }
+}
+
+/**
+ * Administradores cliente ligados a `tenantId`: `users.tenantId` igual ao tenant OU `users.companyId`
+ * igual a empresa com `companies.tenantId` (alinhado a `resolveTenantIdFromProfile` na app).
+ */
+export async function listTenantScopedAdminSummaries(tenantId: string): Promise<TenantScopedAdminSummary[]> {
+  const rows = new Map<string, TenantScopedAdminSummary>();
+  const byTidSnap = await getDocs(query(collection(db, 'users'), where('tenantId', '==', tenantId)));
+  ingestAdminUserDocsIntoMap(rows, byTidSnap.docs);
+
+  const companiesSnap = await getDocs(query(collection(db, 'companies'), where('tenantId', '==', tenantId)));
+  await Promise.all(
+    companiesSnap.docs.map(async (cDoc) => {
+      const snap = await getDocs(query(collection(db, 'users'), where('companyId', '==', cDoc.id)));
+      ingestAdminUserDocsIntoMap(rows, snap.docs);
+    }),
+  );
+
+  return Array.from(rows.values()).sort((a, b) => a.createdMs - b.createdMs);
+}
+
+/** Compatível com dados antigos: perfil mais antigo com papel admin ligado ao tenant. */
+export async function getOldestTenantAdminProfile(
+  tenantId: string
+): Promise<{ name: string; email: string } | null> {
+  const list = await listTenantScopedAdminSummaries(tenantId);
+  const best = list[0];
+  return best ? { name: best.name, email: best.email } : null;
+}
+
 export async function upsertTenant(
   tenantId: string,
   payload: Pick<TenantDoc, 'displayName' | 'planId' | 'status'> & {
@@ -139,22 +216,46 @@ export async function upsertTenantEntitlements(
   );
 }
 
+export async function updatePlanMaster(
+  planId: string,
+  payload: Omit<PlanDoc, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<void> {
+  const ref = doc(db, 'plans', planId);
+  const snap = await getDoc(ref);
+
+  const price =
+    typeof payload.monthlyPriceEUR === 'number' && Number.isFinite(payload.monthlyPriceEUR)
+      ? payload.monthlyPriceEUR
+      : null;
+
+  const note =
+    typeof payload.billingNote === 'string' && payload.billingNote.trim()
+      ? payload.billingNote.trim()
+      : null;
+
+  const patch: Record<string, unknown> = {
+    displayName: payload.displayName.trim() ? payload.displayName.trim() : planId,
+    active: !!payload.active,
+    limits: payload.limits,
+    includedModuleIds: Array.isArray(payload.includedModuleIds) ? payload.includedModuleIds : [],
+    monthlyPriceEUR: price,
+    billingNote: note,
+    updatedAt: serverTimestamp(),
+  };
+
+  if (!snap.exists()) {
+    patch.createdAt = serverTimestamp();
+  }
+
+  await setDoc(ref, patch, { merge: true });
+}
+
+/** Legado/nome anterior — igual a {@link updatePlanMaster}. */
 export async function upsertPlan(
   planId: string,
-  payload: Omit<PlanDoc, 'id' | 'createdAt' | 'updatedAt'>
+  payload: Omit<PlanDoc, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<void> {
-  await setDoc(
-    doc(db, 'plans', planId),
-    {
-      displayName: payload.displayName,
-      active: payload.active,
-      limits: payload.limits,
-      includedModuleIds: payload.includedModuleIds ?? [],
-      updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  return updatePlanMaster(planId, payload);
 }
 
 /** Mesma lógica que `AuthProvider`: `tenantId` com fallback a `companyId`. */

@@ -544,6 +544,27 @@ export const masterInviteTenantAdmin = onCall(callableHttp, async (request) => {
     );
   }
 
+  await db.runTransaction(async (txn) => {
+    const tenantRef = db.doc(`tenants/${tenantId}`);
+    const tenantSnap = await txn.get(tenantRef);
+    if (!tenantSnap.exists) {
+      return;
+    }
+    const td = tenantSnap.data()!;
+    const existingMail =
+      typeof td.firstAdministratorEmail === 'string' ? td.firstAdministratorEmail.trim() : '';
+    const patch: Record<string, unknown> = {
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (!existingMail) {
+      patch.firstAdministratorName = adminName;
+      patch.firstAdministratorEmail = email;
+      patch.firstAdministratorUid = uid;
+      patch.firstAdministratorInvitedAt = FieldValue.serverTimestamp();
+    }
+    txn.update(tenantRef, patch);
+  });
+
   return {
     ok: true as const,
     uid,

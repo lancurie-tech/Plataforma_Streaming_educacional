@@ -38,6 +38,9 @@ const plans = [
       maxActiveCourses: 30,
       maxEnabledModules: 6,
     },
+    /** Preço apenas referência Master (Firestore `plans/essencial`). */
+    monthlyPriceEUR: null,
+    billingNote: 'Defina o valor comercial no Firestore ou edite este seed.',
     /** Tokens comerciais: streaming | cursos | chat | vendedores */
     includedModuleIds: ['cursos'],
   },
@@ -53,6 +56,8 @@ const plans = [
       maxActiveCourses: 150,
       maxEnabledModules: 10,
     },
+    monthlyPriceEUR: null,
+    billingNote: 'Defina o valor comercial no Firestore ou edite este seed.',
     includedModuleIds: ['cursos', 'streaming', 'chat', 'vendedores'],
   },
 ];
@@ -87,6 +92,8 @@ async function main() {
           active: plan.active,
           limits: plan.limits,
           includedModuleIds: plan.includedModuleIds,
+          monthlyPriceEUR: plan.monthlyPriceEUR ?? null,
+          billingNote: plan.billingNote ?? null,
           createdAt: ts(),
           updatedAt: ts(),
           seededByScript: true,

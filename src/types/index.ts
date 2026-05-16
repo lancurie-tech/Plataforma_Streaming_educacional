@@ -90,6 +90,11 @@ export type TenantDoc = {
    * Domínio próprio do cliente (planos superiores) será configurável à parte.
    */
   publicSlug?: string | null;
+  /** Registo persistido quando o master cria o 1.º administrador via `masterInviteTenantAdmin`. */
+  firstAdministratorName?: string | null;
+  firstAdministratorEmail?: string | null;
+  firstAdministratorUid?: string | null;
+  firstAdministratorInvitedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -110,6 +115,13 @@ export type PlanDoc = {
   limits: Record<string, number>;
   /** Alinhado ao contrato comercial (ver `docs/MODULOS_IDS.md`). */
   includedModuleIds?: string[];
+  /**
+   * Preço mensal de referência (EUR), apenas para vista Master / comercial.
+   * Opcional — ausente até ser definido em `plans/{planId}` (ex.: consola Firebase).
+   */
+  monthlyPriceEUR?: number | null;
+  /** Notas de facturação (ex.: período, IVA) — apenas referência Master. */
+  billingNote?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

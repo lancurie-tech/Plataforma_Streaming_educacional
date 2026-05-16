@@ -9,9 +9,11 @@ import {
   getTenant,
   getTenantEntitlements,
   listPlans,
+  listTenantScopedAdminSummaries,
   patchTenantStatus,
   upsertTenant,
   upsertTenantEntitlements,
+  type TenantScopedAdminSummary,
 } from '@/lib/firestore/tenancy';
 import {
   isReservedPublicSlug,
@@ -74,6 +76,9 @@ export function MasterTenantDetailPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteFeedback, setInviteFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
+  /** Admins cliente (`role: admin`) no Firestore ligados ao tenant ou a empresas deste tenant. */
+  const [tenantScopedAdmins, setTenantScopedAdmins] = useState<TenantScopedAdminSummary[]>([]);
+
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteFeedback, setDeleteFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
@@ -126,6 +131,22 @@ export function MasterTenantDetailPage() {
       cancelled = true;
     };
   }, [tenantId]);
+
+  useEffect(() => {
+    if (!tenantId || !tenant) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const rows = await listTenantScopedAdminSummaries(tenantId);
+        if (!cancelled) setTenantScopedAdmins(rows);
+      } catch {
+        if (!cancelled) setTenantScopedAdmins([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId, tenant]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -236,6 +257,14 @@ export function MasterTenantDetailPage() {
             'Administrador criado, mas falhou gerar o PDF no navegador. Os dados já foram gravados; pode repetir para um novo e-mail ou pedir ao cliente «Esqueci a senha» em /login.',
         });
       }
+      const refreshed = await getTenant(tenantId);
+      if (refreshed) setTenant(refreshed);
+      try {
+        const rows = await listTenantScopedAdminSummaries(tenantId);
+        setTenantScopedAdmins(rows);
+      } catch {
+        setTenantScopedAdmins([]);
+      }
       setInviteEmail('');
       setInviteName('');
     } catch (err) {
@@ -316,6 +345,20 @@ export function MasterTenantDetailPage() {
     );
   }
 
+  const persistedInvite = Boolean(tenant.firstAdministratorEmail?.trim());
+  const invitedAtLabel =
+    tenant.firstAdministratorInvitedAt instanceof Date &&
+    !Number.isNaN(tenant.firstAdministratorInvitedAt.getTime())
+      ? new Intl.DateTimeFormat('pt-PT', { dateStyle: 'short', timeStyle: 'short' }).format(
+          tenant.firstAdministratorInvitedAt
+        )
+      : null;
+
+  const firstInviteUid = tenant.firstAdministratorUid?.trim() ?? '';
+  /** Só há registo nos metadados do tenant (ex.: conta apagada de `users` ou migrações antigas). */
+  const showPersistedInviteFallback =
+    persistedInvite && tenantScopedAdmins.length === 0 && Boolean(tenant.firstAdministratorEmail?.trim());
+
   return (
     <div>
       <p className="text-xs text-zinc-500">
@@ -366,6 +409,101 @@ export function MasterTenantDetailPage() {
           <span className="font-mono">/{publicSlug.trim() || tenantId}/</span>, links de login e definição de senha,
           passos para o cliente e lista dos módulos ativos nos entitlements.
         </p>
+        {tenantScopedAdmins.length > 0 ? (
+          <div className="mt-4 rounded-xl border border-violet-500/25 bg-violet-950/40 px-4 py-3">
+            <p className="text-xs font-medium text-violet-100/95">
+              Administradores (<code className="text-violet-100/95">role: admin</code>) associados ao tenant ({tenantScopedAdmins.length})
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-violet-200/65">
+              Listados pela coleção <code className="text-violet-200/85">users</code>: mesmo <code className="text-violet-200/85">tenantId</code> que esta organização ou{' '}
+              <code className="text-violet-200/85">companyId</code> numa empresa com{' '}
+              <code className="text-violet-200/85">companies.tenantId</code> igual ao ID deste tenant.
+            </p>
+            <ul className="mt-3 space-y-4">
+              {tenantScopedAdmins.map((admin) => {
+                const matchesFirstInvite = Boolean(firstInviteUid && admin.uid === firstInviteUid);
+                const createdLabel =
+                  admin.createdMs !== Number.MAX_SAFE_INTEGER
+                    ? new Intl.DateTimeFormat('pt-PT', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      }).format(new Date(admin.createdMs))
+                    : null;
+                return (
+                  <li key={admin.uid} className="rounded-lg border border-zinc-700/50 bg-zinc-950/50 px-3 py-2">
+                    <dl className="grid gap-2 text-sm text-zinc-200">
+                      <div>
+                        <dt className="text-xs font-medium text-zinc-500">Nome</dt>
+                        <dd className="font-medium text-zinc-100">{admin.name.trim() ? admin.name : '—'}</dd>
+                      </div>
+                      <div className="break-all">
+                        <dt className="text-xs font-medium text-zinc-500">E-mail</dt>
+                        <dd className="font-medium text-emerald-200/95">{admin.email}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-zinc-500">UID (Firebase Auth)</dt>
+                        <dd className="font-mono text-xs text-zinc-400">{admin.uid}</dd>
+                      </div>
+                      {createdLabel ? (
+                        <div>
+                          <dt className="text-xs font-medium text-zinc-500">Perfil criado (Firestore)</dt>
+                          <dd className="text-zinc-300">{createdLabel}</dd>
+                        </div>
+                      ) : null}
+                      {matchesFirstInvite ? (
+                        <dd className="text-xs font-medium text-amber-200/95">
+                          Registado através do fluxo Master (primeiro convite quando aplicável ao doc{' '}
+                          <code className="text-[11px]">tenants/…</code>)
+                        </dd>
+                      ) : null}
+                    </dl>
+                  </li>
+                );
+              })}
+            </ul>
+            {persistedInvite && invitedAtLabel ? (
+              <p className="mt-3 text-xs text-zinc-400">
+                Registo na consola Master do primeiro convite:{' '}
+                <span className="text-zinc-200">{invitedAtLabel}</span>
+              </p>
+            ) : null}
+          </div>
+        ) : showPersistedInviteFallback ? (
+          <div className="mt-4 rounded-xl border border-violet-500/25 bg-violet-950/40 px-4 py-3">
+            <p className="text-xs font-medium text-violet-100/95">
+              Dados só em <code className="text-violet-100/95">tenants/&lt;id&gt;</code> — não há perfil admin correspondente em <code className="text-violet-100/95">users</code>
+            </p>
+            <p className="mt-1 text-xs text-violet-200/65">
+              Possível conta apagada, migração antiga ou doc <code className="text-violet-200/85">users</code> em falha.
+              Trate apenas como arquivo até voltar a existir perfil administrador na lista quando recriar a conta ou corrigir
+              dados.
+            </p>
+            <dl className="mt-2 grid gap-2 text-sm text-zinc-200">
+              <div>
+                <dt className="text-xs font-medium text-zinc-500">Nome</dt>
+                <dd className="font-medium text-zinc-100">
+                  {tenant.firstAdministratorName?.trim() ? tenant.firstAdministratorName.trim() : '—'}
+                </dd>
+              </div>
+              <div className="break-all">
+                <dt className="text-xs font-medium text-zinc-500">E-mail</dt>
+                <dd className="font-medium text-emerald-200/95">{tenant.firstAdministratorEmail?.trim() ?? ''}</dd>
+              </div>
+              {invitedAtLabel ? (
+                <div>
+                  <dt className="text-xs font-medium text-zinc-500">Registo do convite</dt>
+                  <dd className="text-zinc-300">{invitedAtLabel}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-zinc-500">
+            Sem administradores detetados. Se já existiu um cadastro só com empresa (sem <code className="text-zinc-400">tenantId</code> no utilizador ou sem{' '}
+            <code className="text-zinc-400">companies.tenantId</code>), ligue a empresa ao tenant no painel cliente ou grave o primeiro admin através do formulário abaixo (para persistir também em{' '}
+            <code className="text-zinc-400">tenants/&lt;id&gt;</code> quando for o primeiro).
+          </p>
+        )}
         <form onSubmit={handleInviteAdmin} className="mt-4 space-y-3">
           <div>
             <label className="block text-xs font-medium text-zinc-400" htmlFor="inv-name">

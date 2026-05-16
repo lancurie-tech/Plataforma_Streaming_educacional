@@ -1,9 +1,6 @@
 import { auth, db } from '@/lib/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import {
-  parsePathTenantForPublicHost,
-  isReservedApexPathSegment,
-} from '@/lib/tenantHost/parsePathTenant';
+import { parsePathTenantForPublicHost } from '@/lib/tenantHost/parsePathTenant';
 import { readTenantSlugForPostLogin } from '@/lib/tenantHost/publicPathPrefix';
 
 const slugToTenantIdCache = new Map<string, string>();
@@ -12,14 +9,7 @@ let currentUserTenantCache: string | null = null;
 function readTenantSlugFromLocation(): string | null {
   if (typeof window === 'undefined') return null;
   const byPath = parsePathTenantForPublicHost(window.location.pathname);
-  if (byPath?.slug) return byPath.slug;
-
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  if (parts.length >= 2 && parts[1]?.toLowerCase() === 'admin') {
-    const first = (parts[0] ?? '').trim().toLowerCase();
-    if (first && !isReservedApexPathSegment(first)) return first;
-  }
-  return null;
+  return byPath?.slug ?? null;
 }
 
 async function resolveTenantIdFromSlug(slug: string): Promise<string> {
