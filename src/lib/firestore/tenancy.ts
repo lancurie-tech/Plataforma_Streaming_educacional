@@ -11,12 +11,37 @@ import {
 } from 'firebase/firestore';
 import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import type { PlanDoc, TenantDoc, TenantEntitlements } from '@/types';
+import type { PlanDoc, TenantBillingCycle, TenantDoc, TenantEntitlements } from '@/types';
+import { syncTenantPublicSlugDoc } from '@/lib/firestore/tenantPublicSlug';
 
 function parseTenantDoc(
   d: { id: string; data: () => Record<string, unknown> | undefined }
 ): TenantDoc {
   const x = d.data() ?? {};
+
+  let billingCycle: TenantBillingCycle | null | undefined;
+  const bcRaw = typeof x.billingCycle === 'string' ? x.billingCycle.trim().toLowerCase() : '';
+  if (bcRaw === 'monthly' || bcRaw === 'annual') billingCycle = bcRaw;
+  else billingCycle = undefined;
+
+  let billingPaidThroughInclusive: string | null | undefined;
+  if (
+    typeof x.billingPaidThroughInclusive === 'string' &&
+    /^(\d{4})-(\d{2})-(\d{2})$/.test(x.billingPaidThroughInclusive.trim())
+  ) {
+    billingPaidThroughInclusive = x.billingPaidThroughInclusive.trim();
+  } else if (x.billingPaidThroughInclusive === null) billingPaidThroughInclusive = null;
+
+  let billingSuspendedForPayment = false;
+  if (typeof x.billingSuspendedForPayment === 'boolean') billingSuspendedForPayment = x.billingSuspendedForPayment;
+  else if (x.billingSuspendedForPayment === null) billingSuspendedForPayment = false;
+
+  let billingGraceDays: number | null | undefined;
+  const gRaw = x.billingGraceDays;
+  if (typeof gRaw === 'number' && Number.isFinite(gRaw))
+    billingGraceDays = Math.max(0, Math.trunc(gRaw));
+  else if (gRaw === null) billingGraceDays = null;
+
   return {
     id: d.id,
     displayName: (x.displayName as string) ?? d.id,
@@ -40,9 +65,76 @@ function parseTenantDoc(
         ? x.firstAdministratorUid.trim()
         : undefined,
     firstAdministratorInvitedAt: (x.firstAdministratorInvitedAt as { toDate?: () => Date })?.toDate?.(),
+    billingCycle,
+    billingPaidThroughInclusive,
+    billingSuspendedForPayment,
+    billingInternalNote:
+      typeof x.billingInternalNote === 'string'
+        ? x.billingInternalNote
+        : x.billingInternalNote === null
+          ? null
+          : undefined,
+    billingGraceDays,
+    billingLastUpdatedAt: (x.billingLastUpdatedAt as { toDate?: () => Date })?.toDate?.(),
     createdAt: (x.createdAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
     updatedAt: (x.updatedAt as { toDate?: () => Date })?.toDate?.() ?? new Date(),
   };
+}
+
+async function syncTenantPublicSlugFromTenantSnapshot(tenantId: string): Promise<void> {
+  const t = await getTenant(tenantId);
+  if (!t) return;
+  const ent = await getTenantEntitlements(tenantId);
+  await syncTenantPublicSlugDoc({
+    tenantId,
+    previousSlug: t.publicSlug ?? null,
+    nextSlug: t.publicSlug ?? null,
+    displayName: t.displayName,
+    enabledModuleIds: ent?.enabledModuleIds ?? [],
+    status: t.status,
+  });
+}
+
+export async function patchTenantBilling(
+  tenantId: string,
+  patch: {
+    billingCycle?: TenantBillingCycle | null;
+    billingPaidThroughInclusive?: string | null | undefined;
+    billingInternalNote?: string | null | undefined;
+    billingGraceDays?: number | null;
+    billingSuspendedForPayment?: boolean | null;
+    /** Reativa org e limpa marca de bloqueio por faturação ao gravar período válido ou manualmente. */
+    activateOrganization?: boolean;
+  },
+): Promise<void> {
+  const ref = doc(db, 'tenants', tenantId);
+  const next: Record<string, unknown> = {
+    updatedAt: serverTimestamp(),
+    billingLastUpdatedAt: serverTimestamp(),
+  };
+
+  if (patch.billingCycle !== undefined) {
+    if (patch.billingCycle === null) next.billingCycle = null;
+    else next.billingCycle = patch.billingCycle;
+  }
+  if (patch.billingPaidThroughInclusive !== undefined) {
+    if (patch.billingPaidThroughInclusive === null) next.billingPaidThroughInclusive = null;
+    else next.billingPaidThroughInclusive = patch.billingPaidThroughInclusive.trim();
+  }
+  if (patch.billingInternalNote !== undefined) {
+    next.billingInternalNote = patch.billingInternalNote ?? null;
+  }
+  if (patch.billingGraceDays !== undefined) next.billingGraceDays = patch.billingGraceDays;
+  if (patch.billingSuspendedForPayment !== undefined) {
+    next.billingSuspendedForPayment = patch.billingSuspendedForPayment;
+  }
+  if (patch.activateOrganization) {
+    next.status = 'active';
+    next.billingSuspendedForPayment = false;
+  }
+
+  await updateDoc(ref, next);
+  await syncTenantPublicSlugFromTenantSnapshot(tenantId);
 }
 
 function parsePlanDoc(d: { id: string; data: () => Record<string, unknown> | undefined }): PlanDoc {

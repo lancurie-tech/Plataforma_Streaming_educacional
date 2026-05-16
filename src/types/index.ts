@@ -79,6 +79,8 @@ export type UserProfile = {
 
 export type TenantStatus = 'active' | 'suspended' | 'pending';
 
+export type TenantBillingCycle = 'monthly' | 'annual';
+
 export type TenantDoc = {
   id: string;
   displayName: string;
@@ -95,6 +97,21 @@ export type TenantDoc = {
   firstAdministratorEmail?: string | null;
   firstAdministratorUid?: string | null;
   firstAdministratorInvitedAt?: Date;
+  /**
+   * Ciclo contratual (gestão manual na Master até integração gateway).
+   * Sem `billingPaidThroughInclusive`: não há bloqueio automático por cron.
+   */
+  billingCycle?: TenantBillingCycle | null;
+  /**
+   * Último dia (inclusive) em UTC coberto pelo pagamento; formato `YYYY-MM-DD`.
+   * Após esse dia começam 5 dias corridos UTC de tolerância; depois o tenant pode ser suspenso automaticamente.
+   */
+  billingPaidThroughInclusive?: string | null;
+  /** Marca suspensões aplicadas pela função `enforceTenantBilling` (cron). */
+  billingSuspendedForPayment?: boolean | null;
+  billingInternalNote?: string | null;
+  billingGraceDays?: number | null;
+  billingLastUpdatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };

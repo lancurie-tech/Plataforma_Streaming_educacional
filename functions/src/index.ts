@@ -1134,3 +1134,6 @@ export const deleteMyAccount = onCall(callableHttp, async (request) => {
   await deleteUserData(uid);
   return { ok: true };
 });
+
+/** Cron diário: suspende tenants com período pago registado quando expira tolerância (UTC). */
+export { enforceTenantBillingSchedule } from './enforceTenantBillingSchedule.js';

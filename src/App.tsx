@@ -58,6 +58,7 @@ import { MasterMarketplaceInboxPage } from '@/pages/master/MasterMarketplaceInbo
 import { MasterConsumptionPage } from '@/pages/master/MasterConsumptionPage';
 import { MasterPlansPage } from '@/pages/master/MasterPlansPage';
 import { MasterPlanEditPage } from '@/pages/master/MasterPlanEditPage';
+import { MasterBillingPage } from '@/pages/master/MasterBillingPage';
 import { AdminMarketplacePage } from '@/pages/admin/AdminMarketplacePage';
 
 function MeusCursosRedirect() {
@@ -238,6 +239,7 @@ export default function App() {
         <Route path="consumo" element={<MasterConsumptionPage />} />
         <Route path="planos/:planId/editar" element={<MasterPlanEditPage />} />
         <Route path="planos" element={<MasterPlansPage />} />
+        <Route path="faturamento" element={<MasterBillingPage />} />
       </Route>
       <Route
         path="/admin"
