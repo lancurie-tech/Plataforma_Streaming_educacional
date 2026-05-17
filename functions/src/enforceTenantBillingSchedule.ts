@@ -1,4 +1,4 @@
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import {
   DEFAULT_BILLING_GRACE_AFTER_PAID_PERIOD,
@@ -6,14 +6,12 @@ import {
   isPastBillingGraceInclusive,
 } from './billingUtc.js';
 
-const db = getFirestore();
-
 function resolveGraceDays(raw: unknown): number {
   if (typeof raw === 'number' && Number.isFinite(raw)) return Math.max(0, Math.trunc(raw));
   return DEFAULT_BILLING_GRACE_AFTER_PAID_PERIOD;
 }
 
-async function mirrorTenantToPublicSlug(opts: {
+async function mirrorTenantToPublicSlug(db: Firestore, opts: {
   tenantId: string;
   slug: string;
   displayName: string;
@@ -45,6 +43,7 @@ export const enforceTenantBillingSchedule = onSchedule(
     region: 'southamerica-east1',
   },
   async () => {
+    const db = getFirestore();
     const snap = await db.collection('tenants').get();
 
     for (const docSnap of snap.docs) {
@@ -90,7 +89,7 @@ export const enforceTenantBillingSchedule = onSchedule(
       });
 
       if (slugRaw) {
-        await mirrorTenantToPublicSlug({
+        await mirrorTenantToPublicSlug(db, {
           tenantId: id,
           slug: slugRaw,
           displayName,
