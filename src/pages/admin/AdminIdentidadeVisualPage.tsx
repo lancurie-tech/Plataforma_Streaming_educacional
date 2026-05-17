@@ -304,8 +304,9 @@ export function AdminIdentidadeVisualPage() {
           </p>
           {brandingTenantId ? (
             <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-950/35 px-3 py-2 text-sm text-emerald-100/95">
-              Alterações aplicam-se ao <strong>site público desta organização</strong> (URL com slug). Campos não
-              preenchidos continuam a usar a marca global em <code className="text-xs">siteContent/branding</code>.
+              Alterações aplicam-se a <strong>todas as páginas desta organização na URL com slug</strong> (site público,
+              área administrativa, etc.). Campos não preenchidos continuam a usar a marca global em{' '}
+              <code className="text-xs">siteContent/branding</code>.
             </p>
           ) : null}
         </div>

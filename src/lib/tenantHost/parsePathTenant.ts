@@ -45,6 +45,8 @@ const TENANT_HOST_SECOND_SEGMENTS = new Set<string>([
   ...TENANT_PUBLIC_SECOND_SEGMENTS,
   'login',
   'cadastro',
+  /** Área admin sob `/:tenantSlug/admin` (identidade visual, dados da org). */
+  'admin',
 ]);
 
 /**

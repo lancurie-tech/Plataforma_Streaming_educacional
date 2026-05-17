@@ -79,6 +79,8 @@ export type UserProfile = {
 
 export type TenantStatus = 'active' | 'suspended' | 'pending';
 
+export type TenantBillingCycle = 'monthly' | 'annual';
+
 export type TenantDoc = {
   id: string;
   displayName: string;
@@ -90,6 +92,26 @@ export type TenantDoc = {
    * Domínio próprio do cliente (planos superiores) será configurável à parte.
    */
   publicSlug?: string | null;
+  /** Registo persistido quando o master cria o 1.º administrador via `masterInviteTenantAdmin`. */
+  firstAdministratorName?: string | null;
+  firstAdministratorEmail?: string | null;
+  firstAdministratorUid?: string | null;
+  firstAdministratorInvitedAt?: Date;
+  /**
+   * Ciclo contratual (gestão manual na Master até integração gateway).
+   * Sem `billingPaidThroughInclusive`: não há bloqueio automático por cron.
+   */
+  billingCycle?: TenantBillingCycle | null;
+  /**
+   * Último dia (inclusive) em UTC coberto pelo pagamento; formato `YYYY-MM-DD`.
+   * Após esse dia começam 5 dias corridos UTC de tolerância; depois o tenant pode ser suspenso automaticamente.
+   */
+  billingPaidThroughInclusive?: string | null;
+  /** Marca suspensões aplicadas pela função `enforceTenantBilling` (cron). */
+  billingSuspendedForPayment?: boolean | null;
+  billingInternalNote?: string | null;
+  billingGraceDays?: number | null;
+  billingLastUpdatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -110,6 +132,13 @@ export type PlanDoc = {
   limits: Record<string, number>;
   /** Alinhado ao contrato comercial (ver `docs/MODULOS_IDS.md`). */
   includedModuleIds?: string[];
+  /**
+   * Preço mensal de referência (EUR), apenas para vista Master / comercial.
+   * Opcional — ausente até ser definido em `plans/{planId}` (ex.: consola Firebase).
+   */
+  monthlyPriceEUR?: number | null;
+  /** Notas de facturação (ex.: período, IVA) — apenas referência Master. */
+  billingNote?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
