@@ -2,7 +2,7 @@
   "projects": {
     "default": "streaming-educacional",
     "prod": "streaming-educacional",
-    "dev": "streaming-educacional"
+    "dev": "streaming-educacional-dev"
   },
   "targets": {},
   "etags": {}
