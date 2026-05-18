@@ -384,7 +384,8 @@ service cloud.firestore {
      */
     match /siteContent/{docId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      /** Globais (`branding`, `publicPages`): operador master OU admin do cliente (páginas legais, etc.). */
+      allow create, update, delete: if isMasterAdmin() || isAdmin();
     }
 
     /**

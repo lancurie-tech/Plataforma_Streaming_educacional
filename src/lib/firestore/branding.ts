@@ -15,7 +15,14 @@ export function mergeBrandingFirestoreLayers(
   tenant: BrandingFirestoreDoc | null,
 ): BrandingFirestoreDoc | null {
   if (!global && !tenant) return null;
-  return { ...(global ?? {}), ...(tenant ?? {}) } as BrandingFirestoreDoc;
+  /** Sobrepõe só campos definidos — `parseBrandingDoc` devolve várias keys `undefined` e `…spread` não as deve pisar sobre o global. */
+  const merged: Record<string, unknown> = { ...(global ?? {}) };
+  if (tenant) {
+    for (const [k, v] of Object.entries(tenant as Record<string, unknown>)) {
+      if (v !== undefined) merged[k] = v;
+    }
+  }
+  return merged as BrandingFirestoreDoc;
 }
 
 function adminBrandingRef(tenantId?: string | null) {
