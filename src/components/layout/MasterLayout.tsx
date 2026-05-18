@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, Building2, Layers, LogOut, Plus, Receipt, ShoppingBag } from 'lucide-react';
+import { Activity, Building2, Layers, LogOut, Palette, Plus, Receipt, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
 import { DashboardSidebarLayout } from '@/components/layout/DashboardSidebarLayout';
 
@@ -41,6 +41,10 @@ export function MasterLayout() {
         <NavLink to="/master/planos" className={navCls}>
           <Layers size={18} className="shrink-0" />
           Planos
+        </NavLink>
+        <NavLink to="/master/identidade-visual" className={navCls}>
+          <Palette size={18} className="shrink-0" />
+          Identidade visual
         </NavLink>
         <NavLink to="/master/faturamento" className={navCls}>
           <Receipt size={18} className="shrink-0" />

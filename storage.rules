@@ -2,6 +2,20 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    function userProfilePath() {
+      return /databases/(default)/documents/users/$(request.auth.uid);
+    }
+
+    /** Alinhado ao Firestore: `master_admin` (claim) OU `role == 'master'` (doc). */
+    function userIsMasterOperator() {
+      return request.auth != null
+        && firestore.exists(userProfilePath())
+        && (
+          request.auth.token.master_admin == true
+            || firestore.get(userProfilePath()).data.role == 'master'
+        );
+    }
+
     function userIsAdmin() {
       return request.auth != null
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
@@ -55,11 +69,11 @@ service firebase.storage {
       allow delete: if userIsAdmin();
     }
 
-    /** Logo e identidade visual (Admin → Identidade visual). Leitura pública para `<img>`. */
+    /** Logo e identidade global (`siteContent/branding`) ou por tenant na mesma pasta. Leitura pública. */
     match /siteBranding/{fileName} {
       allow read: if true;
-      allow create, update: if userIsAdmin() && isAdminImagePayload();
-      allow delete: if userIsAdmin();
+      allow create, update: if (userIsAdmin() || userIsMasterOperator()) && isAdminImagePayload();
+      allow delete: if userIsAdmin() || userIsMasterOperator();
     }
   }
 }
